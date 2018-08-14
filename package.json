@@ -9,7 +9,8 @@
   },
   "devDependencies": {
     "body-parser": "^1.18.3",
-    "express": "*"
+    "express": "*",
+    "express-validator": "*"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

@@ -1,0 +1,46 @@
+<div class="row">
+	<div class="col-md"></div>
+	<div class="col-md-6 pt-4 mx-auto pb-5">
+	<div class="card">
+		<div class="card-header bg-success text-light">
+			<div class="form-group row">
+				<h4 class="col-xl-4 card-title">National Account (A)</h4>
+				<label class="col-xl-2 col-form-label" for="docno">Doc Number</label><div class="col-xl-2"><input type="docnumber" value="<%= docno %>" class="form-control" readonly></div>
+				<label class="col-xl-1 pr-0 col-form-label" for="date">Date</label><div class="col-xl-3"><input type="text" value="<%= date %>" class="form-control" readonly></div>
+			</div>
+		</div>
+		<form>
+		<div class="card-body">
+			<h3 class="text-center mx-auto pb-4">Requirements</h3>
+			<div class="form-row pb-3">
+				<div class="col-xl-6">
+					<div class="form-row">
+						<label class="col-lg-4 col-form-label pb-3" for="card">Card Number:</label><div class="col-md-8"><input type="text" placeholder="CCR005 / CCR599" class="form-control" ></div>
+						<label class="col-lg-4 col-form-label pb-3" for="po">PO:</label><div class="col-md-8"><input type="text" placeholder="UNDER" class="form-control"></div>
+						<label class="col-lg-4 col-form-label pb-3" for="licst">License & State:</label><div class="col-md-8"><input type="text" placeholder="123ABC NY" class="form-control"></div>
+						
+					</div>
+				</div>
+					
+				<div class="col-xl-6">
+					<div class="form-row">
+						<label class="col-lg-4 col-form-label pb-3" for="authsvc">Authorized Service:</label><div class="col-md-8"><input type="text" placeholder="Total Parts+Labor" class="form-control"></div>
+						<label class="col-lg-4 col-form-label pb-3" for="odo">Odometer: </label><div class="col-md-8"><input type="text" placeholder="" class="form-control"></div>
+						<label class="col-lg-4 col-form-label pb-3" for="vin">VIN #:</label><div class="col-md-8"><input type="text" placeholder="All 17" class="form-control"></div>
+					
+					</div>
+				</div>
+				<div class="input-group">
+					<label class="col-lg-2 col-form-label input-group-prepend" for="other">Other:</label><div class="col-lg-8"><input type="text" class="form-control"></div>
+					<div class="col-lg-2 input-group-append"><button class="btn btn-warning" type="button">GS/AN</button></div>
+				</div>
+			</div>
+				<div class="text-center">
+					<a class="btn btn-primary" href="nabt">Back</a>		<a class="btn btn-secondary mx-3" href="#">Hold</a>		<a class="btn btn-primary" href="naver">Next</a>
+				</div>
+		</div>
+	</div>
+	</div>
+	<div class="col-md pr-0"></div>
+		</form>
+	</div>

@@ -1,0 +1,118 @@
+<% include partials/header.ejs %>
+
+<div class="row">
+        <div class="col">
+        <div class="col-md-6 pt-4 mx-auto pb-5">
+        <div class="card">
+            <div class="card-header bg-success text-light">
+                <form method="GET" action="/nabt">
+                <div class="form-group row">
+                    <h4 class="col-lg-4 card-title">National Account (A)</h4>
+                    <label class="col-lg-2 col-form-label" for="doc-no">Doc Number</label><div class="col-lg-2"><input type="text" name="docno" class="form-control"></div>
+                    <label class="col-lg-1 pr-0 col-form-label" for="date">Date</label><div class="col-lg-3"><input type="date" name="date" class="form-control"></div>
+                </div>
+            </div>
+            <div class="card-body">
+                    <div class="form-group row">
+                        <div class="col-lg-2"></div>
+                        <label for="na-no" class="col-lg-4 col-form-label">National Account Number</label>
+    
+                        <div class="col-lg-4">
+                            <input type="nanumber" class="form-control" id="na-no">
+                        </div>
+                        <div class="col-lg-2"></div>
+                    </div>
+                    <div class="form-group row pt-lg-3">
+                        <div class="col-lg-2"></div>
+                        <label for="bt-nonsig" class="col-lg-4 col-form-label">Bill To Nonsig/Name Search:</label>
+    
+                        <div class="col-lg-4">
+                            <input type="btnumber" class="form-control" id="bt-nonsig">
+                        </div>
+                        <div class="col-lg-2"></div>
+                    </div>
+                    <div class="form-group row pt-lg-3">
+                        <div class="col-lg-2"></div>
+                        <label for="st-nonsig" class="col-lg-4 col-form-label">Ship To Name Search:</label>
+                        <div class="col-lg-4">
+                            <input type="stnumber" class="form-control" id="st-nonsig">
+                        </div>
+                        <div class="col-lg-2"></div>
+                    </div>
+                    <div class="form-group row pt-lg-3">
+                        <div class="col-lg-2"></div>
+                        <label for="veh-type" class="col-lg-4 col-form-label">Vehicle Type</label>
+                            <div class="col-lg-4">
+                                <select class="form-control">
+                                    <option>AU - Auto</option>
+                                    <option>TK - Truck</option>
+                                    <option>TR - Trailer</option>
+                                    <option>ST - Stock</option>
+                                </select>
+                            </div>
+                            <div class="col-lg-2"></div>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="row">
+                        <div class="col"><h6 class="text-center">Delivery Information</h6></div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col"></div>
+                        <div class="col-lg-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="dr-type" id="standard-dr" value="option1" checked>
+                                <label class="form-check-label" for="standard-dr">
+                                    Standard
+                                </label>
+                            </div>
+                            
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="dr-type" id="correction-dr" value="option2">
+                                <label class="form-check-label" for="correction-dr">
+                                    Correction
+                                </label>
+                            </div>
+                            
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="dr-type" id="return-dr" value="option3">
+                                <label class="form-check-label" for="return-dr">
+                                    Return
+                                </label>
+                            </div>
+                            
+                        </div>
+                        
+                        <div class="col-lg-3">
+                            
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="fleethq" value="option4">
+                                <label class="form-check-label" for="fleethq">
+                                    Fleet HQ
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="adjustment" value="option5">
+                                <label calss="form-check-input" for="adjustment">
+                                    Adjustment
+                                </label>
+                            </div>
+                            
+                        </div>
+                    <div class="col"></div>
+                    </div>
+                    
+                    <div class="col text-center">
+                        <input class="btn btn-primary mx-auto text-light" type="Submit" value="Next">
+                    </div>
+                    
+                </form>
+            </div>
+            
+    
+        </div>
+        </div>
+        <div class="col"></div>
+        </div>
+    </div>
+
+<% include partials/footer %>

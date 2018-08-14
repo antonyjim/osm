@@ -1,0 +1,37 @@
+<% include partials/header %>
+
+    <div class="row">
+        <div class="col"></div>
+        <div class="col-lg-3">
+            <div class="card my-4">
+                <div class="card-title bg-success">
+                    <div class="card-header">
+                        You have successfully added <%= naData.Name %>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-10 mx-auto">
+                            <div class="header">
+                                Details
+                            </div>
+                            <% if (error == 2) { %>
+                                <div class="error">
+                                    This account has already been submitted. You can edit it here.
+                                </div>
+                            <% } else { %>
+                            <% for (var detail in naData) { %>
+                                <label class="col-form-label"><%=detail%></label>
+                                <input class="form-control" value="<%=naData[detail]%>" readonly>
+                            <% } %>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col"></div>
+    </div>
+
+
+<% include partials/footer %>
