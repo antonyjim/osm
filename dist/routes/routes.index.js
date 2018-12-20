@@ -1,0 +1,11 @@
+"use strict";
+exports.__esModule = true;
+var express_1 = require("express");
+var routes_api_index_1 = require("./api/routes.api.index");
+var routes_ui_index_1 = require("./ui/routes.ui.index");
+var routes_static_1 = require("./routes.static");
+var router = express_1.Router();
+exports.router = router;
+router.use('/public', routes_static_1.staticRoutes);
+router.use('/api', routes_api_index_1.apiRoutes);
+router.use('/', routes_ui_index_1.uiRoutes);
