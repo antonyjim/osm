@@ -8,16 +8,46 @@ USE `thq`;
 -- |Start Schema for site navigation         |
 -- +-----------------------------------------+
 
+CREATE TABLE `rolePermissions` (
+    `rpId` CHAR(36) NOT NULL,
+    `rpName` VARCHAR(20),
+    `rpLink` CHAR(36) NOT NULL,
+
+    PRIMARY KEY(`rpId`)
+);
+
 -- Store navigation through the site
 CREATE TABLE `navigation` (
     `navId` CHAR(36) NOT NULL, -- Unique id
     `navInnerText` VARCHAR(40) NOT NULL, -- Inner text of the <a> element
-    `navHref` VARCHAR(120) NOT NULL, -- Href of the <a> element
+    `navPathName` VARCHAR(120) NOT NULL, -- Href of the <a> element
+    `navQueryString` VARCHAR(120), -- Optional query string parameter
     `navHeader` VARCHAR(40), -- Header for link
     `navMenu` VARCHAR(40), -- Root navigation menu
     `navActive` BOOLEAN NOT NULL,
+    `navRole` CHAR(36), -- Role associated with link
 
-    PRIMARY KEY (`navId`)
+    PRIMARY KEY (`navId`),
+
+    FOREIGN KEY (`navRole`)
+        REFERENCES `rolePermissions`(`rpId`)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+);
+
+CREATE TABLE `navigationRoles` (
+    `nrRoleId` CHAR(36) NOT NULL,
+    `nrLink` CHAR(36) NOT NULL,
+
+    FOREIGN KEY(`nrRoleId`)
+        REFERENCES `rolePermissions`(`rpId`)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+
+    FOREIGN KEY(`nrLink`)
+        REFERENCES `navigation`(`navId`)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
 );
 
 -- Store permissions for users
@@ -25,14 +55,16 @@ CREATE TABLE `navigation` (
 -- Which view the user has of the site
 -- E.G. Admin, Canadian, US
 CREATE TABLE `siteViews` (
-    `svKey` CHAR(36) NOT NULL, -- Nonsignificant key
-    `svKeyword` VARCHAR(40) NOT NULL, -- Describe the view
-    `svLink` CHAR(36) NOT NULL, -- Link to the links,
+    `svUser` CHAR(36) NOT NULL, -- Describe the view
+    `svRole` CHAR(36) NOT NULL, -- Link to the links,
 
-    PRIMARY KEY(`svKey`),
+    FOREIGN KEY (`svRole`)
+        REFERENCES `rolePermissions`(`rpId`)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
 
-    FOREIGN KEY (`svLink`)
-        REFERENCES `navigation`(`navId`)
+    FOREIGN KEY (`svUser`)
+        REFERENCES `userRegistration`(`userId`)
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );

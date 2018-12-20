@@ -21,4 +21,8 @@ uiAccountRoutes.get('/myUsers', function(req: Request, res: Response) {
     
 })
 
+uiAccountRoutes.get('/navigation', function(req: Request, res: Response) {
+    
+})
+
 export { uiAccountRoutes }

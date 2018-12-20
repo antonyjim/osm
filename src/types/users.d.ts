@@ -41,4 +41,10 @@ export namespace UserTypes {
         userPhone: string
         userView: string
     }
+
+    interface AuthToken {
+        userId?: string;
+        userIsAuthenticated: boolean;
+        userRoles: Array<string>
+    }
 }

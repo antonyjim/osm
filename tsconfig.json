@@ -10,7 +10,8 @@
             "node",
             "express",
             "mysql",
-            "uuid"
+            "uuid",
+            "bcrypt"
         ]
     }, 
     "include" : [
