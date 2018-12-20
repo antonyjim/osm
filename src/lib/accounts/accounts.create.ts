@@ -7,8 +7,9 @@
 
 
 // NPM Modules
-import { createConnection } from 'mysql'
+import { createConnection, Connection } from 'mysql'
 import { sign } from 'jsonwebtoken'
+import { hash } from 'bcrypt'
 
 // Local Modules
 import { connectionSettings, jwtSecret } from './../connection'
@@ -18,7 +19,8 @@ import { sendConfirmation } from '../email/emails';
 
 
 // Constants and global variables
-const connection = createConnection(connectionSettings)
+const connection: Connection = createConnection(connectionSettings)
+const saltRounds:number = 10
 
 function newAccount(accountOpts: UserTypes.All): Promise<StatusMessage> {
     return new Promise((resolve, reject) => {
@@ -37,53 +39,72 @@ function newAccount(accountOpts: UserTypes.All): Promise<StatusMessage> {
                     }
                     reject(reason)
                 } else {
-                    connection.query(
-                        `INSERT INTO userRegistration
-                        (
-                            userId,
-                            userName, 
-                            userPass,
-                            userEmail,
-                            userNonsig,
-                            userIsLocked,
-                            userIsAdmin,
-                            userIsSuperAdmin,
-                            userAdministrator,
-                            userIsConfirmed,
-                        )
-                        VALUES
-                        (
-                            ${connection.escape({
-                                userId: this.userId,
-                                userName: this.userName,
-                                userPass: this.userPass,
-                                userEmail: this.userEmail,
-                                userNonsig: this.userNonsig,
-                                userIsLocked: false,
-                                userIsAdmin: this.userIsAdmin,
-                                userIsSuperAdmin: this.userIsSuperAdmin,
-                                userAdministrator: this.userAdministrator,
-                                userIsConfirmed: false
-                            })}
-                        )`,
-                        accountOpts,
-                        function(err: Error, results) {
-                            if (err) {throw err}
-                            let reason: StatusMessage = {
-                                error: false,
-                                message: 'User account created successfully'
+                    hash(this.userPass, saltRounds, function(hashed) {
+                        connection.query(
+                            `INSERT INTO userRegistration
+                            (
+                                userId,
+                                userName, 
+                                userPass,
+                                userEmail,
+                                userNonsig,
+                                userIsLocked,
+                                userIsAdmin,
+                                userIsSuperAdmin,
+                                userAdministrator,
+                                userIsConfirmed,
+                            )
+                            VALUES
+                            (
+                                ${connection.escape([
+                                    this.userId,
+                                    this.userName,
+                                    hashed,
+                                    this.userEmail,
+                                    this.userNonsig,
+                                    this.userIsLocked,
+                                    this.userIsAdmin,
+                                    this.userIsSuperAdmin,
+                                    this.userAdministrator,
+                                    false
+                                ])}
+                            );
+                            INSERT INTO userInformation
+                            (
+                                userId,
+                                userFIrstName,
+                                userLastName,
+                                userType,
+                                userPhone
+                            )
+                            VALUES (
+                                ${connection.escape([
+                                    this.userId, 
+                                    this.userFIrstName,
+                                    this.userLastName,
+                                    this.userType,
+                                    this.userPhone
+                                ])}
+                            )`,
+                            accountOpts,
+                            function(err: Error, results) {
+                                if (err) {throw err}
+                                let reason: StatusMessage = {
+                                    error: false,
+                                    message: 'User account created successfully'
+                                }
+                                let confirmationToken = sign({
+                                    userId: accountOpts.userId
+                                },
+                                jwtSecret,
+                                {
+                                    expiresIn: '30d'
+                                })
+                                sendConfirmation({userEmail: this.userEmail, confirmationToken})
+                                resolve(reason)
                             }
-                            let confirmationToken = sign({
-                                userId: accountOpts.userId
-                            },
-                            jwtSecret,
-                            {
-                                expiresIn: '30d'
-                            })
-                            sendConfirmation({userEmail: this.userEmail, confirmationToken})
-                            resolve(reason)
-                        }
-                    )
+                        )
+                    })
                 }
             }
         )

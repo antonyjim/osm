@@ -70,11 +70,11 @@ CREATE TABLE `userRegistration` (
     `userPass` VARCHAR(70) NOT NULL,
     `userEmail` VARCHAR(90) NOT NULL,
     `userNonsig` CHAR(36) NOT NULL,
-    `userIsLocked` BOOLEAN,
-    `userIsAdmin` BOOLEAN, -- Is the user an admin
-    `userIsSuperAdmin` BOOLEAN, -- Is the user a goodyear administrator
+    `userIsLocked` BOOLEAN NOT NULL,
+    `userIsAdmin` BOOLEAN NOT NULL, -- Is the user an admin
+    `userIsSuperAdmin` BOOLEAN NOT NULL, -- Is the user a goodyear administrator
     `userAdministrator` CHAR(36), -- If not, list the administrator
-    'userIsConfirmed' BOOLEAN, -- Test if user has confirmed their email
+    'userIsConfirmed' BOOLEAN NOT NULL, -- Test if user has confirmed their email
     'userConfirmationToken' VARCHAR(120), -- JWT Recieved in email
 
     PRIMARY KEY (`userId`),
