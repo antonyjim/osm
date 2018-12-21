@@ -12,24 +12,23 @@ import { sign } from 'jsonwebtoken'
 import { hash } from 'bcrypt'
 
 // Local Modules
-import { connectionSettings, jwtSecret } from './../connection'
+import { jwtSecret, getPool } from './../connection'
 import { UserTypes } from '../../types/users';
 import { StatusMessage } from '../../types/server';
 import { sendConfirmation } from '../email/emails';
 
 
 // Constants and global variables
-const connection: Connection = createConnection(connectionSettings)
+const pool = getPool()
 const saltRounds:number = 10
 
 function newAccount(accountOpts: UserTypes.All): Promise<StatusMessage> {
     return new Promise((resolve, reject) => {
-        connection.connect()
-        connection.query(
+        pool.query(
             `SELECT * 
             FROM userRegistration
-            WHERE userName = ${connection.escape(accountOpts.userName)}
-                OR userId = ${connection.escape(accountOpts.userId)}`,
+            WHERE userName = ${pool.escape(accountOpts.userName)}
+                OR userId = ${pool.escape(accountOpts.userId)}`,
             function(err: Error, results: Array<UserTypes.LoginInfo>) {
                 if (err) {throw err}
                 if (results.length > 0) {
@@ -40,7 +39,7 @@ function newAccount(accountOpts: UserTypes.All): Promise<StatusMessage> {
                     reject(reason)
                 } else {
                     hash(this.userPass, saltRounds, function(hashed) {
-                        connection.query(
+                        pool.query(
                             `INSERT INTO userRegistration
                             (
                                 userId,
@@ -56,7 +55,7 @@ function newAccount(accountOpts: UserTypes.All): Promise<StatusMessage> {
                             )
                             VALUES
                             (
-                                ${connection.escape([
+                                ${pool.escape([
                                     this.userId,
                                     this.userName,
                                     hashed,
@@ -78,7 +77,7 @@ function newAccount(accountOpts: UserTypes.All): Promise<StatusMessage> {
                                 userPhone
                             )
                             VALUES (
-                                ${connection.escape([
+                                ${pool.escape([
                                     this.userId, 
                                     this.userFIrstName,
                                     this.userLastName,

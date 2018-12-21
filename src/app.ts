@@ -8,6 +8,7 @@
 
 // NPM Modules
 import * as express from 'express'
+import * as morgan from 'morgan'
 
 // Local Modules
 import { router } from './routes/routes.index'
@@ -17,6 +18,7 @@ const app = express()
 const port = 8080
 
 // Routes
+app.use(morgan())
 app.use('/', router)
 
 app.listen(port, function() {

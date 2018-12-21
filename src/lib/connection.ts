@@ -7,19 +7,19 @@
 
 
 // NPM Modules
-import { ConnectionConfig } from 'mysql'
-import { TransportOptions } from 'nodemailer';
+import { Pool, PoolConfig, createPool } from 'mysql'
 
 
 // Local Modules
 
 
 // Constants and global variables
-const connectionSettings: ConnectionConfig = {
+const poolConfig: PoolConfig = {
     host    : 'localhost',
     user    : 'node',
     password: '0735f1c3-c220-4bd7-9c28-53a8945dbe6f',
-    database: 'thq'
+    database: 'thq',
+    connectionLimit: 1
 }
 
 const transporterSettings = {
@@ -33,4 +33,11 @@ const transporterSettings = {
 
 const jwtSecret = '33adcbf2-f404-482a-9ca6-6c1f091a7416'
 
-export { connectionSettings, transporterSettings, jwtSecret }
+let pool: Pool
+function getPool(): Pool {
+    if (pool) {return pool}
+    pool = createPool(poolConfig)
+    return pool
+}
+
+export { getPool, transporterSettings, jwtSecret }

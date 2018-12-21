@@ -4,6 +4,8 @@ export namespace NavigationSettings {
         navId?: string;
         navInnerText?: string;
         navHref?: string;
+        navPathName?: string;
+        navQueryString?: string;
         navHeader?: string;
         navMenu?: string;
         navActive?: string;
@@ -23,10 +25,8 @@ export namespace NavigationSettings {
     }
 }
 
-export namespace RoleSettings {
-    interface RolePermissions {
-        rpId?: string;
-        rpName?: string;
-        rpLink?: string;
-    }
+export interface RolePermissions {
+    rpId?: string;
+    rpName?: string;
+    rpLink?: string;
 }

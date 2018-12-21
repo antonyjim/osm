@@ -11,7 +11,6 @@ USE `thq`;
 CREATE TABLE `rolePermissions` (
     `rpId` CHAR(36) NOT NULL,
     `rpName` VARCHAR(20),
-    `rpLink` CHAR(36) NOT NULL,
 
     PRIMARY KEY(`rpId`)
 );
@@ -46,25 +45,6 @@ CREATE TABLE `navigationRoles` (
 
     FOREIGN KEY(`nrLink`)
         REFERENCES `navigation`(`navId`)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE
-);
-
--- Store permissions for users
- 
--- Which view the user has of the site
--- E.G. Admin, Canadian, US
-CREATE TABLE `siteViews` (
-    `svUser` CHAR(36) NOT NULL, -- Describe the view
-    `svRole` CHAR(36) NOT NULL, -- Link to the links,
-
-    FOREIGN KEY (`svRole`)
-        REFERENCES `rolePermissions`(`rpId`)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE,
-
-    FOREIGN KEY (`svUser`)
-        REFERENCES `userRegistration`(`userId`)
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
@@ -106,8 +86,9 @@ CREATE TABLE `userRegistration` (
     `userIsAdmin` BOOLEAN NOT NULL, -- Is the user an admin
     `userIsSuperAdmin` BOOLEAN NOT NULL, -- Is the user a goodyear administrator
     `userAdministrator` CHAR(36), -- If not, list the administrator
-    'userIsConfirmed' BOOLEAN NOT NULL, -- Test if user has confirmed their email
-    'userConfirmationToken' VARCHAR(120), -- JWT Recieved in email
+    `userIsConfirmed` BOOLEAN NOT NULL, -- Test if user has confirmed their email
+    `userConfirmationToken` VARCHAR(120), -- JWT Recieved in email
+    `userInvalidLoginAttempts` INT(1),
 
     PRIMARY KEY (`userId`),
 
@@ -163,6 +144,25 @@ CREATE TABLE `userAccess` (
     `accessId` INT(6) NOT NULL,
     `accessHref` VARCHAR(100),
     `accessInnerText` VARCHAR(30)
+);
+
+-- Store permissions for users
+ 
+-- Which view the user has of the site
+-- E.G. Admin, Canadian, US 
+CREATE TABLE `siteViews` (
+    `svUser` CHAR(36) NOT NULL, -- Describe the view
+    `svRole` CHAR(36) NOT NULL, -- Link to the links
+
+    FOREIGN KEY (`svUser`)
+        REFERENCES `userRegistration`(`userId`)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+        
+    FOREIGN KEY (`svRole`)
+        REFERENCES `rolePermissions`(`rpId`)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
 );
 
 -- +-----------------------------------------+

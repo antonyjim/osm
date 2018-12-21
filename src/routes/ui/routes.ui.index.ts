@@ -10,10 +10,11 @@
 import { Router } from 'express'
 
 // Local Modules
-
+import { uiAccountRoutes } from './routes.ui.accounts'
 
 // Constants and global variables
 const uiRoutes = Router()
 
+uiRoutes.use('/account', uiAccountRoutes)
 
 export { uiRoutes }

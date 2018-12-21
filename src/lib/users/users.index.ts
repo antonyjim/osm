@@ -7,18 +7,17 @@
 
 
 // NPM Modules
-import { createConnection, Connection } from 'mysql'
 import * as uuid from 'uuid'
 
 // Local Modules
-import { connectionSettings } from './../connection'
 import { UserTypes } from './../../types/users'
 import { Validation } from '../validation'
 import { StatusMessage } from '../../types/server';
 import { newAccount } from '../accounts/accounts.create';
+import { getPool } from '../connection';
 
 // Constants and global variables
-const connection: Connection = createConnection(connectionSettings)
+const pool = getPool()
 
 export class User {
     userOpt: UserTypes.All

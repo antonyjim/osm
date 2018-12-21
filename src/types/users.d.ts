@@ -9,8 +9,10 @@ export namespace UserTypes {
         userNonsig?: string;
         userIsLocked?: string;
         userIsAdmin?: string;
+        userIsConfirmed?: boolean;
         userIsSuperAdmin?: string;
         userAdministrator?: string;
+        userInvalidLoginAttempts?: number;
     }
 
     interface Information {
@@ -44,7 +46,12 @@ export namespace UserTypes {
 
     interface AuthToken {
         userId?: string;
-        userIsAuthenticated: boolean;
-        userRoles: Array<string>
+        userIsAuthenticated?: boolean;
+    }
+
+    interface Credentials {
+        userId?: string;
+        username?: string;
+        plaintextPassword?: string;
     }
 }
