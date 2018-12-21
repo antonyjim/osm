@@ -15,8 +15,8 @@ import * as cookieParser from 'cookie-parser'
 
 // Local Modules
 import { apiRoutes } from './api/index'
-import { uiRoutes } from './ui/routes.ui.index'
-import { staticRoutes } from './routes.static'
+import { uiRoutes } from './ui/index'
+import { staticRoutes } from './static'
 
 // Constants and global variables
 const router = Router()

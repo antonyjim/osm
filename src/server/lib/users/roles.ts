@@ -10,7 +10,7 @@
 
 
 // Local Modules
-import { getPool } from './../connection'
+import { getPool } from '../connection'
 import { RolePermissions } from '../../types/roles';
 import { StatusMessage } from '../../types/server';
 import { Validation } from '../validation';

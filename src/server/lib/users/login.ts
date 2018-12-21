@@ -11,7 +11,7 @@ import { compare } from 'bcrypt'
 import { sign } from 'jsonwebtoken'
 
 // Local Modules
-import { getPool, jwtSecret } from './../connection'
+import { getPool, jwtSecret } from '../connection'
 import { UserTypes } from '../../types/users'
 import { StatusMessage } from '../../types/server'
 

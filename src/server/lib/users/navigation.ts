@@ -11,7 +11,7 @@ import { EventEmitter } from 'events';
 import * as uuid from 'uuid'
 
 // Local Modules
-import { getPool } from './../connection'
+import { getPool } from '../connection'
 import { UserTypes } from '../../types/users';
 import { NavigationSettings } from '../../types/roles';
 import { Validation } from '../validation';

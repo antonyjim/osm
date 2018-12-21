@@ -27,6 +27,5 @@ export namespace NavigationSettings {
 
 export interface RolePermissions {
     rpId?: string;
-    rpName?: string;
-    rpLink?: string;
+    rpPriv?: string;
 }

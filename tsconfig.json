@@ -1,8 +1,9 @@
 {
     "compilerOptions": {
         "outDir": "dist/",
-        "rootDir" : "src/",
+        "rootDir" : "src/server",
         "removeComments": true,
+        "typeRoots": ["./src/types"],
         "lib" : [
             "es6"
         ],
@@ -11,7 +12,8 @@
             "express",
             "mysql",
             "uuid",
-            "bcrypt"
+            "bcrypt",
+            "jsonwebtoken"
         ]
     }, 
     "include" : [

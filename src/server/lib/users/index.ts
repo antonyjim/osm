@@ -10,7 +10,7 @@
 import * as uuid from 'uuid'
 
 // Local Modules
-import { UserTypes } from './../../types/users'
+import { UserTypes } from '../../types/users'
 import { Validation } from '../validation'
 import { StatusMessage } from '../../types/server';
 import { newAccount } from '../accounts/accounts.create';

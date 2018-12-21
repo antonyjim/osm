@@ -10,11 +10,19 @@
 import { Router } from 'express'
 
 // Local Modules
-import { uiAccountRoutes } from './routes.ui.accounts'
+import { uiAccountRoutes } from './accounts'
+import { homeRoutes } from './home'
+import { tokenValidation } from '../middleware/authentication'
 
 // Constants and global variables
 const uiRoutes = Router()
 
+uiRoutes.use(tokenValidation)
+uiRoutes.use('/', function(req, res) {
+    if (req.auth.isAuthenticated) {
+        
+    }
+})
 uiRoutes.use('/account', uiAccountRoutes)
 
 export { uiRoutes }

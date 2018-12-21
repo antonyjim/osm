@@ -13,7 +13,7 @@ import { Router, Request, Response } from 'express'
 
 // Local Modules
 import { ResponseMessage, StatusMessage } from '../../types/server';
-import { Login, getToken } from '../../lib/users/users.login';
+import { Login, getToken } from '../../lib/users/login';
 import { UserTypes } from '../../types/users';
 
 

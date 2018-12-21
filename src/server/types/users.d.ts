@@ -47,6 +47,7 @@ export namespace UserTypes {
     interface AuthToken {
         userId?: string;
         userIsAuthenticated?: boolean;
+        userRole?: string;
     }
 
     interface Credentials {

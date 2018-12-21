@@ -11,7 +11,7 @@ import * as express from 'express'
 import * as morgan from 'morgan'
 
 // Local Modules
-import { router } from './routes/routes.index'
+import { router } from './routes/index'
 
 // Constants and global variables
 const app = express()

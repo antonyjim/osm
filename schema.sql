@@ -9,8 +9,8 @@ USE `thq`;
 -- +-----------------------------------------+
 
 CREATE TABLE `rolePermissions` (
-    `rpId` CHAR(36) NOT NULL,
-    `rpName` VARCHAR(20),
+    `rpId` CHAR(36) NOT NULL, -- Role ID
+    `rpPriv` CHAR(36), -- Priviledge assigned to role
 
     PRIMARY KEY(`rpId`)
 );
@@ -19,33 +19,19 @@ CREATE TABLE `rolePermissions` (
 CREATE TABLE `navigation` (
     `navId` CHAR(36) NOT NULL, -- Unique id
     `navInnerText` VARCHAR(40) NOT NULL, -- Inner text of the <a> element
+    `navMethod` VARCHAR(6) NOT NULL, -- HTTP Request method
     `navPathName` VARCHAR(120) NOT NULL, -- Href of the <a> element
     `navQueryString` VARCHAR(120), -- Optional query string parameter
     `navHeader` VARCHAR(40), -- Header for link
     `navMenu` VARCHAR(40), -- Root navigation menu
     `navActive` BOOLEAN NOT NULL,
-    `navRole` CHAR(36), -- Role associated with link
+    `navPriv` CHAR(36), -- Role associated with link
 
     PRIMARY KEY (`navId`),
 
-    FOREIGN KEY (`navRole`)
-        REFERENCES `rolePermissions`(`rpId`)
+    FOREIGN KEY (`navPriv`)
+        REFERENCES `rolePermissions`(`rpPriv`)
         ON DELETE RESTRICT
-        ON UPDATE CASCADE
-);
-
-CREATE TABLE `navigationRoles` (
-    `nrRoleId` CHAR(36) NOT NULL,
-    `nrLink` CHAR(36) NOT NULL,
-
-    FOREIGN KEY(`nrRoleId`)
-        REFERENCES `rolePermissions`(`rpId`)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE,
-
-    FOREIGN KEY(`nrLink`)
-        REFERENCES `navigation`(`navId`)
-        ON DELETE CASCADE
         ON UPDATE CASCADE
 );
 
