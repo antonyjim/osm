@@ -14,7 +14,7 @@ import * as cookieParser from 'cookie-parser'
 
 
 // Local Modules
-import { apiRoutes } from './api/routes.api.index'
+import { apiRoutes } from './api/index'
 import { uiRoutes } from './ui/routes.ui.index'
 import { staticRoutes } from './routes.static'
 
