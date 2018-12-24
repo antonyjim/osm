@@ -20,14 +20,60 @@ import uuid = require('uuid');
 const pool = getPool()
 
 export class Roles {
-    role: RolePermissions
+    role?: RolePermissions
 
     /**
      * Requested role may be a role that is being added or modified
      * @param requestedRole
      */
-    constructor(requestedRole: RolePermissions) {
+    constructor(requestedRole?: RolePermissions) {
         this.role = requestedRole
+    }
+
+    public get(): Promise<StatusMessage> {
+        return new Promise((resolve, reject) => {
+            let sql: string = ''
+            if (this.role) {
+                sql = `
+                    SELECT *
+                    FROM rolePermissions
+                    WHERE rpId = ${pool.escape(this.role)}
+                `
+            } else {
+                sql = `
+                    SELECT 
+                        rolepermissions.*, 
+                        privdescriptions.* 
+                    FROM 
+                        rolepermissions 
+                    INNER JOIN 
+                        privdescriptions 
+                    ON 
+                        rolepermissions.rpPriv = privdescriptions.pdpriv
+                `
+            }
+            pool.query(sql, (err: Error, results) => {
+                if (err) {
+                    throw {
+                        error: true,
+                        message: err
+                    }
+                 } else {
+                    if (results.length > 0) {
+                        resolve({
+                            error: false,
+                            message: 'Found roles',
+                            details: results
+                        })
+                    } else {
+                        reject({
+                            error: true,
+                            message: 'Found no roles'
+                        })
+                    }
+                 }
+            })
+        })
     }
 
     /**
@@ -53,9 +99,19 @@ export class Roles {
                     })
                 } else {
                     let roleToBeAdded = validator.defaults({
-                        rpId: uuid.v4()
+                        rpId: uuid.v4(),
+                        rpDesc: ''
                     })
                     let sql = `
+                        CALL thq.addRole(
+                            ${pool.escape(
+                                [
+                                    roleToBeAdded.rpId,
+                                    roleToBeAdded.rpName,
+                                    roleToBeAdded.rpDesc
+                                ]
+                            )}
+                        )
                         INSERT INTO rolePermissions
                             rpId,
                             rpName

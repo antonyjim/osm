@@ -30,7 +30,8 @@ declare global {
                 isAuthenticated?: boolean,
                 isAuthorized?: boolean,
                 userId?: string,
-                role?: string
+                userRole?: string,
+                token?: string
             }
         }
     }

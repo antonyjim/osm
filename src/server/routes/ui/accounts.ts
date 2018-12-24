@@ -15,18 +15,24 @@ import { Router, Request, Response } from 'express'
 import { ResponseMessage, StatusMessage } from '../../types/server'
 import { Login, getToken } from '../../lib/users/login'
 import { UserTypes } from '../../types/users'
+import { getRoleAuthorizedNavigation } from '../../lib/navigation/navigation';
 
 
 // Constants and global variables
 const uiAccountRoutes: Router = Router()
 let responseBody: ResponseMessage
 
-uiAccountRoutes.get('/myUsers', function(req: Request, res: Response) {
-    
-})
-
 uiAccountRoutes.get('/navigation', function(req: Request, res: Response) {
-    
+    console.log(JSON.stringify(req.auth))
+    getRoleAuthorizedNavigation(req.auth.userRole)
+    .then((onResolved: StatusMessage) => {
+        res.status(200).json(onResolved)
+    }, (onFailure: StatusMessage) => {
+        res.status(200).json(onFailure)
+    })
+    .catch((err: StatusMessage) => {
+        res.status(200).json(err)
+    })
 })
 
 uiAccountRoutes.post('/login', function(req: Request, res: Response) {
@@ -38,14 +44,14 @@ uiAccountRoutes.post('/login', function(req: Request, res: Response) {
                 userIsAuthenticated: true,
                 userId: onUserAuthenticated.details.userId
             }
-            res.set('Authorization', `JWT ${getToken(tokenPayload)}`)
+            res.set('Authorization', `Bearer ${getToken(tokenPayload)}`)
             res.status(200).json(responseBody)
         }, (onUserNotAuthenticated: StatusMessage) => {
             responseBody = {
                 error: true,
                 message: onUserNotAuthenticated.message
             }
-            res.set('Authorization', `JWT ${getToken()}`)
+            res.set('Authorization', `Bearer ${getToken()}`)
             res.status(200).json(responseBody)
         })
         .catch((err: StatusMessage) => {
@@ -54,7 +60,7 @@ uiAccountRoutes.post('/login', function(req: Request, res: Response) {
                 error: true,
                 errorMessage: err.message
             }
-            res.set('Authorization', `JWT ${getToken()}`)
+            res.set('Authorization', `Bearer ${getToken()}`)
             res.status(200).json(responseBody)
         })
     } else {
@@ -63,7 +69,7 @@ uiAccountRoutes.post('/login', function(req: Request, res: Response) {
             errorMessage: 'Invalid username or password',
             message: 'Invalid username or password'
         }
-        res.set('Authorization', `JWT ${getToken()}`)
+        res.set('Authorization', `Bearer ${getToken()}`)
         res.status(200).json(responseBody)
     }
 })

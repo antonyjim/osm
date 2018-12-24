@@ -29,8 +29,8 @@ export class Login {
     }
 
     private validatePassword(hashed): Promise<boolean> {
-        return new Promise(function(resolve) {
-            compare(this.credentials.password, hashed, function(err: Error, same: boolean) {
+        return new Promise((resolve) => {
+            compare(this.credentials.plaintextPassword, hashed, function(err: Error, same: boolean) {
                 if (err) {throw {error: true, message: 'Password error', details: err}}
                 resolve(same)
             })
@@ -58,21 +58,13 @@ export class Login {
     }
 
     public authenticate(): Promise<StatusMessage> {
-        return new Promise(function(resolve, reject) {
+        return new Promise((resolve, reject) => {
             let sql = `
-                SELECT userId,
-                       userName, 
-                       userPass,
-                       userEmail,
-                       userIsConfirmed,
-                       userIsAdmin,
-                       userIsLocked,
-                       userInvalidLoginAttempts,
-                       userNonsig
-                FROM userRegistration
-                WHERE userName = ${pool.escape(this.credentials.userName)}
+                SELECT *
+                FROM userLogin
+                WHERE userName = ${pool.escape(this.credentials.username)}
             `
-            pool.query(sql, function(err: Error, users: Array<UserTypes.LoginInfo>) {
+            pool.query(sql, (err: Error, users: Array<UserTypes.LoginInfo>) => {
                 if (err) {throw {error: true, message: 'SQL Error', details: err}}
                 if (users.length === 1) {
                     let user = users[0]
@@ -86,7 +78,17 @@ export class Login {
                             error: true,
                             message: 'User account locked. Please click on forgot password'
                         })
-                    } else if (user.userIsConfirmed && !user.userIsLocked && user.userInvalidLoginAttempts < 5) {
+                    } else if (!user.nsIsActive) {
+                        reject({
+                            error: true,
+                            message: 'Nonsig inactive'
+                        })
+                    } else if (
+                        user.userIsConfirmed 
+                        && !user.userIsLocked 
+                        && user.userInvalidLoginAttempts < 5
+                        && user.nsIsActive 
+                    ) {
                         this.validatePassword(user.userPass)
                         .then((same: boolean) => {
                             if (same) {
@@ -94,7 +96,8 @@ export class Login {
                                     userId: user.userId,
                                     userEmail: user.userEmail,
                                     userIsAdmin: user.userIsAdmin,
-                                    userNonsig: user.userNonsig
+                                    userNonsig: user.userNonsig,
+                                    userRole: user.userRole
                                 }
                                 resolve({
                                     error: false,

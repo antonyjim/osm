@@ -13,6 +13,10 @@ export namespace UserTypes {
         userIsSuperAdmin?: string;
         userAdministrator?: string;
         userInvalidLoginAttempts?: number;
+        userRole?: string;
+        nsId?: string;
+        nsIsActive?: boolean;
+        nsType?: string;
     }
 
     interface Information {
@@ -26,28 +30,30 @@ export namespace UserTypes {
     }
 
     interface All {
-        userId?: string
-        userName?: string
-        userPass?: string
-        userEmail?: string
-        userNonsig?: string
-        userIsLocked?: string
-        userIsAdmin?: string
-        userIsSuperAdmin?: string
-        userAdministrator?: string
-        userLastLogin?: Date
-        userLastPasswordChange?: Date
-        userFirstName?: string
-        userLastName?: string
-        userType?: number
-        userPhone: string
-        userView: string
+        userId?: string;
+        userName?: string;
+        userPass?: string;
+        userEmail?: string;
+        userNonsig?: string;
+        userIsLocked?: string;
+        userIsAdmin?: string;
+        userIsSuperAdmin?: string;
+        userAdministrator?: string;
+        userLastLogin?: Date;
+        userLastPasswordChange?: Date;
+        userFirstName?: string;
+        userLastName?: string;
+        userType?: number;
+        userPhone?: string;
+        userView?: string;
+        userIsConfirmed?: boolean;
     }
 
     interface AuthToken {
         userId?: string;
         userIsAuthenticated?: boolean;
         userRole?: string;
+        token?: string;
     }
 
     interface Credentials {

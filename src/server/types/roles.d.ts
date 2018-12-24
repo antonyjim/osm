@@ -9,7 +9,9 @@ export namespace NavigationSettings {
         navHeader?: string;
         navMenu?: string;
         navActive?: string;
-        navRole?: string;
+        navPriv?: string;
+        navIsNotApi?: boolean;
+        navMethod?: string;
     }
 
     // Reference `navigationRoles` table
@@ -22,6 +24,11 @@ export namespace NavigationSettings {
     interface Menus {
         navMenu: string;
         navHeaders: Array<string>;
+    }
+
+    interface GUI {
+        menus: Array<Menus>;
+        links: Array<Links>
     }
 }
 

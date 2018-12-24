@@ -26,7 +26,11 @@ export function tokenValidation() {
             userId: null,
             userRole: null
         }
-        let authorizationHeader = req.get('Authorization')
+        let tokenCookie = req.cookies.token || req.query.token
+        if (tokenCookie) {
+            tokenCookie = tokenCookie.split('Bearer ')[1] || tokenCookie.split('Bearer ')[0]
+        }
+        req.auth = {}
 
         function handleOnAuthError(error: Error) {
             req.auth = {
@@ -37,14 +41,19 @@ export function tokenValidation() {
             console.error(error)
             next()
         }
-        if (!authorizationHeader) {
+        if (!tokenCookie) {
             sign(anonToken, jwtSecret, {expiresIn: '1h'}, function(err: Error, token: string) {
                 if (err) {handleOnAuthError(err)}
-                res.set('Authorization', token)
+                req.auth = {
+                    isAuthenticated: false,
+                    isAuthorized: false,
+                    userId: null
+                }
+                res.cookie('token', `Bearer ${token}`)
                 next()
             })
         } else {
-            verify(authorizationHeader, jwtSecret, function(err: Error, decoded: UserTypes.AuthToken) {
+            verify(tokenCookie, jwtSecret, function(err: Error, decoded: UserTypes.AuthToken) {
                 if (err) {handleOnAuthError(err)}
                 let authToken: UserTypes.AuthToken = {
                     userIsAuthenticated: true,
@@ -53,7 +62,13 @@ export function tokenValidation() {
                 }
                 sign(authToken, jwtSecret, function(err: Error, token: string) {
                     if (err) {handleOnAuthError(err)}
-                    res.set('Authorization', token)
+                    req.auth = {
+                        isAuthenticated: true,
+                        isAuthorized: false,
+                        userId: decoded.userId,
+                        userRole: decoded.userRole
+                    }
+                    res.cookie('token', `Bearer ${token}`)
                     next()
                 })
             })
@@ -65,19 +80,29 @@ export function endpointAuthentication() {
     return function endpointAuthentication(req: Request, res: Response, next: NextFunction) {
         if (!req.auth || !req.auth.isAuthenticated || !req.auth.userId) {
             req.auth.isAuthorized = false
+            res.status(401).json({
+                error: true,
+                message: 'User unauthenticated'
+            })
         } else {
-            validateEndpoint(req.method, req.path, req.auth.role)
+            validateEndpoint(req.method, req.originalUrl, req.auth.userRole)
             .then((onUserAuthorized: StatusMessage) => {
                 req.auth.isAuthorized = onUserAuthorized.details.authorized
                 next()
             }, (onUserUnAuthorized: StatusMessage) => {
                 req.auth.isAuthorized = onUserUnAuthorized.details.authorized
-                next()
+                res.status(401).json({
+                    error: true,
+                    message: 'User unauthorized with current privileges'
+                })
             })
             .catch((error: StatusMessage) => {
                 console.error(error)
                 req.auth.isAuthorized = false
-                next()
+                res.status(401).json({
+                    error: true,
+                    message: 'User authorization failed'
+                })
             })
         }
     }

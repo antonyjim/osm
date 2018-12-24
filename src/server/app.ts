@@ -15,10 +15,10 @@ import { router } from './routes/index'
 
 // Constants and global variables
 const app = express()
-const port = 8080
+const port = 8085
 
 // Routes
-app.use(morgan())
+app.disable('x-powered-by')
 app.use('/', router)
 
 app.listen(port, function() {
