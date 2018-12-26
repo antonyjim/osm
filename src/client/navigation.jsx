@@ -77,6 +77,9 @@ class Navigation extends Component {
     getNav() {
         fetchLogin(this.props.token)
         .then(navigation => {
+            if (navigation.error) {
+                
+            }
             this.setState({nav: navigation})
         })
         .catch(err => {
@@ -99,9 +102,9 @@ class Navigation extends Component {
             })
             return (
                 <nav className="navbar navbar-expand-lg bg-goodyear">
-                    <a className="navbar-brand" href="/">
+                    <Link className="navbar-brand" to="/">
                         <img src="/public/images/logo.png" height="60px"></img>
-                    </a>
+                    </Link>
                     <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNav" aria-controls="main-nav" aria-expanded="false" aria-label="Toggle navigation">
                         <span className="navbar-toggler-icon"></span>
                     </button>
@@ -122,6 +125,7 @@ class Navigation extends Component {
                                             <a className="dropdown-item" href="#">User Admin</a>
                                             <a className="dropdown-item" href="#">Change Password</a>
                                             <a className="dropdown-item" href="#">French</a>
+                                            <a className="dropdown-item" href="/logout">Logout</a>
                                         </div>
                                 </li>
                             </ul>

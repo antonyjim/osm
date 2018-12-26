@@ -14,6 +14,7 @@ import { sign } from 'jsonwebtoken'
 import { getPool, jwtSecret } from '../connection'
 import { UserTypes } from '../../types/users'
 import { StatusMessage } from '../../types/server'
+import { LoginException } from '../utils';
 
 // Constants and global variables
 const pool = getPool()
@@ -30,9 +31,14 @@ export class Login {
 
     private validatePassword(hashed): Promise<boolean> {
         return new Promise((resolve) => {
-            compare(this.credentials.plaintextPassword, hashed, function(err: Error, same: boolean) {
-                if (err) {throw {error: true, message: 'Password error', details: err}}
-                resolve(same)
+            
+            compare(this.credentials.password, hashed, function(err: Error, same: boolean) {
+                if (err) {
+                    console.log(JSON.stringify(err))
+                    throw new LoginException('Password error', JSON.stringify(err))
+                } else {
+                    resolve(same)
+                }
             })
         })
     }
@@ -92,17 +98,20 @@ export class Login {
                         this.validatePassword(user.userPass)
                         .then((same: boolean) => {
                             if (same) {
-                                user = {
+                                let authenticatedUser = {
                                     userId: user.userId,
                                     userEmail: user.userEmail,
                                     userIsAdmin: user.userIsAdmin,
                                     userNonsig: user.userNonsig,
                                     userRole: user.userRole
                                 }
+                                if (user.userInvalidLoginAttempts > 0) {
+                                    this.clearInvalidLogins(user.userId)
+                                }
                                 resolve({
                                     error: false,
                                     message: 'Login Accepted',
-                                    details: user
+                                    details: authenticatedUser
                                 })
                             } else {
                                 this.incrementInvalidLogins(user.userId)
@@ -113,7 +122,7 @@ export class Login {
                             }
                         })
                         .catch((err: StatusMessage) => {
-                            console.error(err)
+                            console.error(JSON.stringify(err))
                             reject(err)
                         })
                     } else {
@@ -124,6 +133,7 @@ export class Login {
                         })
                     }
                 } else {
+                    console.log(JSON.stringify(users))
                     reject({
                         error: true,
                         message: 'Invalid username or password'

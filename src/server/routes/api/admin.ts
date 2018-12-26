@@ -29,6 +29,16 @@ adminRoutes.get('/getRoles', function(req, res) {
     })
 })
 
+adminRoutes.get('/getPrivs', function(req, res) {
+    new Roles().getPrivs()
+    .then((privs) => {
+        res.status(200).json(privs)
+    })
+    .catch((err) => {
+        res.status(200).json(err)
+    })
+})
+
 adminRoutes.get('/getRoute', function(req, res) {
     let route = req.query.route || req.body.route
     if (!route) {
@@ -47,6 +57,10 @@ adminRoutes.get('/getRoute', function(req, res) {
             res.status(200).json(err)
         })
     }
+})
+
+adminRoutes.get('/getAllRoutes', function(req, res) {
+        new Navigation().getAllLinks() 
 })
 
 adminRoutes.post('/addRoute', function(req, res) {

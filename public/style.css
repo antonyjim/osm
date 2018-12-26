@@ -53,3 +53,11 @@ background-color: #fd0;
 .error-code {
     font-size : 10em;
 }
+
+.tab-page {
+    display: none;
+}
+
+.tab-page.active {
+    display: block;
+}

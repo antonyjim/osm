@@ -30,6 +30,29 @@ export class Roles {
         this.role = requestedRole
     }
 
+    public getPrivs(): Promise<StatusMessage> {
+        return new Promise((resolve, reject) => {
+            let sql = `
+                SELECT DISTINCT rpPriv
+                FROM rolePermissions
+            `
+            pool.query(sql, (err: Error, results) => {
+                if (err) {
+                    throw {
+                        error: true,
+                        message: err
+                    }
+                 } else {
+                    resolve({
+                        error: false,
+                        message: 'Retrieved roles',
+                        details: results
+                    })
+                 }
+            })
+        })
+    }
+
     public get(): Promise<StatusMessage> {
         return new Promise((resolve, reject) => {
             let sql: string = ''

@@ -16,7 +16,7 @@ export interface ResponseMessage {
     error: boolean;
     errorMessage?: string;
     message?: string;
-    payload?: any;
+    details?: any;
 }
 
 export interface Response extends express.Response {

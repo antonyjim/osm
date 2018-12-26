@@ -4,16 +4,18 @@ class Tabs extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            selectedIndex: 0,
+            selectedTab: 'tab0',
             tabs: props.tabs
         }
     }
 
-    onSelection(index) {
-        this.setState({selectedIndex: index})
+    onSelection(tab, e) {
+        console.log('Setting selectedTab to ', tab)
+        this.setState({selectedTab: tab})
     }
 
     render() {
+        console.log('Selected tab is ', this.state.selectedTab)
         let tabs = []
         let pages = []
         if (this.props.tabs) {
@@ -21,18 +23,21 @@ class Tabs extends Component {
             this.props.tabs.forEach(tab => {
                 tabs.push(<Tab
                             key={"tab" + key} 
-                            onClick={() => {this.onSelection(key)}}
-                            selectedTab={"tab" + this.state.selectedIndex}
+                            onClick={this.onSelection.bind(this, "tab" + key)}
+                            selectedTab={this.state.selectedTab}
                             title={tab.title}
+                            thisKey={"tab" + key}
                             />)
                 pages.push(<TabPage
-                                key={"tabPage" + key}
+                                key={"pagetab" + key}
                                 component={tab.component}
-                                selectedPage={"tabPage" + this.state.selectedIndex}
+                                selectedPage={"pagetab" + this.state.selectedTab}
+                                isHidden={!("page" + this.state.selectedTab === "pagetab" + key)}
                             />)
+                key++
             })
             return (
-                <div>
+                <div className="mt-1 ml-1">
                     <ul className="nav nav-tabs">
                         {tabs}
                     </ul>
@@ -54,15 +59,14 @@ class Tab extends Component {
     }
 
     render() {
-        let classes = ''
-        if (this.props.selectedTab === this.key) {
-            classes = 'nav-link active'
-        } else {
-            classes = 'nav-link'
-        }
         return (
-            <li className={classes}>
-                <a className="nav-link" href="#">{this.props.title}</a>
+            <li className="nav-item" id={this.props.thisKey} onClick={this.props.onClick}>
+                <a 
+                    className={this.props.selectedTab !== this.props.thisKey ? 'nav-link' : 'nav-link active'} 
+                    href="#" 
+                >
+                    {this.props.title}
+                </a>
             </li>
         )
     }
@@ -74,10 +78,7 @@ class TabPage extends Component {
     }
     
     render() {
-        let className = ''
-        if (this.props.selectedPage === this.key) {
-            className = 'active'
-        }
+        let className = this.props.isHidden ? 'tab-page' : 'tab-page active'
         return React.createElement(this.props.component, {className})
     }
 }

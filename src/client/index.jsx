@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { render } from 'react-dom'
-import { BrowserRouter as Router, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 import { Navigation } from './navigation.jsx'
 import { Footer } from './common/footer.jsx'
 import { Dashboard } from './common/dashboard.jsx'
@@ -12,10 +12,13 @@ const TokenContext = React.createContext()
 class App extends Component {
     constructor(props) {
         super(props)
+        let token = new URLSearchParams(window.location.href.split('?')[1]).get('token')
         this.state = {
-            token: new URLSearchParams(window.location.href.split('?')[1]).get('token')
+            token
         }
-        document.cookie = new URLSearchParams(window.location.href.split('?')[1]).get('token')
+        if (token) {
+            history.pushState({loaded: true}, 'Tire-HQ', '/')
+        }
     }
 
     render() {
@@ -24,8 +27,11 @@ class App extends Component {
                 <Router>
                     <div>
                         <Navigation token={this.state.token}/>
-                        <Route exact path="/" component={Dashboard}></Route>
-                        <Route exact path="/admin/navroles/" component={AdminWireFrame} />
+                        <Switch>
+                            <Route exact path="/" component={Dashboard}></Route>
+                            <Route path="/admin/navroles/" component={AdminWireFrame} />
+                            <Route component={E404}/>
+                        </Switch>
                         <Footer />
                     </div>
                 </Router>

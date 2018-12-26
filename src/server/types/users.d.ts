@@ -59,6 +59,6 @@ export namespace UserTypes {
     interface Credentials {
         userId?: string;
         username?: string;
-        plaintextPassword?: string;
+        password?: string;
     }
 }

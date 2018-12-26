@@ -24,7 +24,7 @@ const apiRoutes = Router()
 
 apiRoutes.get('/getToken', function(req, res) {
     if (req.query.username && req.query.password) {
-        new Login({username: req.query.username, plaintextPassword: req.query.password}).authenticate()
+        new Login({username: req.query.username, password: req.query.password}).authenticate()
         .then((onSuccessfulAuthentication: StatusMessage) => {
             sign(onSuccessfulAuthentication.details, jwtSecret, function(err: Error, token: string) {
                 res.status(200).json({

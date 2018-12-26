@@ -14,3 +14,8 @@
 
 // Constants and global variables
 
+export function LoginException(message: string, details?: string) {
+    this.message = message
+    this.details = details
+    this.error = true
+}

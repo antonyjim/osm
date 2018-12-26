@@ -28,7 +28,7 @@ export function tokenValidation() {
         }
         let tokenCookie = req.cookies.token || req.query.token
         if (tokenCookie) {
-            tokenCookie = tokenCookie.split('Bearer ')[1] || tokenCookie.split('Bearer ')[0]
+            tokenCookie = tokenCookie.split('Bearer ')[1] || tokenCookie
         }
         req.auth = {}
 
@@ -39,7 +39,16 @@ export function tokenValidation() {
                 userId: null
             }
             console.error(error)
-            next()
+            sign(anonToken, jwtSecret, {expiresIn: '1h'}, function(err: Error, token: string) {
+                if (err) {handleOnAuthError(err)}
+                req.auth = {
+                    isAuthenticated: false,
+                    isAuthorized: false,
+                    userId: null
+                }
+                res.cookie('token', token)
+                next()
+            })
         }
         if (!tokenCookie) {
             sign(anonToken, jwtSecret, {expiresIn: '1h'}, function(err: Error, token: string) {
@@ -49,28 +58,33 @@ export function tokenValidation() {
                     isAuthorized: false,
                     userId: null
                 }
-                res.cookie('token', `Bearer ${token}`)
+                res.cookie('token', token)
                 next()
             })
         } else {
             verify(tokenCookie, jwtSecret, function(err: Error, decoded: UserTypes.AuthToken) {
                 if (err) {handleOnAuthError(err)}
-                let authToken: UserTypes.AuthToken = {
-                    userIsAuthenticated: true,
-                    userId: decoded.userId,
-                    userRole: decoded.userRole
-                }
-                sign(authToken, jwtSecret, function(err: Error, token: string) {
-                    if (err) {handleOnAuthError(err)}
-                    req.auth = {
-                        isAuthenticated: true,
-                        isAuthorized: false,
+                if (decoded) {
+                    let authToken: UserTypes.AuthToken = {
+                        userIsAuthenticated: true,
                         userId: decoded.userId,
                         userRole: decoded.userRole
                     }
-                    res.cookie('token', `Bearer ${token}`)
-                    next()
-                })
+                    sign(authToken, jwtSecret, {expiresIn: '1h'}, function(err: Error, token: string) {
+                        if (err) {handleOnAuthError(err)}
+                        req.auth = {
+                            isAuthenticated: true,
+                            isAuthorized: false,
+                            userId: decoded.userId,
+                            userRole: decoded.userRole
+                        }
+                        console.log(JSON.stringify(decoded))
+                        res.cookie('token', token)
+                        next()
+                    })
+                } else {
+                    handleOnAuthError(new Error('Decoded value not found'))
+                }
             })
         }
     }
