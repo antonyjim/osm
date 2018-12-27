@@ -60,7 +60,7 @@ adminRoutes.get('/getRoute', function(req, res) {
 })
 
 adminRoutes.get('/getAllRoutes', function(req, res) {
-        new Navigation().getAllLinks() 
+        new Navigation({}).getAllLinks() 
 })
 
 adminRoutes.post('/addRoute', function(req, res) {

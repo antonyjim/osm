@@ -20,7 +20,7 @@ const pool = getPool()
 
 export function getRoleAuthorizedNavigation(roleId: string): Promise<StatusMessage> {
     return new Promise((resolve, reject) => {
-        if (roleId && roleId.length === 36) {
+        if (roleId) {
             let navigation = `
                 SELECT *
                 FROM thq.uiNavigation
@@ -63,19 +63,12 @@ export function validateEndpoint(method, endpoint, role): Promise<StatusMessage>
         console.log('Searching for method %s, endpoint %s role %s', method, endpoint, role)
         if (method && endpoint && role) {
             let sqlStatement = `
-                SELECT *
-                FROM
-                    endPointValidation
-                WHERE 
-                    rpId = ${pool.escape(role)}
-                AND
-                    navPathName = ${pool.escape(endpoint.split('?')[0])}
-                AND
-                    navMethod = ${pool.escape(method)}
+                SELECT endpointValidation(${pool.escape([role, endpoint.split('?')[0], method])})
             `
             console.log(sqlStatement)
             pool.query(sqlStatement, function(err: Error, results: Array<RolePermissions>) {
                 if (err) {throw {error: true, message: err}}
+                console.log(JSON.stringify(results))
                 if (results.length === 1) {
                     resolve({
                         error: false,

@@ -12,7 +12,7 @@ CREATE TABLE rolePermissions (
     rpId CHAR(36) NOT NULL, -- Role ID
     rpPriv VARCHAR(36), -- Priviledge assigned to role
     
-    INDEX (rpPriv, rpId),
+    PRIMARY KEY (rpPriv, rpId),
 
     FOREIGN KEY (rpPriv)
         REFERENCES privDescriptions(pdPriv)
@@ -29,7 +29,6 @@ CREATE TABLE privDescriptions (
 
 -- Store navigation through the site
 CREATE TABLE navigation (
-    navId CHAR(36) NOT NULL, -- Unique id
     navInnerText VARCHAR(40) NOT NULL, -- Inner text of the <a> element
     navMethod VARCHAR(6) NOT NULL DEFAULT 'GET', -- HTTP Request method
     navPathName VARCHAR(120) NOT NULL, -- Href of the <a> element
@@ -40,7 +39,7 @@ CREATE TABLE navigation (
     navPriv VARCHAR(36), -- Priv associated with link
     navIsNotApi BOOLEAN NOT NULL, -- Whether or not the route is an api
 
-    PRIMARY KEY (navId),
+    PRIMARY KEY (navMethod, navPathName),
 
     FOREIGN KEY (navPriv)
         REFERENCES rolePermissions(rpPriv)
@@ -54,9 +53,8 @@ CREATE TABLE navigation (
 
 -- This data will not be tied to any one user account
 CREATE TABLE nsInfo (
-    nsId CHAR(36) NOT NULL,
+    nsNonsig BINARY(9) NOT NULL,
     nsTradeStyle VARCHAR(100) NOT NULL,
-    nsNonsig INT(9) NOT NULL UNIQUE,
     nsAddr1 VARCHAR(40),
     nsAddr2 VARCHAR(40),
     nsCity VARCHAR(40),
@@ -68,12 +66,29 @@ CREATE TABLE nsInfo (
     nsIsActiveTHQ BOOLEAN DEFAULT 1,
     nsType CHAR(3),
 
-    PRIMARY KEY (nsId)
+    PRIMARY KEY (nsNonsig)
 );
 
 -- +-----------------------------------------+
 -- |Start Document Schema for Users          |
 -- +-----------------------------------------+
+
+CREATE TABLE nsAccess (
+    nsaUserId CHAR(36) NOT NULL,
+    nsaNonsig BINARY(9) NOT NULL,
+    nsaRole CHAR(7) NOT NULL,
+    nsaIsAdmin BOOLEAN NOT NULL DEFAULT FALSE,
+
+    FOREIGN KEY (nsaNonsig)
+        REFERENCES nsInfo(nsNonsig)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+
+    FOREIGN KEY (nsaRole)
+        REFERENCES rolePermissions(rpId)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+);
 
 -- Keep this table to a minimum, only to be used for login, password reset
 CREATE TABLE userRegistration (
@@ -81,7 +96,6 @@ CREATE TABLE userRegistration (
     userName VARCHAR(36) NOT NULL UNIQUE,
     userPass VARCHAR(70) NOT NULL,
     userEmail VARCHAR(90) NOT NULL,
-    userNonsig CHAR(36) NOT NULL,
     userIsLocked BOOLEAN NOT NULL,
     userIsAdmin BOOLEAN NOT NULL DEFAULT 0, -- Is the user an admin
     userIsSuperAdmin BOOLEAN NOT NULL DEFAULT 0, -- Is the user a goodyear administrator
@@ -89,27 +103,29 @@ CREATE TABLE userRegistration (
     userIsConfirmed BOOLEAN NOT NULL DEFAULT 0, -- Test if user has confirmed their email
     userConfirmationToken VARCHAR(120), -- JWT Recieved in email
     userInvalidLoginAttempts INT(1),
-    userRole CHAR(36),
+    userDefaultNonsig BINARY(9) NOT NULL,
 
     PRIMARY KEY (userId),
 
     INDEX(userName),
 
-    FOREIGN KEY (userNonsig)
-        REFERENCES nsInfo(nsId)
+    FOREIGN KEY (userDefaultNonsig)
+        REFERENCES nsInfo(nsNonsig)
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
 
     FOREIGN KEY (userAdministrator)
         REFERENCES userRegistration(userId)
         ON DELETE RESTRICT
-        ON UPDATE CASCADE,
-
-    FOREIGN KEY (userRole)
-        REFERENCES rolePermissions(rpId)
-        ON DELETE RESTRICT
         ON UPDATE CASCADE
 );
+
+-- Add final foreign key after creating userRegistration
+ALTER TABLE nsAccess ADD 
+    FOREIGN KEY (nsaUserId)
+        REFERENCES userRegistration(userId)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE;
 
 -- Store all of the info that is not used on every login here
 CREATE TABLE userInformation (
@@ -424,7 +440,7 @@ AS
         navigation.navHeader,
         navigation.navMenu,
         navigation.navIsNotApi,
-        rolePermissions.*
+        rolePermissions.rpid
     FROM 
         rolePermissions
     INNER JOIN
@@ -448,36 +464,19 @@ AS
         userRegistration.userIsAdmin,
         userRegistration.userIsLocked,
         userRegistration.userInvalidLoginAttempts,
-        userRegistration.userNonsig,
-        userRegistration.userRole,
-        nsInfo.nsId,
+        userRegistration.userDefaultNonsig AS userNonsig,
         nsInfo.nsIsActive,
-        nsInfo.nsType
+        nsAccess.nsaRole AS userRole
     FROM
         userRegistration
     INNER JOIN
         nsInfo
     ON
-        nsInfo.nsId = userRegistration.userNonsig;
-
-CREATE VIEW
-    thq.endPointValidation
-AS
-    SELECT 
-        navigation.navPathName,
-        navigation.navMethod,
-        navigation.navActive,
-        navigation.navPriv,
-        rolePermissions.rpId,
-        rolePermissions.rpPriv
-    FROM
-        navigation
+        nsInfo.nsNonsig = userRegistration.userDefaultNonsig
     INNER JOIN
-        rolePermissions
+        nsAccess
     ON
-        navigation.navPriv = rolePermissions.rpPriv
-    WHERE
-        navActive = 1;
+        nsAccess.nsaNonsig = userRegistration.userDefaultNonsig;
 
 -- Procedures under this point
 DELIMITER //
@@ -525,4 +524,102 @@ CREATE PROCEDURE thq.addRole (IN rolePriv VARCHAR(36), IN roleId CHAR(36), IN pr
             );
     END//
 
+    CREATE FUNCTION endpointValidation (_role VARCHAR(36), _path VARCHAR(120), _method VARCHAR(6))
+        RETURNS BOOLEAN
+        BEGIN
+            DECLARE _authorized BOOLEAN;
+            SELECT navActive
+            FROM 
+            (
+                SELECT 
+                    navigation.navActive,
+                    rolePermissions.*
+                FROM
+                    navigation
+                INNER JOIN
+                    rolePermissions
+                ON
+                    navigation.navPriv = rolePermissions.rpPriv
+                WHERE
+                    navActive = 1
+                AND
+                    rpId = _role
+                AND
+                    navPathName = _path
+                AND
+                    navMethod = _method
+            ) AS authed
+            INTO 
+                _authorized;
+            
+            RETURN _authorized;
+        END//
+
 DELIMITER ;
+
+INSERT INTO nsInfo (
+    nsNonsig,
+    nsTradeStyle,
+    nsAddr1,
+    nsCity,
+    nsState,
+    nsPostalCode
+) VALUES (
+    '466393271',
+    'Goodyear Tire and Rubber Company',
+    '200 Innovation Way',
+    'Akron',
+    'OH',
+    '44302'
+);
+
+-- Insert default settings for initial login
+INSERT INTO userRegistration (
+    userId,
+    userName,
+    userPass,
+    userEmail,
+    userDefaultNonsig,
+    userIsLocked,
+    userIsAdmin,
+    userIsSuperAdmin,
+    userIsConfirmed
+) VALUES (
+    'b42a1170-096a-11e9-b568-0800200c9a66',
+    'administrator',
+    '$2a$10$r.Nlitz0cVeWeuVa4Lf/Sugw/LZlwBPEZGSqYU52KRz1Be73Dgwsi', -- G00dAdmin
+    'antonyjund@gmail.com',
+    '466393271',
+    false,
+    true,
+    true,
+    true
+);
+
+INSERT INTO rolePermissions (
+    rpId,
+    rpPriv
+) VALUES (
+    'SiteAdm',
+    'SiteAdmin'
+);
+
+INSERT INTO rolePermissions (
+    rpId,
+    rpPriv
+) VALUES (
+    'SiteAdm',
+    'Un-Authed'
+);
+
+INSERT INTO nsAccess (
+    nsaUserId,
+    nsaNonsig,
+    nsaRole,
+    nsaIsAdmin
+) VALUES (
+    'b42a1170-096a-11e9-b568-0800200c9a66',
+    '466393271',
+    'SiteAdm',
+    true
+);

@@ -116,6 +116,7 @@ export class Navigation {
                        navigation.navId
                     GROUP BY navMenu
                 `
+                console.log(sql)
                 pool.query(sql, function(err: Error, links: Array<NavigationSettings.Links>) {
                     pool.end()
                     if (err) {throw err}
@@ -163,7 +164,7 @@ export class Navigation {
                             let injectionSql = `
                                 INSERT INTO rolePermissions
                                 VALUES (
-                                    ${pool.escape(uuid.v4())},
+                                    'SiteAdm',
                                     ${pool.escape(priv)}
                                 )
                             `
@@ -224,17 +225,19 @@ export class Navigation {
                 reject({
                     error: true,
                     message: 'Missing required fields',
-                    details: missingFields
+                    details: {
+                        link,
+                        missingFields
+                    }
                 })
             }
             let navLinkToBeEntered: NavigationSettings.Links 
                 = validator.defaults({
-                    navId: uuid.v4(),
                     navQueryString: null,
                     navActive: true
                 })
             // Verify that the privilege exists
-            this.verPriv(navLinkToBeEntered.navPriv)
+            this.verPriv(navLinkToBeEntered.navPriv.slice(0, 7))
             .then((onPrivExistsOrEntered: StatusMessage) => {  
                 let checkForExistingNav = `
                     SELECT *
@@ -260,7 +263,6 @@ export class Navigation {
                         } else {
                             let sql = `
                                 INSERT INTO navigation (
-                                    navId,
                                     navInnerText,
                                     navPathName,
                                     navQueryString,
@@ -272,7 +274,6 @@ export class Navigation {
                                     navIsNotApi
                                 ) VALUES (
                                     ${pool.escape([
-                                        navLinkToBeEntered.navId,
                                         navLinkToBeEntered.navInnerText,
                                         navLinkToBeEntered.navPathName,
                                         navLinkToBeEntered.navQueryString,
@@ -280,7 +281,7 @@ export class Navigation {
                                         navLinkToBeEntered.navHeader,
                                         navLinkToBeEntered.navMenu,
                                         navLinkToBeEntered.navActive,
-                                        navLinkToBeEntered.navPriv,
+                                        navLinkToBeEntered.navPriv.slice(0, 7),
                                         navLinkToBeEntered.navIsNotApi
                                     ])}
                                 )
