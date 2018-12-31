@@ -14,15 +14,19 @@ import { uiAccountRoutes } from './accounts'
 import { ResponseMessage, StatusMessage } from '../../types/server';
 import { UserTypes } from '../../types/users';
 import { Login, getToken } from '../../lib/users/login';
+import { tokenValidation } from './../middleware/authentication'
+
 
 // Constants and global variables
 const uiRoutes = Router()
 
+uiRoutes.use(tokenValidation())
 uiRoutes.use('/account', uiAccountRoutes)
 uiRoutes.post('/login', function(req: Request, res: Response) {
     let responseBody: ResponseMessage
     let tokenPayload: UserTypes.AuthToken = null;
     if (req.body.user && req.body.user.username && req.body.user.password) {
+        console.log(JSON.stringify(req.body.user), ' Logging in')
         new Login(req.body.user).authenticate()
         .then((onUserAuthenticated: StatusMessage) => {
             tokenPayload = {
@@ -63,7 +67,6 @@ uiRoutes.post('/login', function(req: Request, res: Response) {
             errorMessage: 'Invalid username or password',
             message: 'Invalid username or password'
         }
-        console.log(JSON.stringify(req.body))
         res.cookie('token', getToken())
         res.status(200).json(responseBody)
     }

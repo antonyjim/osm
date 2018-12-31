@@ -34,7 +34,7 @@ export namespace UserTypes {
         userName?: string;
         userPass?: string;
         userEmail?: string;
-        userNonsig?: string;
+        userDefaultNonsig?: string;
         userIsLocked?: string;
         userIsAdmin?: string;
         userIsSuperAdmin?: string;

@@ -1,9 +1,8 @@
 
 export namespace NonsigTypes {
     interface nsInfo {
-        nsId?: string;
         nsTradeStyle?: string;
-        nsNonsig?: number;
+        nsNonsig?: string;
         nsAddr1?: string;
         nsAddr2?: string;
         nsCity?: string;

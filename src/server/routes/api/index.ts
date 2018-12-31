@@ -11,7 +11,7 @@ import { Router } from 'express'
 import { sign } from 'jsonwebtoken'
 
 // Local Modules
-import { endpointAuthentication, tokenValidation } from '../middleware/authentication';
+import { endpointAuthentication, apiTokenValidation } from '../middleware/authentication';
 import { orderRoutes } from './ordering';
 import { adminRoutes } from './admin'
 import { apiAccountRoutes } from './accounts'
@@ -26,7 +26,13 @@ apiRoutes.get('/getToken', function(req, res) {
     if (req.query.username && req.query.password) {
         new Login({username: req.query.username, password: req.query.password}).authenticate()
         .then((onSuccessfulAuthentication: StatusMessage) => {
-            sign(onSuccessfulAuthentication.details, jwtSecret, function(err: Error, token: string) {
+            let payload = {
+                userIsAuthenticated: true,
+                userId: onSuccessfulAuthentication.details.userId,
+                userRole: onSuccessfulAuthentication.details.userRole
+                }
+            sign(payload, jwtSecret, {expiresIn: '1h'}, function(err: Error, token: string) {
+                if (err) throw err
                 res.status(200).json({
                     token,
                     error: false,
@@ -40,7 +46,8 @@ apiRoutes.get('/getToken', function(req, res) {
             })
         })
         .catch(err => {
-            res.status(200).json({
+            console.error(err)
+            res.status(500).json({
                 error: true,
                 message: err
             })
@@ -48,7 +55,7 @@ apiRoutes.get('/getToken', function(req, res) {
     }
 })
 
-apiRoutes.use(tokenValidation())
+apiRoutes.use(apiTokenValidation())
 apiRoutes.use(endpointAuthentication())
 apiRoutes.use('/admin', adminRoutes)
 apiRoutes.use('/ordering', orderRoutes)

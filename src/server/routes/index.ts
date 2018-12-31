@@ -17,7 +17,6 @@ import * as cookieParser from 'cookie-parser'
 import { apiRoutes } from './api/index'
 import { uiRoutes } from './ui/index'
 import { staticRoutes } from './static' 
-import { tokenValidation } from './middleware/authentication'
 
 // Constants and global variables
 const router = Router()
@@ -25,7 +24,6 @@ const router = Router()
 router.use('/public', staticRoutes)
 router.use(bodyParser.json())
 router.use(cookieParser())
-router.use(tokenValidation())
 router.use('/api', apiRoutes)
 router.use('/', uiRoutes)
 

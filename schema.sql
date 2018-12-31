@@ -94,9 +94,9 @@ CREATE TABLE nsAccess (
 CREATE TABLE userRegistration (
     userId CHAR(36) NOT NULL,
     userName VARCHAR(36) NOT NULL UNIQUE,
-    userPass VARCHAR(70) NOT NULL,
+    userPass BINARY(60),
     userEmail VARCHAR(90) NOT NULL,
-    userIsLocked BOOLEAN NOT NULL,
+    userIsLocked BOOLEAN NOT NULL DEFAULT 0,
     userIsAdmin BOOLEAN NOT NULL DEFAULT 0, -- Is the user an admin
     userIsSuperAdmin BOOLEAN NOT NULL DEFAULT 0, -- Is the user a goodyear administrator
     userAdministrator CHAR(36), -- If not, list the administrator
@@ -497,7 +497,7 @@ CREATE PROCEDURE thq.getNavigation (IN role CHAR(36))
             rpId = @role;
     END //
 
-CREATE PROCEDURE thq.addRole (IN rolePriv VARCHAR(36), IN roleId CHAR(36), IN privDesc VARCHAR(36))
+CREATE PROCEDURE thq.addRole (IN rolePriv VARCHAR(36), IN roleId CHAR(7), IN privDesc VARCHAR(50))
     BEGIN
         INSERT INTO
             rolePermissions
@@ -524,7 +524,7 @@ CREATE PROCEDURE thq.addRole (IN rolePriv VARCHAR(36), IN roleId CHAR(36), IN pr
             );
     END//
 
-    CREATE FUNCTION endpointValidation (_role VARCHAR(36), _path VARCHAR(120), _method VARCHAR(6))
+    CREATE FUNCTION endpointValidation (_role CHAR(7), _path VARCHAR(120), _method VARCHAR(6))
         RETURNS BOOLEAN
         BEGIN
             DECLARE _authorized BOOLEAN;

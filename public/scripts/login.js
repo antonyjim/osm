@@ -3,6 +3,9 @@
  */
 
 function passLogin() {
+    if (!window.fetch) {
+        alert("No fetch ", window.$.toString())
+    }
     let username = document.querySelector('#username').value
     let password = document.querySelector('#password').value
     fetch('/login', {

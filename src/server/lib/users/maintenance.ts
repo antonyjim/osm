@@ -31,7 +31,22 @@ export class Nonsig {
      * @param ns Nonsig information
      */
     constructor(ns) {
-        this.nonsig = ns        
+        this.nonsig = ns
+        this.normalizeNonsig()
+    }
+
+    private normalizeNonsig() {
+        let nonsig = this.nonsig.nsNonsig
+        if (nonsig.length < 9) {
+            while (nonsig.length < 9) nonsig = '0' + nonsig
+            this.nonsig.nsNonsig = nonsig
+            return 0
+        } else if (nonsig.length > 9) {
+            this.nonsig.nsNonsig = nonsig.slice(0, 9)
+            return 0
+        } else {
+            return 0
+        }
     }
 
     private checkForExistingNonsig(nsNonsig) {
@@ -153,6 +168,49 @@ export class Nonsig {
             }
         })
     }
+
+    public existsAndIsActive(): Promise<{error: boolean, isActiveTHQ: boolean, isActive: boolean}> {
+        return new Promise((resolve, reject) => {
+            let sql = `
+                SELECT nsNonsig, nsIsActive, nsIsActiveTHQ
+                FROM nsInfo
+                WHERE nsNonsig = ${pool.escape(this.nonsig.nsNonsig)}
+            `
+            pool.query(sql, (err: Error, results: Array<NonsigTypes.nsInfo>) => {
+                if (err) {
+                    err
+                } else {
+                    if (results.length === 0) {
+                        const nonsig = results[0]
+                        if(nonsig.nsIsActive && nonsig.nsIsActiveTHQ) {
+                            resolve({
+                                error: false,
+                                isActiveTHQ: true,
+                                isActive: true
+                            })
+                        } else if (nonsig.nsIsActive && !nonsig.nsIsActiveTHQ) {
+                            resolve({
+                                error: false,
+                                isActiveTHQ: false,
+                                isActive: true
+                            })
+                        } else {
+                            resolve({
+                                error: false,
+                                isActiveTHQ: false,
+                                isActive: false
+                            })
+                        }
+                    } else {
+                        reject({
+                            error: true,
+                            message: 'No nonsig found'
+                        })
+                    }
+                }
+            })
+        })
+    }
 } // Nonsig
 
 export class User {
@@ -171,81 +229,96 @@ export class User {
                 `SELECT * 
                 FROM userRegistration
                 WHERE userName = ${pool.escape(accountOpts.userName)}
-                    OR userId = ${pool.escape(accountOpts.userId)}`,
+                    OR userId = ${pool.escape(accountOpts.userId)}
+                    OR userEmail = ${pool.escape(accountOpts.userEmail)}`,
                 function(err: Error, results: Array<UserTypes.LoginInfo>) {
                     if (err) {throw err}
                     if (results.length > 0) {
                         let reason: StatusMessage = {
                             error: true,
-                            message: 'Username or ID already exist'
+                            message: 'Username or ID or Email already exist'
                         }
                         reject(reason)
                     } else {
                         hash(this.userPass, saltRounds, function(hashed) {
-                            pool.query(
-                                `INSERT INTO userRegistration
-                                (
-                                    userId,
-                                    userName, 
-                                    userPass,
-                                    userEmail,
-                                    userNonsig,
-                                    userIsLocked,
-                                    userIsAdmin,
-                                    userIsSuperAdmin,
-                                    userAdministrator,
-                                    userIsConfirmed,
-                                )
-                                VALUES
-                                (
-                                    ${pool.escape([
-                                        this.userId,
-                                        this.userName,
-                                        hashed,
-                                        this.userEmail,
-                                        this.userNonsig,
-                                        this.userIsLocked,
-                                        this.userIsAdmin,
-                                        this.userIsSuperAdmin,
-                                        this.userAdministrator,
-                                        false
-                                    ])}
-                                );
-                                INSERT INTO userInformation
-                                (
-                                    userId,
-                                    userFIrstName,
-                                    userLastName,
-                                    userType,
-                                    userPhone
-                                )
-                                VALUES (
-                                    ${pool.escape([
-                                        this.userId, 
-                                        this.userFIrstName,
-                                        this.userLastName,
-                                        this.userType,
-                                        this.userPhone
-                                    ])}
-                                )`,
-                                accountOpts,
-                                function(err: Error, results) {
-                                    if (err) {throw err}
-                                    let reason: StatusMessage = {
-                                        error: false,
-                                        message: 'User account created successfully'
-                                    }
-                                    let confirmationToken = sign({
-                                        userId: accountOpts.userId
-                                    },
-                                    jwtSecret,
-                                    {
-                                        expiresIn: '30d'
+                            new Nonsig({nsNonsig: accountOpts.userDefaultNonsig}).existsAndIsActive()
+                            .then((nonsigExists) => {
+                                if(nonsigExists.isActive && nonsigExists.isActiveTHQ) {
+                                    pool.query(
+                                        `INSERT INTO userRegistration
+                                        (
+                                            userId,
+                                            userName, 
+                                            userPass,
+                                            userEmail,
+                                            userDefaultNonsig,
+                                            userIsLocked,
+                                            userIsAdmin,
+                                            userIsSuperAdmin,
+                                            userAdministrator,
+                                            userIsConfirmed,
+                                        )
+                                        VALUES
+                                        (
+                                            ${pool.escape([
+                                                this.userId,
+                                                this.userName,
+                                                hashed,
+                                                this.userEmail,
+                                                this.userNonsig,
+                                                this.userIsLocked,
+                                                this.userIsAdmin,
+                                                this.userIsSuperAdmin,
+                                                this.userAdministrator,
+                                                false
+                                            ])}
+                                        );
+                                        INSERT INTO userInformation
+                                        (
+                                            userId,
+                                            userFirstName,
+                                            userLastName,
+                                            userType,
+                                            userPhone
+                                        )
+                                        VALUES (
+                                            ${pool.escape([
+                                                this.userId, 
+                                                this.userFirstName,
+                                                this.userLastName,
+                                                this.userPhone
+                                            ])}
+                                        )`,
+                                        accountOpts,
+                                        function(err: Error, results) {
+                                            if (err) {throw err}
+                                            let reason: StatusMessage = {
+                                                error: false,
+                                                message: 'User account created successfully'
+                                            }
+                                            let confirmationToken = sign({
+                                                userId: accountOpts.userId
+                                            },
+                                            jwtSecret,
+                                            {
+                                                expiresIn: '30d'
+                                            })
+                                            sendConfirmation({userEmail: this.userEmail, confirmationToken})
+                                            resolve(reason)
+                                        }
+                                    )
+                                } else {
+                                    reject({
+                                        error: true,
+                                        message: 'Nonsig is not active'
                                     })
-                                    sendConfirmation({userEmail: this.userEmail, confirmationToken})
-                                    resolve(reason)
                                 }
-                            )
+                            }, (nonsigDoesNotExist) => {
+                                reject(nonsigDoesNotExist)
+                            })
+                            .catch(err => {
+                                throw err
+                            })
                         })
                     }
                 }
@@ -253,45 +326,68 @@ export class User {
         })
     }
 
-    public createNew(): StatusMessage {
-        this.userOpt.userId = uuid.v4()
-        let requiredFields = [
-            'userName',
-            'userPass',
-            'userEmail',
-            'userNonsig',
-            'userIsAdmin',
-            'userPhone'
-        ]
-        let validator = new Validation(this.userOpt)
-        let invalidFields = validator.required(requiredFields)
-        if (invalidFields) {
-            return {
-                error: true,
-                message: 'Invalid data',
-                details: invalidFields
-            }
-        } else {
-            let defaultedFields = validator.defaults({
-                userId: uuid.v4(),
-                userIsSuperAdmin: false,
-                userAdministrator: null,
-                userIsLocked: false,
-                userIsConfirmed: false,
-                userType: 1
-            })
-            this.newAccount(defaultedFields)
-            .then(function(resolvedPromise) {
-                return resolvedPromise
-            }, function(rejectedPromise) {
-                return rejectedPromise
-            })
-            .catch(function(err) {
+    public createNew(): Promise<StatusMessage> {
+        return new Promise((resolve, reject) => {
+            this.userOpt.userId = uuid.v4()
+            let requiredFields = [
+                'userName',
+                'userEmail',
+                'userNonsig',
+                'userPhone',
+                'userFirstName',
+                'userLastName'
+            ]
+            let validator = new Validation(this.userOpt)
+            let invalidFields = validator.required(requiredFields)
+            if (invalidFields) {
                 return {
                     error: true,
-                    message: err
+                    message: 'Invalid data',
+                    details: invalidFields
                 }
-            }) 
-        }
+            } else {
+                let defaultedFields = validator.truncate(
+                    [
+                        {
+                            field: 'userName',
+                            length: 36
+                        },
+                        {
+                            field: 'userEmail',
+                            length: 90
+                        },
+                        {
+                            field: 'userDefaultNonsig',
+                            length: 9
+                        },
+                        {
+                            field: 'userFirstName',
+                            length: 30
+                        }, 
+                        {
+                            field: 'userLastName',
+                            length: 30
+                        }
+                    ]
+                ).defaults(
+                    {
+                        userId: uuid.v4(),
+                        userIsSuperAdmin: false,
+                        userIsAdmin: false,
+                        userAdministrator: null,
+                        userType: 1
+                    }
+                )
+                this.newAccount(defaultedFields)
+                .then(function(resolvedPromise) {
+                    resolve(resolvedPromise) 
+                }, function(rejectedPromise) {
+                    reject(rejectedPromise)
+                })
+                .catch(function(err) {
+                    throw err
+                }) 
+            }
+        })
     }
 }

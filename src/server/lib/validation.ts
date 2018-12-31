@@ -83,6 +83,15 @@ export class Validation {
         }
     }
 
+    public truncate(fields: Array<{field: string, length: number}>): any {
+        for (let field of fields) {
+            let fieldInQuestion = this.providedFields[field.field]
+            if (field.field && fieldInQuestion) {
+                this.providedFields[field.field] =fieldInQuestion.slice(0, field.length)
+            }
+        }
+    }
+
     public updateFields(allowableFields): any {
         if (!allowableFields) {
             return this.providedFields

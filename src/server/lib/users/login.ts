@@ -31,11 +31,11 @@ export class Login {
 
     private validatePassword(hashed): Promise<boolean> {
         return new Promise((resolve) => {
-            
-            compare(this.credentials.password, hashed, function(err: Error, same: boolean) {
+            console.log(hashed.toString(), ' ', this.credentials.password)
+            compare(this.credentials.password, hashed.toString(), function(err: Error, same: boolean) {
                 if (err) {
-                    console.log(JSON.stringify(err))
-                    throw new LoginException('Password error', JSON.stringify(err))
+                    console.log(err)
+                    throw new LoginException('Password error', err)
                 } else {
                     resolve(same)
                 }
@@ -71,7 +71,14 @@ export class Login {
                 WHERE userName = ${pool.escape(this.credentials.username)}
             `
             pool.query(sql, (err: Error, users: Array<UserTypes.LoginInfo>) => {
-                if (err) {throw {error: true, message: 'SQL Error', details: err}}
+                if (err) {
+                    console.error(err)
+                    throw {
+                        error: true, 
+                        message: 'SQL Error', 
+                        details: err
+                    }
+                }
                 if (users.length === 1) {
                     let user = users[0]
                     if (!user.userIsConfirmed) {
@@ -121,8 +128,7 @@ export class Login {
                                 })
                             }
                         })
-                        .catch((err: StatusMessage) => {
-                            console.error(JSON.stringify(err))
+                        .catch((err) => {
                             reject(err)
                         })
                     } else {
