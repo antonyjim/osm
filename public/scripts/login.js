@@ -3,14 +3,11 @@
  */
 
 function passLogin() {
-    if (!window.fetch) {
-        alert("No fetch ", window.$.toString())
-    }
     let username = document.querySelector('#username').value
     let password = document.querySelector('#password').value
-    fetch('/login', {
+    $.ajax('/login', {
         method: 'POST',
-        body: JSON.stringify({
+        data: JSON.stringify({
             user: {
                 username,
                 password
@@ -18,21 +15,18 @@ function passLogin() {
         }),
         headers: {
             "Content-Type": "Application/JSON"
+        },
+        success: function(authenticationResults) {
+            if (authenticationResults.message === 'Success' && authenticationResults.details && authenticationResults.details.token) {
+                window.location.href = '/?token=' + authenticationResults.details.token
+            } else {
+                document.querySelector('#passwordError').innerText = authenticationResults.message
+                document.querySelector('#passwordError').style.display = 'block'
+            }
+        },
+        error: function(err) {
+            console.error(err)
         }
-    })
-    .then(res => {
-        return res.json()
-    })
-    .then(authenticationResults => {
-        if (authenticationResults.message === 'Success' && authenticationResults.details && authenticationResults.details.token) {
-            window.location.href = '/?token=' + authenticationResults.token
-        } else {
-            document.querySelector('#passwordError').innerText = authenticationResults.message
-            document.querySelector('#passwordError').style.display = 'block'
-        }
-    })
-    .catch(err => {
-        console.error(err)
     })
 }
 

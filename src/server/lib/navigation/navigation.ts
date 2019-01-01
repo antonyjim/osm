@@ -27,7 +27,6 @@ export function getRoleAuthorizedNavigation(roleId: string): Promise<StatusMessa
                 WHERE rpId = ${pool.escape(roleId)}
             `
             pool.query(navigation, (err: Error, results) => {
-                console.log(results)
                 if (err) {
                     throw {
                         error: true,
@@ -60,16 +59,16 @@ export function getRoleAuthorizedNavigation(roleId: string): Promise<StatusMessa
  */
 export function validateEndpoint(method, endpoint, role): Promise<StatusMessage> {
     return new Promise(function(resolve, reject) {
-        console.log('Searching for method %s, endpoint %s role %s', method, endpoint, role)
         if (method && endpoint && role) {
             let sqlStatement = `
-                SELECT endpointValidation(${pool.escape([role, endpoint.split('?')[0], method])})
+                SELECT endpointValidation(${pool.escape([role, endpoint.split('?')[0], method])}) AS authed
             `
-            console.log(sqlStatement)
             pool.query(sqlStatement, function(err: Error, results: Array<RolePermissions>) {
-                if (err) {throw {error: true, message: err}}
-                console.log(JSON.stringify(results))
-                if (results.length === 1) {
+                if (err) {
+                    console.error(err)
+                    throw {error: true, message: err}
+                }
+                if (results[0]['authed'] === 1) {
                     resolve({
                         error: false,
                         message: 'User allowed',

@@ -3,6 +3,100 @@ import { Tabs } from '../common/tabs.jsx';
 import { Field, SelectField } from './../common/forms.jsx'
 import { submitForm } from '../lib/formSubmission.js';
 import Alert from '../common/alerts.jsx';
+import { E401 } from '../common/errors.jsx'
+
+class ExistingRoute extends Component {
+    constructor(props) {
+        super(props)
+    }
+
+    setNav(e) {
+        document.getElementById('updateButton').style.display = 'inline-block'
+        document.getElementById('submitButton').style.display = 'none'
+        $('#existinglinks').modal('toggle')
+    }
+
+    render() {
+        return (
+            <tr>
+                <th scope="col"><a href="#" onClick={(e) => {this.props.onChoice(e, this.props); this.setNav()}}>{this.props.navInnerText}</a></th>
+                <th scope="col">{this.props.navMethod}</th>
+                <th scope="col">{this.props.navHref}</th>
+                <th scope="col">{this.props.navPriv}</th>
+                <th scope="col">{this.props.navMenu}</th>
+                <th scope="col">{this.props.navHeader}</th>
+                <th scope="col">{this.props.navActive}</th>
+                <th scope="col">{this.props.navIsNotApi}</th>
+            </tr>
+        )
+    }
+}
+
+class ExistingRoutes extends Component {
+    constructor(props) {
+        super(props)
+        this.state = {
+            links: [null],
+            unAuthorized: false
+        }
+        this.getLinks()
+    }
+
+    getLinks() {
+        fetch('/api/admin/getAllRoutes?token=' + window.THQ.token)
+        .then(res => {
+            return res.json()
+        })
+        .then(links => {
+            if (links.error) {
+                console.error(links.message)
+            } else {
+                this.setState({links})
+            }
+        })
+        .catch(err => {
+            console.error(err)
+        })
+    }
+
+    render() {
+        return (
+            <div id="existinglinks" className="modal fade" tabIndex="-1" role="dialog">
+                <div className="modal-dialog modal-xl" role="document">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h5 className="modal-title">Navigation</h5>
+                            <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <table className="table">
+                                <thead className="thead-dark">
+                                    <tr>
+                                        <th scope="col">Inner Text</th>
+                                        <th scope="col">Method</th>
+                                        <th scope="col">Href</th>
+                                        <th scope="col">Privilege</th>
+                                        <th scope="col">Menu</th>
+                                        <th scope="col">Heading</th>
+                                        <th scope="col">Active</th>
+                                        <th scope="col">UI</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {this.state.links.map((link, i) => {
+                                        return (<ExistingRoute onChoice={this.props.onChoice} key={i} {...link}/>)
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+}
 
 class Routes extends Component {
     constructor(props) {
@@ -16,19 +110,30 @@ class Routes extends Component {
                     text: '-- None --'
                 }
             ],
-            message: null
+            message: null,
+            link: {
+                navActive: '',
+                navIsNotApi: '',
+                navMethod: '',
+                navHref: '',
+                navHeader: '',
+                navMenu: '',
+                navPriv: '',
+                navInnerText: '',
+                navId: ''
+            }
         }
     }
 
     getRoles() {
-        fetch('/api/admin/getPrivs')
+        fetch('/api/admin/getPrivs?token=' + window.THQ.token)
         .then(res => {
             return res.json()
         })
         .then(roles => {
             if (roles.error) {
                 console.error(roles.message)
-                return 1
+                this.setState({unAuthorized: true})
             }
             let roleOpts = []
             roles.details.forEach(role => {
@@ -45,7 +150,7 @@ class Routes extends Component {
     }
 
     handleOnTypeChange(e) {
-        if (e.target.value === 'true') {
+        if (e.target.value === '1') {
             this.setState({hideNav: false})
         } else {
             this.setState({hideNav: true})
@@ -59,9 +164,9 @@ class Routes extends Component {
         fields.forEach(field => {
             let fieldName = field.getAttribute('name') || field.id
             let fieldValue = field.value
-            if (fieldValue === 'true') {
+            if (fieldValue === '1') {
                 fieldValue = true
-            } else if (fieldValue === 'false') {
+            } else if (fieldValue === '0') {
                 fieldValue = false
             }
             body[fieldName] = fieldValue
@@ -69,7 +174,7 @@ class Routes extends Component {
 
         submitForm({
             body: [body],
-            action: '/api/admin/addRoute',
+            action: '/api/admin/addRoute?token=' + window.THQ.token,
             method: 'POST', 
             cb: (err, response) => {
             if (err) {alert(err)}
@@ -94,50 +199,183 @@ class Routes extends Component {
         }})
     }
 
-    render() {
-        return (
-            <div id="navLinkForm" className={this.props.className + " m-3"}>
-                {this.message && <Alert message={this.state.message.message} alertType={this.state.message.type}/>}
-                <Field id="navInnerText" type="text" label="Inner Text of <a> tag"></Field>
-                <Field id="navHref" type="text" label="Full Path"></Field>
-                <SelectField id="navMethod" label="Method" opts={
-                    [
-                        {
-                            value: 'GET',
-                            text: 'GET'
-                        },
-                        {
-                            value: 'POST',
-                            text: 'POST'
-                        }
-                    ]
+    submitUpdate() {
+        let fields = document.getElementById('navLinkForm').querySelectorAll('input, select, textarea')
+        let body;
+        body = {}
+        fields.forEach(field => {
+            let fieldName = field.getAttribute('name') || field.id
+            let fieldValue = field.value
+            if (fieldValue === '1') {
+                fieldValue = true
+            } else if (fieldValue === '0') {
+                fieldValue = false
+            }
+            body[fieldName] = fieldValue
+        })
+
+        submitForm({
+            body: body,
+            action: '/api/admin/updateRoute?token=' + window.THQ.token,
+            method: 'POST',
+            cb: (err, response) => {
+            if (err) {alert(err)}
+            if (response.error) {
+                this.setState({message: {
+                    type: 'danger',
+                    message: response.error
+                }})
+            } else {
+                if (response.details) {
+                    this.setState({message: {
+                        type: 'success',
+                        message: response.message
+                    }})
+                } else {
+                    this.setState({message: {
+                        type: 'danger',
+                        message: response.message
+                    }})
                 }
-                ></SelectField>
+            }
+        }})
+    }
+
+    handleChange(e) {
+        const value = e.target.value
+        const name = e.target.id
+        let link = {...this.state.link} // Clone the existing link
+        link[name] = value // Insert the changed value
+        this.setState({link}) // Set the state
+    }
+
+    setLink(e, link) {
+        this.setState({link})
+        if (link.navIsNotApi) {
+            this.setState({hideNav: false})
+        } else {
+            this.setState({hideNav: true})
+        }
+    }
+
+    render() {
+        if (this.state.unAuthorized) {
+            
+            return (
+                <div id="navLinkForm" className={this.props.className + " m-3"}>
+                    <E401/>
+                </div>
+            )
+        } else {
+            return (
+                <div id="navLinkForm" className={this.props.className + " m-3"}>
+                <ExistingRoutes onChoice={this.setLink.bind(this)}/>
+                {this.state.message && <Alert message={this.state.message.message} alertType={this.state.message.type}/>}
+                <input type="hidden" id="navId" value={this.state.link.navId}/>
+                <Field id="navInnerText" type="text" label="Inner Text of <a> tag" value={this.state.link.navInnerText} onChange={this.handleChange.bind(this)}></Field>
+                <Field id="navHref" type="text" label="Full Path" value={this.state.link.navHref} onChange={this.handleChange.bind(this)}></Field>
                 <SelectField 
-                    id="navIsNotApi" 
-                    label="Link Type" 
+                    id="navMethod" 
+                    label="Method" 
+                    value={this.state.link.navMethod} 
+                    onChange={this.handleChange.bind(this)}
                     opts={
                         [
                             {
-                                value: 'false',
+                                value: 'GET',
+                                text: 'GET'
+                            },
+                            {
+                                value: 'POST',
+                                text: 'POST'
+                            }
+                        ]
+                }/>
+                <SelectField 
+                    id="navIsNotApi" 
+                    label="Link Type" 
+                    value={this.state.link.navIsNotApi}
+                    opts={
+                        [
+                            {
+                                value: '0',
                                 text: 'API'
                             },
                             {
-                                value: 'true',
+                                value: '1',
                                 text: 'Navigation'
                             }
   
                         ]
                     } 
                     otherField={false}
-                    onChange={(e) => {this.handleOnTypeChange(e)}}
+                    onChange={(e) => {this.handleOnTypeChange(e); this.handleChange(e)}}
                 ></SelectField>
-                <Field isHidden={this.state.hideNav} id="navMenu" label="Root Menu" type="text"></Field>
-                <Field isHidden={this.state.hideNav} id="navHeader" label="SubHeading" type="text"></Field>
-                <SelectField id="navPriv" label="Privilege" opts={this.state.roles} otherField={true}
+                <Field isHidden={this.state.hideNav} id="navMenu" label="Root Menu" type="text" value={this.state.link.navMenu} onChange={this.handleChange.bind(this)}></Field>
+                <Field isHidden={this.state.hideNav} id="navHeader" label="SubHeading" type="text" value={this.state.link.navHeader} onChange={this.handleChange.bind(this)}></Field>
+                <SelectField 
+                    id="navPriv" 
+                    label="Privilege" 
+                    opts={this.state.roles} 
+                    otherField={true}
+                    value={this.state.link.navPriv}
+                    onChange={this.handleChange.bind(this)}
                 ></SelectField>
-                <button className="btn btn-primary" onClick={() => {this.submitAdd()}}>Submit</button>
+                <SelectField 
+                    id="navActive" 
+                    value="true" 
+                    label="Active" 
+                    value={this.state.link.navActive}
+                    onChange={this.handleChange.bind(this)}
+                    opts={
+                        [
+                            {
+                                value: '1',
+                                text: 'Active'
+                            },
+                            {
+                                value: '0',
+                                text: 'Inactive'
+                            }
+                        ]
+                } />
+                <button id="updateButton" className="btn btn-primary" style={{display: 'none'}} onClick={() => {this.submitUpdate()}}>Update</button>
+                <button id="submitButton" className="btn btn-primary" onClick={() => {this.submitAdd()}}>Submit</button>
+                <button className="btn btn-secondary ml-2" data-toggle="modal" data-target="#existinglinks">Existing</button>
             </div>
+            )
+        }
+
+    }
+}
+
+class PrivTable extends Component {
+    constructor(props) {
+        super(props)
+    }
+
+    render() {
+        let rows = []
+        this.props.privs[0] !== null &&  this.props.privs.map((priv, i) => {
+            rows.push(<tr scope="row" key={Math.floor(Math.random() * 10000)}>
+                <td>{this.props.rpId}</td>
+                <td>{priv.rpPriv}</td>
+                <td><a href="javascript:void(0)" onClick={this.props.onDelete} data-target={priv.rpPriv}>Delete</a></td>
+            </tr>)
+        })
+        return (
+            <table className="table">
+                <thead className="thead-dark">
+                    <tr>
+                        <th scope="col">Role</th>
+                        <th scope="col">Priv</th>
+                        <th scope="col">Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {rows}
+                </tbody>
+            </table>
         )
     }
 }
@@ -145,12 +383,116 @@ class Routes extends Component {
 class Roles extends Component {
     constructor(props) {
         super(props)
+        this.state = {
+            error: false,
+            status: null,
+            roles: [{
+                text: '-- None --',
+                value: ''
+            }],
+            privs: [null],
+            rpId: ''
+        }
+        this.getRoles()
+    }
+
+    getRoles() {
+        $.ajax('/api/admin/getRoles?token=' + window.THQ.token, {
+            success: (response) => {
+                if (response.error) {
+                    this.setState({
+                        error: true,
+                        status: response.message
+                    })
+                } else {
+                    let rolesFormatted = [{
+                        text: '-- None --',
+                        value: 'none'
+                    }]
+                    response.details.map(role => {
+                        rolesFormatted.push({
+                            value: role.rpId,
+                            text: role.rpId
+                        })
+                    })
+                    console.log(rolesFormatted)
+                    this.setState({
+                        error: false,
+                        roles: rolesFormatted
+                    })
+                }
+            }
+        })
+    }
+
+    getPrivs() {
+        $.ajax(`/api/admin/getPrivs?role=${this.state.rpId}&token=${window.THQ.token}`, {
+            success: (response) => {
+                console.log(response)
+                if (!response.error) {
+                    this.setState({
+                        error: false,
+                        privs: response.details
+                    })
+                } else {
+                    this.setState({
+                        error: true,
+                        status: response.message
+                    })
+                }
+            },
+            error: (err) => {
+                this.setState({
+                    error: true,
+                    status: err
+                })
+            }
+        })
+    }
+
+    handleDelete(e) {
+        let rpPriv = e.target.getAttribute('data-target')
+        $.ajax(`/api/admin/roles/remove?rpId=${this.state.rpId}&rpPriv=${rpPriv}&token=${window.THQ.token}`, {
+            method: 'POST',
+            success: (response) => {
+                if (response.error) {
+                    this.setState({error: true, status: response.message})
+                } else {
+                    let newPrivs = []
+                    for (let priv of this.state.roles) {
+                        if (priv.rpPriv = rpPriv) {
+                            continue
+                        } else {
+                            newPrivs.push(priv)
+                        }
+                    }
+                    this.setState({error: false, status: response.message, privs: newPrivs})
+                }
+            },
+            error: (err) => {
+                this.setState({error: true, status: 'Could not remove link. Please try again later'})
+            }
+        })
+    }
+
+    handleChange(e) {
+        const name = e.target.id
+        const value = e.target.value
+        console.log('Setting state key ', name, ' to ', value)
+        this.setState({[name]: value})
+        if (value !== '' && value !== 'none') {
+            this.getPrivs()
+        }
     }
 
     render() {
+        console.log('Priv length ', this.state.privs, ' rpId ', this.state.rpId)
         return (
             <div className={this.props.className + " m-3"}>
-                
+                {this.state.status && <Alert message={this.state.status} alertType={this.state.error ? 'danger' : 'success'} />}
+                <input type="hidden" id="oldrpId" value={this.state.oldrpId}/>
+                <SelectField id="rpId" opts={this.state.roles} value={this.state.rpId} onChange={this.handleChange.bind(this)} otherField={true}/>
+                {this.state.privs[0] !== null && <PrivTable privs={this.state.privs} onDelete={this.handleDelete.bind(this)} rpId={this.state.rpId} />}
             </div>
         )
     }

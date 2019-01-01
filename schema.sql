@@ -12,19 +12,7 @@ CREATE TABLE rolePermissions (
     rpId CHAR(36) NOT NULL, -- Role ID
     rpPriv VARCHAR(36), -- Priviledge assigned to role
     
-    PRIMARY KEY (rpPriv, rpId),
-
-    FOREIGN KEY (rpPriv)
-        REFERENCES privDescriptions(pdPriv)
-        ON DELETE RESTRICT
-        ON UPDATE CASCADE
-);
-
-CREATE TABLE privDescriptions (
-    pdPriv VARCHAR(36),
-    pdDesc VARCHAR(50),
-
-    PRIMARY KEY (pdPriv)
+    PRIMARY KEY (rpPriv, rpId)
 );
 
 -- Store navigation through the site
@@ -86,7 +74,7 @@ CREATE TABLE nsAccess (
 
     FOREIGN KEY (nsaRole)
         REFERENCES rolePermissions(rpId)
-        ON DELETE RESTRICT
+        ON DELETE CASCADE
         ON UPDATE CASCADE
 );
 
@@ -449,8 +437,10 @@ AS
         navigation.navPriv = rolePermissions.rpPriv
     WHERE 
         navIsNotApi = 1
+    AND
+        navActive = 1
     ORDER BY
-        navMenu;
+        navMenu, navInnerText;
 
 CREATE VIEW
     thq.userLogin
@@ -477,85 +467,6 @@ AS
         nsAccess
     ON
         nsAccess.nsaNonsig = userRegistration.userDefaultNonsig;
-
--- Procedures under this point
-DELIMITER //
-CREATE PROCEDURE thq.getNavigation (IN role CHAR(36))
-    BEGIN
-        SELECT
-            navigation.*,
-            rolePermissions.*
-        FROM 
-            rolePermissions
-        INNER JOIN
-            navigation
-        ON
-            navigation.navPriv = rolePermissions.rpPriv
-        WHERE 
-            navIsNotApi = 1
-        AND
-            rpId = @role;
-    END //
-
-CREATE PROCEDURE thq.addRole (IN rolePriv VARCHAR(36), IN roleId CHAR(7), IN privDesc VARCHAR(50))
-    BEGIN
-        INSERT INTO
-            rolePermissions
-            (
-                rpPriv,
-                rpId
-            )
-        VALUES
-            (
-                rolePriv,
-                roleId
-            );
-
-        INSERT INTO 
-            privDescriptions
-            (
-                pdPriv,
-                pdDesc
-            )
-        VALUES
-            (
-                rolePriv,
-                IFNULL(privDesc, '')
-            );
-    END//
-
-    CREATE FUNCTION endpointValidation (_role CHAR(7), _path VARCHAR(120), _method VARCHAR(6))
-        RETURNS BOOLEAN
-        BEGIN
-            DECLARE _authorized BOOLEAN;
-            SELECT navActive
-            FROM 
-            (
-                SELECT 
-                    navigation.navActive,
-                    rolePermissions.*
-                FROM
-                    navigation
-                INNER JOIN
-                    rolePermissions
-                ON
-                    navigation.navPriv = rolePermissions.rpPriv
-                WHERE
-                    navActive = 1
-                AND
-                    rpId = _role
-                AND
-                    navPathName = _path
-                AND
-                    navMethod = _method
-            ) AS authed
-            INTO 
-                _authorized;
-            
-            RETURN _authorized;
-        END//
-
-DELIMITER ;
 
 INSERT INTO nsInfo (
     nsNonsig,

@@ -10,7 +10,7 @@ class Field extends Component {
                 <label htmlFor={this.props.id}>
                     {this.props.label}
                 </label>
-                <input type={this.props.type} className="form-control" id={this.props.id}></input>
+                <input type={this.props.type} className="form-control" id={this.props.id} value={this.props.value} onChange={this.props.onChange}></input>
             </div>
         )
     }
@@ -21,27 +21,28 @@ class SelectField extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            selectedValue: ''
+            otherField: false,
+            selvalue: this.props.value,
+            selectId: this.props.id
         }
     }
 
     handleOnChange(e) {
-        let input = document.getElementById(e.target.id + 'other')
         if (e.target.value === 'otherSelection') {
-            input.style.display = 'block'
-            input.id = e.target.id
+            this.setState({otherField: true, selvalue: e.target.value, id: e.target.id})
+            console.log("Old id %s", e.target.id)
+            e.target.setAttribute('oldId', e.target.id)
             e.target.removeAttribute('id')
-            e.target.setAttribute('oldId', input.id)
         } else {
             let oldId = e.target.getAttribute('oldId')
             if (oldId) {
-                document.getElementById(oldId).style.display = 'none'
-                document.getElementById(oldId).id = oldId + 'other'
+                this.setState({otherField: false, selvalue: e.target.value, id: null})
                 e.target.id = oldId
                 e.target.removeAttribute('oldId')
+            } else {
+                this.setState({otherField: false, selvalue: e.target.value, id: null})
             }
-        }
-        this.setState({selectedValue: e.target.value})
+        } 
     }
 
     render() {
@@ -55,15 +56,15 @@ class SelectField extends Component {
         if (this.props.otherField) {
             options.push(<option value="otherSelection" key={Math.floor(Math.random() * 1000000)}>Other</option>)
         }
-        return (
+        return !this.props.isHidden && (
             <div className="form-group">
                 <label htmlFor={this.props.id}>
                     {this.props.label}
                 </label>
-                <select className="form-control" id={this.props.id} onChange={(e) => {this.handleOnChange(e); this.props.onChange && this.props.onChange(e)}} value={this.state.selectedValue}>
+                <select className="form-control" id={this.state.selectId} onChange={(e) => {this.handleOnChange(e); this.props.onChange(e)}} value={this.props.value || this.state.selvalue}>
                     {options}
                 </select>
-                <input id={this.props.id + 'other'} type="text" style={{display: 'none' }} className="form-control mt-3"></input>
+                {this.state.otherField && <input id={this.state.id} type="text" className="form-control mt-3" onChange={this.props.onChange}></input>}
             </div>
         )
     }

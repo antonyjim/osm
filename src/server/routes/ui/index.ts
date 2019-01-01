@@ -10,7 +10,6 @@ import { createReadStream } from 'fs';
 import { Router, Request, Response } from 'express'
 
 // Local Modules
-import { uiAccountRoutes } from './accounts'
 import { ResponseMessage, StatusMessage } from '../../types/server';
 import { UserTypes } from '../../types/users';
 import { Login, getToken } from '../../lib/users/login';
@@ -21,7 +20,6 @@ import { tokenValidation } from './../middleware/authentication'
 const uiRoutes = Router()
 
 uiRoutes.use(tokenValidation())
-uiRoutes.use('/account', uiAccountRoutes)
 uiRoutes.post('/login', function(req: Request, res: Response) {
     let responseBody: ResponseMessage
     let tokenPayload: UserTypes.AuthToken = null;
@@ -43,6 +41,7 @@ uiRoutes.post('/login', function(req: Request, res: Response) {
                 }
             }
             res.cookie('token', token)
+            console.log('Login response body is ', JSON.stringify(responseBody))
             res.status(200).json(responseBody)
         }, (onUserNotAuthenticated: StatusMessage) => {
             responseBody = {

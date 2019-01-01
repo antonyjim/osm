@@ -30,12 +30,21 @@ export class Roles {
         this.role = requestedRole
     }
 
-    public getPrivs(): Promise<StatusMessage> {
+    public getPrivs(role?: string): Promise<StatusMessage> {
         return new Promise((resolve, reject) => {
-            let sql = `
-                SELECT DISTINCT rpPriv
-                FROM rolePermissions
-            `
+            let sql = ``
+            if (role) {
+                sql = `
+                    SELECT rpPriv
+                    FROM rolePermissions
+                    WHERE rpId = ${pool.escape(role)}
+                `
+            } else {
+                sql = `
+                    SELECT DISTINCT rpPriv
+                    FROM rolePermissions
+                `
+            }
             pool.query(sql, (err: Error, results) => {
                 if (err) {
                     throw {
@@ -64,15 +73,10 @@ export class Roles {
                 `
             } else {
                 sql = `
-                    SELECT 
-                        rolepermissions.*, 
-                        privdescriptions.* 
-                    FROM 
-                        rolepermissions 
-                    INNER JOIN 
-                        privdescriptions 
-                    ON 
-                        rolepermissions.rpPriv = privdescriptions.pdpriv
+                    SELECT DISTINCT
+                        rpId
+                    FROM
+                        rolePermissions
                 `
             }
             pool.query(sql, (err: Error, results) => {
@@ -97,7 +101,7 @@ export class Roles {
                  }
             })
         })
-    }
+    } // get()
 
     /**
      * Add a new role, assign links to this role
@@ -157,4 +161,85 @@ export class Roles {
             }
         })
     } // add()
+
+    public update(action): Promise<StatusMessage> {
+        return new Promise((resolve, reject) => {
+            if (!this.role.rpPriv || !this.role.rpId) {
+                reject({
+                    error: true,
+                    message: 'Missing rpId or rpPriv'
+                })
+            }
+            let verRole = `
+                SELECT *
+                FROM
+                    rolePermissions
+                WHERE
+                    rpPriv = ${pool.escape(this.role.rpPriv)}
+                AND
+                    rpId = ${pool.escape(this.role.rpId)}
+            `
+            pool.query(verRole, (err: Error, existingRoles: Array<RolePermissions>) => {
+                if (err) {
+                    console.error(err)
+                    throw err
+                } else {
+                    console.log(existingRoles.length, ' ', action)
+                    if (existingRoles.length === 1 && action === 'remove') {
+                        let removeRole = `
+                            DELETE FROM
+                                rolePermissions
+                            WHERE
+                                rpId = ${pool.escape(this.role.rpId)}
+                            AND
+                                rpPriv = ${pool.escape(this.role.rpPriv)}
+                        `
+                        console.log(removeRole)
+                        pool.query(removeRole, (err: Error, results) => {
+                            if (err) {throw err}
+                            resolve({
+                                error: false,
+                                message: `Removed ${this.role.rpPriv} from ${this.role.rpId}`
+                            })
+                        })
+                    } else if (existingRoles.length !== 1 && action === 'delete') {
+                        reject({
+                            error: true,
+                            message: 'Could not locate role'
+                        })
+                    } else if (existingRoles.length !== 0 && action === 'add') {
+                        reject({
+                            error: true,
+                            message: 'Privilege already exists on role'
+                        })
+                    } else if (action === 'add' && existingRoles.length === 0) {
+                        let addRole = `
+                            INSERT INTO
+                                rolePermissions (
+                                rpId,
+                                rpPriv
+                            ) VALUES (
+                                ${pool.escape([
+                                    this.role.rpId.slice(0, 7),
+                                    this.role.rpPriv.slice(0, 36)
+                                ])}
+                            )
+                        `
+                        pool.query(addRole, (err: Error, results) => {
+                            if (err) {throw err}
+                            resolve({
+                                error: false,
+                                message: `Added ${this.role.rpPriv} to ${this.role.rpPriv}`
+                            })
+                        })
+                    } else {
+                        reject({
+                            error: true,
+                            message: 'An unknown error occurred. Could not validate all arguments.'
+                        })
+                    }
+                }
+            }) 
+        })
+    } // update()
 }

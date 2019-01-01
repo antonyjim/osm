@@ -75,7 +75,7 @@ class Navigation extends Component {
     }
 
     getNav() {
-        fetchLogin(this.props.token)
+        fetchLogin()
         .then(navigation => {
             if (navigation.error) {
                 
@@ -96,7 +96,6 @@ class Navigation extends Component {
             let menus = []
             let key = 0
             Object.keys(this.state.nav).map(menu => {
-                console.log('Trying ', this.state.nav[menu])
                 menus.push(<NavigationDropdown navHeading={this.state.nav[menu]} navTitle={menu} key={key} />)
                 key++
             })

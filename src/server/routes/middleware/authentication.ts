@@ -94,7 +94,7 @@ export function apiTokenValidation() {
             userId: null,
             userRole: null
         }
-        let tokenCookie = req.query.toke
+        let tokenCookie = req.query.token
         if (tokenCookie) {
             tokenCookie = tokenCookie.split('Bearer ')[1] || tokenCookie
         }
@@ -136,6 +136,7 @@ export function apiTokenValidation() {
                         userId: decoded.userId,
                         userRole: decoded.userRole
                     }
+                    console.log("Decoded token is: ", JSON.stringify(authToken))
                     sign(authToken, jwtSecret, {expiresIn: '1h'}, function(err: Error, token: string) {
                         if (err) handleOnAuthError(err)
                         req.auth = {
@@ -164,6 +165,7 @@ export function endpointAuthentication() {
                 error: true,
                 message: 'User unauthenticated or token expired'
             })
+            res.end()
         } else {
             validateEndpoint(req.method, req.originalUrl, req.auth.userRole)
             .then((onUserAuthorized: StatusMessage) => {
@@ -175,6 +177,7 @@ export function endpointAuthentication() {
                     error: true,
                     message: 'User unauthorized with current privileges'
                 })
+                res.end()
             })
             .catch((error: StatusMessage) => {
                 console.error(error)
@@ -183,6 +186,7 @@ export function endpointAuthentication() {
                     error: true,
                     message: 'User authorization failed'
                 })
+                res.end()
             })
         }
     }

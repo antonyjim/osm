@@ -10,12 +10,10 @@ class Tabs extends Component {
     }
 
     onSelection(tab, e) {
-        console.log('Setting selectedTab to ', tab)
         this.setState({selectedTab: tab})
     }
 
     render() {
-        console.log('Selected tab is ', this.state.selectedTab)
         let tabs = []
         let pages = []
         if (this.props.tabs) {
@@ -78,7 +76,7 @@ class TabPage extends Component {
     }
     
     render() {
-        let className = this.props.isHidden ? 'tab-page' : 'tab-page active'
+        const className = this.props.isHidden ? 'tab-page' : 'tab-page active'
         return React.createElement(this.props.component, {className})
     }
 }

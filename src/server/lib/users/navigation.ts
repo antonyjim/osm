@@ -94,43 +94,31 @@ export class Navigation {
      */
     public getAllLinks() {
         return new Promise(function(resolve, reject) {
-            if (this.user && this.user.userRoles) {
-                let where: Array<string>
-                for (let priv in this.user.userRoles) {
-                    where.push(`nrRoleId = ${pool.escape(priv)}`)
-                }
-                let sql: string = `
-                    SELECT navigationRoles.nrLink,
-                           navigation.navId,
-                           CONCAT(navigation.navPathName, navigation.navQueryString)
-                            AS href
-                    FROM navigationRoles
-                    WHERE
-                    (
-                        ${where.join(' OR ')}
-                        AND
-                        navActive = 1
-                    )
-                    INNER JOIN navigation
-                    ON navigationRoles.nrLink = 
-                       navigation.navId
-                    GROUP BY navMenu
-                `
-                console.log(sql)
-                pool.query(sql, function(err: Error, links: Array<NavigationSettings.Links>) {
-                    pool.end()
-                    if (err) {throw err}
-                    if (links) {
-                        resolve(links)
-                    } else {
-                        reject({
-                            error: true,
-                            message: 'No results found'
-                        })
+            let sql = `
+                SELECT 
+                 navId,
+                 navInnerText,
+                 navMethod,
+                 CONCAT(navPathName, '?', IFNULL(navQueryString, '')) AS navHref,
+                 navHeader,
+                 navMenu,
+                 navActive,
+                 navPriv,
+                 navIsNotApi
+                FROM navigation
+                ORDER BY navMenu, navHeader, navInnerText
+            `
+            pool.query(sql, (err: Error, results) => {
+                if (err) {
+                    console.error(err)
+                    throw {
+                        error: true,
+                        message: err
                     }
-                })
-    
-            }
+                 } else {
+                    resolve(results)
+                 }
+            })
         })
     }
 
@@ -237,7 +225,7 @@ export class Navigation {
                     navActive: true
                 })
             // Verify that the privilege exists
-            this.verPriv(navLinkToBeEntered.navPriv.slice(0, 7))
+            this.verPriv(navLinkToBeEntered.navPriv.slice(0, 36))
             .then((onPrivExistsOrEntered: StatusMessage) => {  
                 let checkForExistingNav = `
                     SELECT *
@@ -261,31 +249,24 @@ export class Navigation {
                                 details: results[0]
                             })
                         } else {
+                            navLinkToBeEntered.navActive = navLinkToBeEntered.navActive === true ? 1 : 0
+                            navLinkToBeEntered.navIsNotApi = navLinkToBeEntered.navIsNotApi === true ? 1 : 0
                             let sql = `
-                                INSERT INTO navigation (
-                                    navInnerText,
-                                    navPathName,
-                                    navQueryString,
-                                    navMethod,
-                                    navHeader,
-                                    navMenu,
-                                    navActive, 
-                                    navPriv,
-                                    navIsNotApi
-                                ) VALUES (
+                                CALL addNav(
                                     ${pool.escape([
-                                        navLinkToBeEntered.navInnerText,
-                                        navLinkToBeEntered.navPathName,
+                                        navLinkToBeEntered.navInnerText.slice(0, 40),
+                                        navLinkToBeEntered.navPathName.slice(0, 120),
                                         navLinkToBeEntered.navQueryString,
                                         navLinkToBeEntered.navMethod,
                                         navLinkToBeEntered.navHeader,
                                         navLinkToBeEntered.navMenu,
                                         navLinkToBeEntered.navActive,
-                                        navLinkToBeEntered.navPriv.slice(0, 7),
+                                        navLinkToBeEntered.navPriv.slice(0, 36),
                                         navLinkToBeEntered.navIsNotApi
                                     ])}
                                 )
                             `
+                            console.log(sql)
                             pool.query(sql, function(err: Error, results) {
                                 if (err) {console.error(err); throw {
                                     error: true,
@@ -378,7 +359,7 @@ export class Navigation {
                         'navId',
                         'navInnerText',
                         'navMethod',
-                        'navPathname',
+                        'navPathName',
                         'navQueryString',
                         'navHeader',
                         'navMenu',
@@ -386,11 +367,22 @@ export class Navigation {
                         'navPriv',
                         'navIsNotApi'
                     ])
+
                     let findNav = `
                         SELECT *
                         FROM navigation
                         WHERE navId = ${pool.escape(sanitizedUpdate.navId)}
                     `
+                    if (sanitizedUpdate.navIsNotApi && (!sanitizedUpdate.navHeader || !sanitizedUpdate.navMenu)) {
+                        reject({
+                            error: true,
+                            message: "Missing Heading or Menu"
+                        })
+                    } else if (!sanitizedUpdate.navIsNotApi && (sanitizedUpdate.navHeader || sanitizedUpdate.navMenu)) {
+                        sanitizedUpdate['navHeader'] = null
+                        sanitizedUpdate['navMenu'] = null
+                    }
+                    console.log(JSON.stringify(sanitizedUpdate))
                     pool.query(findNav, (err: Error, results: Array<NavigationSettings.Links>) => {
                         if (err) {
                             throw {
@@ -399,25 +391,54 @@ export class Navigation {
                             }
                          } else {
                             if (results.length === 1) {
-                                let updateStatement = `
-                                    UPDATE navigation
-                                    SET ?
-                                    WHERE navId = ?
-                                `
-                                pool.query(updateStatement, [sanitizedUpdate, sanitizedUpdate.navId], (err: Error, results) => {
-                                    if (err) {
-                                        throw {
-                                            error: true,
-                                            message: err
-                                        }
-                                     } else {
-                                        resolve({
-                                            error: false,
-                                            message: 'Updated',
-                                            details: sanitizedUpdate
+                                console.log(JSON.stringify(sanitizedUpdate))
+                                if (sanitizedUpdate.navPriv) {
+                                    this.verPriv(sanitizedUpdate.navPriv)
+                                    .then((onAdded) => {
+                                        let updateStatement = `
+                                            UPDATE navigation
+                                            SET ?
+                                            WHERE navId = ?
+                                        `
+                                        pool.query(updateStatement, [sanitizedUpdate, sanitizedUpdate.navId], (err: Error, results) => {
+                                            if (err) {
+                                                throw {
+                                                    error: true,
+                                                    message: err
+                                                }
+                                            } else {
+                                                resolve({
+                                                    error: false,
+                                                    message: 'Updated',
+                                                    details: sanitizedUpdate
+                                                })
+                                            }
                                         })
-                                     }
-                                })
+                                    })
+                                    .catch(err => {
+                                        throw err
+                                    })
+                                } else {
+                                    let updateStatement = `
+                                        UPDATE navigation
+                                        SET ?
+                                        WHERE navId = ?
+                                    `
+                                    pool.query(updateStatement, [sanitizedUpdate, sanitizedUpdate.navId], (err: Error, results) => {
+                                        if (err) {
+                                            throw {
+                                                error: true,
+                                                message: err
+                                            }
+                                        } else {
+                                            resolve({
+                                                error: false,
+                                                message: 'Updated',
+                                                details: sanitizedUpdate
+                                            })
+                                        }
+                                    })
+                                }
                             } else {
                                 reject({
                                     error: true,

@@ -8,9 +8,9 @@ export namespace NavigationSettings {
         navQueryString?: string;
         navHeader?: string;
         navMenu?: string;
-        navActive?: string;
+        navActive?: any;
         navPriv?: string;
-        navIsNotApi?: boolean;
+        navIsNotApi?: any;
         navMethod?: string;
     }
 

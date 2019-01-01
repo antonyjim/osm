@@ -98,7 +98,7 @@ export class Validation {
         } else {
             let sanitizedObject: any = {}
             for (let key of allowableFields) {
-                if (this.providedFields[key]) {
+                if (this.providedFields[key] !== '' && this.providedFields[key] !== null) {
                     sanitizedObject[key] = this.providedFields[key]
                 }
             }

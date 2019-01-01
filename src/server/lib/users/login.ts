@@ -47,8 +47,8 @@ export class Login {
 
     private incrementInvalidLogins(userId) {
         pool.query(`UPDATE userRegistration
-                    SET userInvalidLoginAttempts = userInvalidLoginAttempts + 1
-                    WHERE userId = ${userId}`)
+        SET userInvalidLoginAttempts = userInvalidLoginAttempts + 1
+        WHERE userId = ${userId}`)
     }
 
     private clearInvalidLogins(userId) {

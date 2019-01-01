@@ -7,12 +7,12 @@
 
 
 // NPM Modules
-import { Router } from 'express'
+import { Router, Request } from 'express'
 
 // Local Modules
 import { NavigationSettings } from '../../types/roles';
 import { Navigation } from '../../lib/users/navigation';
-import { StatusMessage } from '../../types/server';
+import { StatusMessage, Response } from '../../types/server';
 import { Roles } from '../../lib/users/roles';
 
 
@@ -25,12 +25,13 @@ adminRoutes.get('/getRoles', function(req, res) {
         res.status(200).json(roles)
     })
     .catch((err) => {
+        console.error(err)
         res.status(200).json(err)
     })
 })
 
 adminRoutes.get('/getPrivs', function(req, res) {
-    new Roles().getPrivs()
+    new Roles().getPrivs(req.query.role)
     .then((privs) => {
         res.status(200).json(privs)
     })
@@ -60,7 +61,16 @@ adminRoutes.get('/getRoute', function(req, res) {
 })
 
 adminRoutes.get('/getAllRoutes', function(req, res) {
-        new Navigation({}).getAllLinks() 
+        new Navigation({}).getAllLinks()
+        .then((onSuccess) => {
+            res.status(200).json(onSuccess)
+        }, (onFailure) => {
+            res.status(200).json(onFailure)
+        })
+        .catch((err) => {
+            console.log(JSON.stringify(err))
+            res.status(500).json(err)
+        })
 })
 
 adminRoutes.post('/addRoute', function(req, res) {
@@ -70,7 +80,6 @@ adminRoutes.post('/addRoute', function(req, res) {
             res.status(200).json(onLinksAdded)
         })
         .catch(err => {
-            console.error(JSON.stringify(err))
             res.status(500).json(err)
         })
     } else {
@@ -81,7 +90,7 @@ adminRoutes.post('/addRoute', function(req, res) {
     }
 }) 
 
-adminRoutes.post('/updateLink', function(req, res) {
+adminRoutes.post('/updateRoute', function(req, res) {
     if(req.body) {
         new Navigation({linkInfo: [req.body]}).updateLink()
         .then((onLinkUpdated: StatusMessage) => {
@@ -101,14 +110,26 @@ adminRoutes.post('/updateLink', function(req, res) {
     }
 })
 
-adminRoutes.post('/roles/add', function(req, res) {
-    let role = req.body.role
-    if (role) {
-        new Roles(role).add
+adminRoutes.post('/roles/:action', function(req: Request, res: Response) {
+    const rpId = req.query.rpId
+    const rpPriv = req.query.rpPriv
+    const action = req.params.action
+    if (action === 'remove' || action === 'add') {
+        new Roles({rpId, rpPriv}).update(action)
+        .then((onChanged: StatusMessage) => {
+            res.status(200).json(onChanged)
+        }, (onNotChanged: StatusMessage) => {
+            res.status(200).json(onNotChanged)
+        })
+        .catch((err: Error) => {
+            console.error(err)
+            res.status(500).send()
+        })
     } else {
         res.status(200).json({
             error: true,
-            message: 'No role provided'
+            message: 'Invalid action supplied. Please use \'remove\' or \'update\' to modify a role or privilege'
+
         })
     }
 })
