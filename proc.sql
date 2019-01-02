@@ -93,7 +93,8 @@ CREATE PROCEDURE newUser (
     IN _userIsConfirmed BOOLEAN,
     IN _userFirstName VARCHAR(30),
     IN _userLastName VARCHAR(30),
-    IN _userPhone VARCHAR(13)
+    IN _userPhone VARCHAR(13),
+    IN _userConfirmation CHAR(36)
 )
     BEGIN
         INSERT INTO userRegistration
@@ -104,7 +105,8 @@ CREATE PROCEDURE newUser (
                 userEmail,
                 userDefaultNonsig,
                 userIsLocked,
-                userIsConfirmed
+                userIsConfirmed,
+                userConfirmation
             )
         VALUES
             (
@@ -114,7 +116,8 @@ CREATE PROCEDURE newUser (
                 _userEmail,
                 _userDefaultNonsig,
                 _userIsLocked,
-                _userIsConfirmed
+                _userIsConfirmed,
+                _userConfirmation
             );
         
             INSERT INTO userInformation
@@ -132,4 +135,67 @@ CREATE PROCEDURE newUser (
                     _userPhone
                 );
     END//
+
+CREATE FUNCTION changePassword(_userId CHAR(36), _confirmation CHAR(36), _hashedPassword BINARY(36))
+    RETURNS BOOLEAN
+    BEGIN
+        DECLARE _storedConfirmation CHAR(36);
+        DECLARE _userPendingPassword BOOLEAN;
+
+        SELECT
+            userConfirmation,
+            userAwaitingPassword
+        INTO
+            _storedConfirmation,
+            _userPendingPassword
+        FROM
+            userRegistration
+        WHERE
+            userId = _userId;
+
+        IF _userPendingPassword = 0 THEN RETURN 1;
+        ELSE
+            IF _storedConfirmation = _confirmation THEN
+                UPDATE
+                    userRegistration
+                SET
+                    userAwaitingPassword = 0,
+                    userPass = _hashedPassword,
+                    userConfirmation = NULL;
+            ELSE RETURN 1;
+            END IF;
+        END IF;
+        RETURN 0;
+    END //
+
+CREATE FUNCTION confirmUser(_userId CHAR(36), _confirmation CHAR(36), _password BINARY(60))
+    RETURNS BOOLEAN
+    BEGIN
+        DECLARE _storedConfirmation CHAR(36);
+
+        SELECT 
+            userConfirmation
+        INTO
+            _storedConfirmation
+        FROM
+            userRegistration
+        WHERE
+            userId = _userId;
+
+        IF _storedConfirmation = _confirmation THEN
+            UPDATE
+                userRegistration
+            SET
+                userIsConfirmed = 1,
+                userConfirmation = NULL,
+                userPass = _password,
+                userAwaitingPassword = 0
+            WHERE
+                userId = _userId;
+        ELSE RETURN 1;
+        END IF;
+        RETURN 0;
+    END //
+
+
 DELIMITER ;

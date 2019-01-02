@@ -247,15 +247,16 @@ export class User {
                                     `CALL newUser (
                                         ${pool.escape([
                                             accountOpts.userId,
-                                            accountOpts.userName,
+                                            accountOpts.userName.toLowerCase(),
                                             null,
-                                            accountOpts.userEmail,
+                                            accountOpts.userEmail.toLowerCase(),
                                             accountOpts.userDefaultNonsig,
                                             (accountOpts.userIsLocked === true ? 1 : 0),
                                             false,
                                             accountOpts.userFirstName,
                                             accountOpts.userLastName,
-                                            accountOpts.userPhone
+                                            accountOpts.userPhone,
+                                            accountOpts.userConfirmation
                                         ])})`,
                                     function(err: Error, results) {
                                         if (err) {throw err}
@@ -311,10 +312,10 @@ export class User {
                     WHERE
                 `
                 if (this.userOpt.userName) {
-                    conditions.push(`userName = ${pool.escape(this.userOpt.userName)}`)
+                    conditions.push(`userName = ${pool.escape(this.userOpt.userName.toLowerCase())}`)
                 }
                 if (this.userOpt.userEmail) {
-                    conditions.push(`userEmail = ${pool.escape(this.userOpt.userEmail)}`)
+                    conditions.push(`userEmail = ${pool.escape(this.userOpt.userEmail.toLowerCase())}`)
                 }
                 sql += conditions.join(' OR ')
                 pool.query(sql, (err: Error, results) => {
@@ -333,6 +334,8 @@ export class User {
                                     message.push('Email already in use. Please click on forgot password') 
                                 } else if (user.userName === this.userOpt.userName) {
                                     message.push('Username already in use')
+                                } else {
+                                    message.push('User already exists')
                                 }
                             }
                             resolve({
@@ -448,7 +451,8 @@ export class User {
                     ]
                 ).defaults(
                     {
-                        userId: uuid.v4()
+                        userId: uuid.v4(),
+                        userConfirmation: uuid.v4()
                     }
                 )
                 this.newAccount(defaultedFields)

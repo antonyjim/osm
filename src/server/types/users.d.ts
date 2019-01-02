@@ -42,6 +42,7 @@ export namespace UserTypes {
         userLastName?: string;
         userPhone?: string;
         userIsConfirmed?: any;
+        userConfirmation?: string;
     }
 
     interface AuthToken {

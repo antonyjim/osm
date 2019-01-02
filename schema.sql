@@ -85,11 +85,9 @@ CREATE TABLE userRegistration (
     userPass BINARY(60),
     userEmail VARCHAR(90) NOT NULL,
     userIsLocked BOOLEAN NOT NULL DEFAULT 0,
-    userIsAdmin BOOLEAN NOT NULL DEFAULT 0, -- Is the user an admin
-    userIsSuperAdmin BOOLEAN NOT NULL DEFAULT 0, -- Is the user a goodyear administrator
-    userAdministrator CHAR(36), -- If not, list the administrator
     userIsConfirmed BOOLEAN NOT NULL DEFAULT 0, -- Test if user has confirmed their email
-    userConfirmationToken VARCHAR(120), -- JWT Recieved in email
+    userAwaitingPassword BOOLEAN NOT NULL DEFAULT 0, -- If user has password reset pending
+    userConfirmation CHAR(36), -- Token used for confirmation and password reset
     userInvalidLoginAttempts INT(1),
     userDefaultNonsig BINARY(9) NOT NULL,
 
@@ -99,11 +97,6 @@ CREATE TABLE userRegistration (
 
     FOREIGN KEY (userDefaultNonsig)
         REFERENCES nsInfo(nsNonsig)
-        ON DELETE RESTRICT
-        ON UPDATE CASCADE,
-
-    FOREIGN KEY (userAdministrator)
-        REFERENCES userRegistration(userId)
         ON DELETE RESTRICT
         ON UPDATE CASCADE
 );
@@ -466,70 +459,3 @@ AS
         nsAccess
     ON
         nsAccess.nsaNonsig = userRegistration.userDefaultNonsig;
-
-INSERT INTO nsInfo (
-    nsNonsig,
-    nsTradeStyle,
-    nsAddr1,
-    nsCity,
-    nsState,
-    nsPostalCode
-) VALUES (
-    '466393271',
-    'Goodyear Tire and Rubber Company',
-    '200 Innovation Way',
-    'Akron',
-    'OH',
-    '44302'
-);
-
--- Insert default settings for initial login
-INSERT INTO userRegistration (
-    userId,
-    userName,
-    userPass,
-    userEmail,
-    userDefaultNonsig,
-    userIsLocked,
-    userIsAdmin,
-    userIsSuperAdmin,
-    userIsConfirmed
-) VALUES (
-    'b42a1170-096a-11e9-b568-0800200c9a66',
-    'administrator',
-    '$2a$10$r.Nlitz0cVeWeuVa4Lf/Sugw/LZlwBPEZGSqYU52KRz1Be73Dgwsi', -- G00dAdmin
-    'antonyjund@gmail.com',
-    '466393271',
-    false,
-    true,
-    true,
-    true
-);
-
-INSERT INTO rolePermissions (
-    rpId,
-    rpPriv
-) VALUES (
-    'SiteAdm',
-    'SiteAdmin'
-);
-
-INSERT INTO rolePermissions (
-    rpId,
-    rpPriv
-) VALUES (
-    'SiteAdm',
-    'Un-Authed'
-);
-
-INSERT INTO nsAccess (
-    nsaUserId,
-    nsaNonsig,
-    nsaRole,
-    nsaIsAdmin
-) VALUES (
-    'b42a1170-096a-11e9-b568-0800200c9a66',
-    '466393271',
-    'SiteAdm',
-    true
-);
