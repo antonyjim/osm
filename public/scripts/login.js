@@ -30,8 +30,35 @@ function passLogin() {
     })
 }
 
+function submitRegistration(e) {
+    let formFields = document.querySelectorAll('#register input')
+    let registration = {}
+    formFields.forEach(field => {
+        registration[field.id] = field.value
+    })
+    $.ajax('/newUser', {
+        method: 'POST',
+        data: JSON.stringify(registration),
+        headers: {
+            'Content-Type': 'Application/JSON'
+        },
+        success: function(response) {
+            console.log(response)
+            alert = $('#register .alert')
+            .show()
+            .text(response.message)
+        },
+        error: function(err) {
+            alert = $('#register .alert')
+            .show()
+            .text(err)
+        }
+    })
+}
+
 function handleOnLoad() {
     document.querySelector('#loginBtn').addEventListener('click', passLogin)
+    $('#submit').on('click', submitRegistration)
     if (window.location.pathname === '/logout') {
         history.pushState({loaded: true}, 'Tire-HQ', '/')
     }

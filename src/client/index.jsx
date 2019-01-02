@@ -64,19 +64,17 @@ class App extends Component {
 
     render() {
         return (
-            <>
-                <Router>
-                    <div>
-                        <Navigation/>
-                        <Switch>
-                            <Route exact path="/" component={Dashboard}></Route>
-                            <Route path="/admin/navroles/" component={AdminWireFrame} />
-                            <Route component={E404}/>
-                        </Switch>
-                        <Footer />
-                    </div>
-                </Router>
-            </>
+            <Router>
+                <div>
+                    <Navigation/>
+                    <Switch>
+                        <Route exact path="/" component={Dashboard}></Route>
+                        <Route path="/admin/navroles/" component={AdminWireFrame} />
+                        <Route component={E404}/>
+                    </Switch>
+                    <Footer />
+                </div>
+            </Router>
         )
     }
 }

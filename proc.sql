@@ -83,4 +83,53 @@ CREATE PROCEDURE thq.addNav(
             RETURN _authorized;
         END//
 
+CREATE PROCEDURE newUser (
+    IN _userId CHAR(36),
+    IN _userName VARCHAR(36),
+    IN _userPass BINARY(60),
+    IN _userEmail VARCHAR(90),
+    IN _userDefaultNonsig BINARY(9),
+    IN _userIsLocked BOOLEAN,
+    IN _userIsConfirmed BOOLEAN,
+    IN _userFirstName VARCHAR(30),
+    IN _userLastName VARCHAR(30),
+    IN _userPhone VARCHAR(13)
+)
+    BEGIN
+        INSERT INTO userRegistration
+            (
+                userId,
+                userName, 
+                userPass,
+                userEmail,
+                userDefaultNonsig,
+                userIsLocked,
+                userIsConfirmed
+            )
+        VALUES
+            (
+                _userId,
+                _userName,
+                _userPass,
+                _userEmail,
+                _userDefaultNonsig,
+                _userIsLocked,
+                _userIsConfirmed
+            );
+        
+            INSERT INTO userInformation
+                (
+                    userId,
+                    userFirstName,
+                    userLastName,
+                    userPhone
+                )
+            VALUES 
+                (
+                    _userId,
+                    _userFirstName,
+                    _userLastName,
+                    _userPhone
+                );
+    END//
 DELIMITER ;

@@ -29,25 +29,16 @@ function sendConfirmation({userEmail, confirmationToken}) {
             from: 'Tire-HQ Signer <tirehq.helpdesk@goodyear.com>',
             to: userEmail,
             subject: 'Confirm Email',
-            html: `<a href="https://www.tire-hq.com/users/verifyToken/${confirmationToken}">Click here to verify </a>`
+            html: `<a href="https://www.tire-hq.com/verifyToken/?token=${confirmationToken}">Click here to verify </a>`
         }
         transporter.sendMail(message, function(err: Error, info) {
             if (err) {throw err}
-            if (info.rejected) {
-                let status: StatusMessage = {
-                    error: true,
-                    message: 'Invalid email address',
-                    details: userEmail
-                }
-                reject(status)
-            } else {
-                let status: StatusMessage = {
-                    error: true,
-                    message: 'Invalid email address',
-                    details: userEmail
-                }
-                resolve(status)
+            let status: StatusMessage = {
+                error: false,
+                message: 'Email sent',
+                details: userEmail
             }
+            resolve(status)
         })
     
     })

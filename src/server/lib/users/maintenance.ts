@@ -180,7 +180,7 @@ export class Nonsig {
                 if (err) {
                     err
                 } else {
-                    if (results.length === 0) {
+                    if (results.length === 1) {
                         const nonsig = results[0]
                         if(nonsig.nsIsActive && nonsig.nsIsActiveTHQ) {
                             resolve({
@@ -240,91 +240,168 @@ export class User {
                         }
                         reject(reason)
                     } else {
-                        hash(this.userPass, saltRounds, function(hashed) {
-                            new Nonsig({nsNonsig: accountOpts.userDefaultNonsig}).existsAndIsActive()
-                            .then((nonsigExists) => {
-                                if(nonsigExists.isActive && nonsigExists.isActiveTHQ) {
-                                    pool.query(
-                                        `INSERT INTO userRegistration
-                                        (
-                                            userId,
-                                            userName, 
-                                            userPass,
-                                            userEmail,
-                                            userDefaultNonsig,
-                                            userIsLocked,
-                                            userIsAdmin,
-                                            userIsSuperAdmin,
-                                            userAdministrator,
-                                            userIsConfirmed,
-                                        )
-                                        VALUES
-                                        (
-                                            ${pool.escape([
-                                                this.userId,
-                                                this.userName,
-                                                hashed,
-                                                this.userEmail,
-                                                this.userNonsig,
-                                                this.userIsLocked,
-                                                this.userIsAdmin,
-                                                this.userIsSuperAdmin,
-                                                this.userAdministrator,
-                                                false
-                                            ])}
-                                        );
-                                        INSERT INTO userInformation
-                                        (
-                                            userId,
-                                            userFirstName,
-                                            userLastName,
-                                            userType,
-                                            userPhone
-                                        )
-                                        VALUES (
-                                            ${pool.escape([
-                                                this.userId, 
-                                                this.userFirstName,
-                                                this.userLastName,
-                                                this.userPhone
-                                            ])}
-                                        )`,
-                                        accountOpts,
-                                        function(err: Error, results) {
-                                            if (err) {throw err}
-                                            let reason: StatusMessage = {
-                                                error: false,
-                                                message: 'User account created successfully'
-                                            }
-                                            let confirmationToken = sign({
-                                                userId: accountOpts.userId
-                                            },
-                                            jwtSecret,
-                                            {
-                                                expiresIn: '30d'
-                                            })
-                                            sendConfirmation({userEmail: this.userEmail, confirmationToken})
-                                            resolve(reason)
+                        new Nonsig({nsNonsig: accountOpts.userDefaultNonsig}).existsAndIsActive()
+                        .then((nonsigExists) => {
+                            if(nonsigExists.isActive && nonsigExists.isActiveTHQ) {
+                                pool.query(
+                                    `CALL newUser (
+                                        ${pool.escape([
+                                            accountOpts.userId,
+                                            accountOpts.userName,
+                                            null,
+                                            accountOpts.userEmail,
+                                            accountOpts.userDefaultNonsig,
+                                            (accountOpts.userIsLocked === true ? 1 : 0),
+                                            false,
+                                            accountOpts.userFirstName,
+                                            accountOpts.userLastName,
+                                            accountOpts.userPhone
+                                        ])})`,
+                                    function(err: Error, results) {
+                                        if (err) {throw err}
+                                        let reason: StatusMessage = {
+                                            error: false,
+                                            message: 'User account created successfully'
                                         }
-                                    )
-                                } else {
-                                    reject({
-                                        error: true,
-                                        message: 'Nonsig is not active'
-                                    })
-                                }
-                            }, (nonsigDoesNotExist) => {
-                                reject(nonsigDoesNotExist)
-                            })
-                            .catch(err => {
-                                throw err
-                            })
+                                        let confirmationToken = sign({
+                                            userId: accountOpts.userId,
+                                            action: 'newUser'
+                                        },
+                                        jwtSecret,
+                                        {
+                                            expiresIn: '30d'
+                                        })
+                                        sendConfirmation({userEmail: accountOpts.userEmail, confirmationToken})
+                                        .then(onEmailSent => {
+                                            resolve(reason)
+                                        }, onEmailNotSent => {
+                                            reject(onEmailNotSent)
+                                        })
+                                        .catch(err => {
+                                            throw err
+                                        })
+                                })
+                            } else {
+                                reject({
+                                    error: true,
+                                    message: 'Nonsig is not active'
+                                })
+                            }
+                        }, (nonsigDoesNotExist) => {
+                            reject(nonsigDoesNotExist)
+                        })
+                        .catch(err => {
+                            throw err
                         })
                     }
                 }
             )
         })
+    } // newAccount()
+
+    public verifyUsername() {
+        return new Promise((resolve, reject) => {
+            if (!this.userOpt.userName || !this.userOpt.userEmail) {
+                throw new TypeError('No username or email provided to verify user against')
+            } else {
+                let conditions = []
+                let sql = `
+                    SELECT userName, userEmail
+                    FROM userRegistration
+                    WHERE
+                `
+                if (this.userOpt.userName) {
+                    conditions.push(`userName = ${pool.escape(this.userOpt.userName)}`)
+                }
+                if (this.userOpt.userEmail) {
+                    conditions.push(`userEmail = ${pool.escape(this.userOpt.userEmail)}`)
+                }
+                sql += conditions.join(' OR ')
+                pool.query(sql, (err: Error, results) => {
+                    if (err) {
+                        throw err
+                     } else {
+                        if (results.length === 0) {
+                            resolve({
+                                error: false,
+                                message: 'Username available'
+                            })
+                        } else {
+                            let message: Array<string> = []
+                            for(let user of results) {
+                                if (user.userEmail === this.userOpt.userEmail) {
+                                    message.push('Email already in use. Please click on forgot password') 
+                                } else if (user.userName === this.userOpt.userName) {
+                                    message.push('Username already in use')
+                                }
+                            }
+                            resolve({
+                                error: true,
+                                message
+                            })
+                        }
+                     }
+                })
+            }
+        })
     }
+
+    public setPassword(password1, password2) {
+        return new Promise((resolve, reject) => {
+            if (password1 !== password2) {
+                reject({
+                    error: true,
+                    message: 'Passwords do not match'
+                })
+            } else if (!/[A-Z]/.test(password1)) {
+                reject({
+                    error: true,
+                    message: 'Passwords should contain an uppercase letter'
+                })
+            } else if (!/[0-9]/.test(password1)) {
+                reject({
+                    error: true,
+                    message: 'Passwords should contain a number'
+                })
+            } else if (password1.length < 8) {
+                reject({
+                    error: true,
+                    message: 'Password needs to be at least 8 characters long'
+                })
+            } else if (password1.length > 50) {
+                reject({
+                    error: true,
+                    message: 'Passwords can not be over 50 characters long'
+                })
+            } else {
+                if (this.userOpt.userId) {
+                    hash(password1, saltRounds, (hashed) => {
+                        const sql = `
+                            UPDATE userRegistration
+                            SET 
+                                userPass = ${pool.escape(hashed)},
+                                userIsConfirmed = 1
+                            WHERE 
+                                userId = ${pool.escape(this.userOpt.userId)}
+                        `
+                        console.log(sql)
+                        pool.query(sql, (err: Error, results) => {
+                            if (err) {throw err}
+                            resolve({
+                                error: false,
+                                message: "Password set successfully."
+                            })
+                        })
+                    })
+                } else {
+                    reject({
+                        error: true,
+                        message: 'Missing userId'
+                    })
+                }
+            }
+        })
+    } // setPassword()
 
     public createNew(): Promise<StatusMessage> {
         return new Promise((resolve, reject) => {
@@ -339,12 +416,12 @@ export class User {
             ]
             let validator = new Validation(this.userOpt)
             let invalidFields = validator.required(requiredFields)
-            if (invalidFields) {
-                return {
+            if (invalidFields.length > 0) {
+                reject({
                     error: true,
                     message: 'Invalid data',
                     details: invalidFields
-                }
+                }) 
             } else {
                 let defaultedFields = validator.truncate(
                     [
@@ -371,11 +448,7 @@ export class User {
                     ]
                 ).defaults(
                     {
-                        userId: uuid.v4(),
-                        userIsSuperAdmin: false,
-                        userIsAdmin: false,
-                        userAdministrator: null,
-                        userType: 1
+                        userId: uuid.v4()
                     }
                 )
                 this.newAccount(defaultedFields)
@@ -389,5 +462,5 @@ export class User {
                 }) 
             }
         })
-    }
+    } // createNew()
 }

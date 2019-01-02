@@ -35,18 +35,13 @@ export namespace UserTypes {
         userPass?: string;
         userEmail?: string;
         userDefaultNonsig?: string;
-        userIsLocked?: string;
-        userIsAdmin?: string;
-        userIsSuperAdmin?: string;
-        userAdministrator?: string;
+        userIsLocked?: any;
         userLastLogin?: Date;
         userLastPasswordChange?: Date;
         userFirstName?: string;
         userLastName?: string;
-        userType?: number;
         userPhone?: string;
-        userView?: string;
-        userIsConfirmed?: boolean;
+        userIsConfirmed?: any;
     }
 
     interface AuthToken {

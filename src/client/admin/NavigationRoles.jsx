@@ -352,15 +352,28 @@ class Routes extends Component {
 class PrivTable extends Component {
     constructor(props) {
         super(props)
+        let allPrivs = [{
+            text: '-- None --',
+            value: ''
+        }]
+        if (props.allPrivs) {
+            props.allPrivs.map(priv => {
+                allPrivs.push(priv.rpPriv)
+            })
+        }
+        this.state = {
+            allPrivs
+        }
     }
 
     render() {
         let rows = []
-        this.props.privs[0] !== null &&  this.props.privs.map((priv, i) => {
+        const unUsed = this.props.allPrivs.filter(privilege => this.props.privs.indexOf(privilege) === -1)
+        this.props.privs[0] !== null &&  this.props.privs.map((priv) => {
             rows.push(<tr scope="row" key={Math.floor(Math.random() * 10000)}>
                 <td>{this.props.rpId}</td>
-                <td>{priv.rpPriv}</td>
-                <td><a href="javascript:void(0)" onClick={this.props.onDelete} data-target={priv.rpPriv}>Delete</a></td>
+                <td>{priv}</td>
+                <td><a href="javascript:void(0)" onClick={this.props.onDelete} data-target={priv}>Delete</a></td>
             </tr>)
         })
         return (
@@ -369,11 +382,22 @@ class PrivTable extends Component {
                     <tr>
                         <th scope="col">Role</th>
                         <th scope="col">Priv</th>
-                        <th scope="col">Delete</th>
+                        <th scope="col">Mod</th>
                     </tr>
                 </thead>
                 <tbody>
                     {rows}
+                    <tr scope="row">
+                        <td>
+                            {this.props.rpId}
+                        </td>
+                        <td className="p-0">
+                            <SelectField opts={unUsed} id="newPriv" onChange={this.props.onChange} value={this.props.newPrivValue} />
+                        </td>
+                        <td>
+                            <a href="javascript:void(0)" onClick={this.props.onAdd} data-for={this.props.rpId}>Add</a>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         )
@@ -391,9 +415,12 @@ class Roles extends Component {
                 value: ''
             }],
             privs: [null],
-            rpId: ''
+            allPrivs: [null],
+            rpId: '',
+            newPriv: ''
         }
         this.getRoles()
+        this.getPrivs(true)
     }
 
     getRoles() {
@@ -425,15 +452,33 @@ class Roles extends Component {
         })
     }
 
-    getPrivs() {
-        $.ajax(`/api/admin/getPrivs?role=${this.state.rpId}&token=${window.THQ.token}`, {
+    getPrivs(all, specificRole) {
+        let url = ''
+        if (all) {
+            url = `/api/admin/getPrivs?token=${window.THQ.token}`
+        } else if(specificRole) {
+            url = `/api/admin/getPrivs?role=${specificRole}&token=${window.THQ.token}`
+        } else {
+            url = `/api/admin/getPrivs?role=${this.state.rpId}&token=${window.THQ.token}`
+        }
+        $.ajax(url, {
             success: (response) => {
-                console.log(response)
                 if (!response.error) {
-                    this.setState({
-                        error: false,
-                        privs: response.details
+                    let receivedPrivs = []
+                    response.details.map(priv => {
+                        receivedPrivs.push(priv.rpPriv)
                     })
+                    if (all) {
+                        this.setState({
+                            error: false,
+                            allPrivs: receivedPrivs
+                        })
+                    } else {
+                        this.setState({
+                            error: false,
+                            privs: receivedPrivs
+                        })
+                    }
                 } else {
                     this.setState({
                         error: true,
@@ -460,7 +505,7 @@ class Roles extends Component {
                 } else {
                     let newPrivs = []
                     for (let priv of this.state.roles) {
-                        if (priv.rpPriv = rpPriv) {
+                        if (priv.rpPriv == rpPriv) {
                             continue
                         } else {
                             newPrivs.push(priv)
@@ -475,24 +520,64 @@ class Roles extends Component {
         })
     }
 
+    handleAdd(e) {
+        let rpId = e.target.getAttribute('data-for')
+        let rpPriv = this.state.newPriv
+        console.log(`/api/admin/roles/add?rpId=${rpId}&rpPriv=${rpPriv}`)
+        if (rpId && rpPriv) {
+            $.ajax(`/api/admin/roles/add?rpId=${rpId}&rpPriv=${rpPriv}&token=${window.THQ.token}`, {
+                method: 'POST',
+                success: (response) => {
+                    if (response.error) { 
+                        this.setState({
+                            error: true,
+                            status: response.message
+                        })
+                    } else {
+                        let privs = this.state.privs
+                        privs.push(rpPriv)
+                        this.setState({
+                            error: false,
+                            status: response.message,
+                            privs
+                        })
+                    }
+                }
+            })
+        } else {
+            this.setState({
+                error: true,
+                status: 'Missing role or priv'
+            })
+        }
+    }
+
     handleChange(e) {
         const name = e.target.id
         const value = e.target.value
-        console.log('Setting state key ', name, ' to ', value)
         this.setState({[name]: value})
-        if (value !== '' && value !== 'none') {
-            this.getPrivs()
+        if (name === 'rpId' && value !== 'none') {
+            console.log('Fetching privs for ', value)
+            this.getPrivs(false, value)
         }
     }
 
     render() {
-        console.log('Priv length ', this.state.privs, ' rpId ', this.state.rpId)
         return (
             <div className={this.props.className + " m-3"}>
                 {this.state.status && <Alert message={this.state.status} alertType={this.state.error ? 'danger' : 'success'} />}
                 <input type="hidden" id="oldrpId" value={this.state.oldrpId}/>
                 <SelectField id="rpId" opts={this.state.roles} value={this.state.rpId} onChange={this.handleChange.bind(this)} otherField={true}/>
-                {this.state.privs[0] !== null && <PrivTable privs={this.state.privs} onDelete={this.handleDelete.bind(this)} rpId={this.state.rpId} />}
+                {this.state.privs[0] !== null && 
+                    <PrivTable 
+                        privs={this.state.privs} 
+                        allPrivs={this.state.allPrivs} 
+                        onDelete={this.handleDelete.bind(this)} 
+                        onAdd={this.handleAdd.bind(this)}
+                        rpId={this.state.rpId} 
+                        onChange={this.handleChange.bind(this)}
+                        newPrivValue={this.state.newPriv}
+                    />}
             </div>
         )
     }

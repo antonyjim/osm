@@ -22,25 +22,22 @@ class SelectField extends Component {
         super(props)
         this.state = {
             otherField: false,
-            selvalue: this.props.value,
             selectId: this.props.id
         }
     }
 
     handleOnChange(e) {
         if (e.target.value === 'otherSelection') {
-            this.setState({otherField: true, selvalue: e.target.value, id: e.target.id})
-            console.log("Old id %s", e.target.id)
+            this.setState({otherField: true, id: e.target.id, selectId: ''})
             e.target.setAttribute('oldId', e.target.id)
             e.target.removeAttribute('id')
         } else {
             let oldId = e.target.getAttribute('oldId')
             if (oldId) {
-                this.setState({otherField: false, selvalue: e.target.value, id: null})
-                e.target.id = oldId
+                this.setState({otherField: false, id: null, selectId: oldId})
                 e.target.removeAttribute('oldId')
             } else {
-                this.setState({otherField: false, selvalue: e.target.value, id: null})
+                this.setState({otherField: false, id: null, selectId: e.target.id})
             }
         } 
     }
@@ -49,7 +46,11 @@ class SelectField extends Component {
         let options = []
         if (Array.isArray(this.props.opts)) {
             this.props.opts.forEach(opt => {
-                options.push(<option value={opt.value} key={Math.floor(Math.random() * 1000000)}>{opt.text}</option>)
+                if (typeof opt === 'string') {
+                    options.push(<option value={opt} key={Math.floor(Math.random() * 1000000)}>{opt}</option>)
+                } else {
+                    options.push(<option value={opt.value} key={Math.floor(Math.random() * 1000000)}>{opt.text}</option>)
+                }
             })
         }
 
@@ -61,7 +62,7 @@ class SelectField extends Component {
                 <label htmlFor={this.props.id}>
                     {this.props.label}
                 </label>
-                <select className="form-control" id={this.state.selectId} onChange={(e) => {this.handleOnChange(e); this.props.onChange(e)}} value={this.props.value || this.state.selvalue}>
+                <select className="form-control" id={this.state.selectId} onChange={(e) => {this.handleOnChange(e); this.props.onChange(e)}} value={this.state.otherField?  'otherSelection' : this.props.value}>
                     {options}
                 </select>
                 {this.state.otherField && <input id={this.state.id} type="text" className="form-control mt-3" onChange={this.props.onChange}></input>}

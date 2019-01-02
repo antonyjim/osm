@@ -451,7 +451,6 @@ AS
         userRegistration.userPass,
         userRegistration.userEmail,
         userRegistration.userIsConfirmed,
-        userRegistration.userIsAdmin,
         userRegistration.userIsLocked,
         userRegistration.userInvalidLoginAttempts,
         userRegistration.userDefaultNonsig AS userNonsig,

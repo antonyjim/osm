@@ -90,6 +90,7 @@ export class Validation {
                 this.providedFields[field.field] =fieldInQuestion.slice(0, field.length)
             }
         }
+        return this
     }
 
     public updateFields(allowableFields): any {
