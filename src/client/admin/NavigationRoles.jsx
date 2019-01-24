@@ -43,6 +43,20 @@ class ExistingRoutes extends Component {
     }
 
     getLinks() {
+        $.ajax('/api/admin/getAllRoutes?token=' + window.THQ.token, {
+            method: 'GET',
+            success: (links) => {
+                if (links.error) {
+                    console.error(links.message)
+                } else {
+                    this.setState({links})
+                }
+            },
+            error: (err) => {
+                throw err
+            }
+        })
+        /*
         fetch('/api/admin/getAllRoutes?token=' + window.THQ.token)
         .then(res => {
             return res.json()
@@ -57,6 +71,7 @@ class ExistingRoutes extends Component {
         .catch(err => {
             console.error(err)
         })
+        */
     }
 
     render() {
@@ -126,6 +141,27 @@ class Routes extends Component {
     }
 
     getRoles() {
+        $.ajax('/api/admin/getPrivs?token=' + window.THQ.token, {
+            method: 'GET',
+            success: (roles) => {
+                if (roles.error) {
+                    console.error(roles.message)
+                    this.setState({unAuthorized: true})
+                }
+                let roleOpts = []
+                roles.details.forEach(role => {
+                    roleOpts.push({
+                        value: role.rpPriv,
+                        text: role.rpPriv
+                    })
+                })
+                this.setState({roles: roleOpts})
+            },
+            error: (err) => {
+                throw err
+            }
+        })
+        /*
         fetch('/api/admin/getPrivs?token=' + window.THQ.token)
         .then(res => {
             return res.json()
@@ -147,6 +183,7 @@ class Routes extends Component {
         .catch(err => {
             console.error(err)
         })
+        */
     }
 
     handleOnTypeChange(e) {
@@ -177,7 +214,7 @@ class Routes extends Component {
             action: '/api/admin/addRoute?token=' + window.THQ.token,
             method: 'POST', 
             cb: (err, response) => {
-            if (err) {alert(err)}
+            if (err) {console.error(err)}
             if (response.error) {
                 this.setState({message: {
                     type: 'danger',

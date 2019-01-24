@@ -57,7 +57,7 @@
             .show()
         } else {
             $('#passwordErr').hide()
-            $.ajax('/setPassword', {
+            $.ajax('/verify', {
             method: "POST",
             data: JSON.stringify(body),
             headers: {
@@ -65,11 +65,11 @@
             },
             success: function(response) {
                 if (response.error) {
-                $('#passwordErr')
-                .text(response.message)
-                .show()
+                    $('#passwordErr')
+                    .text(response.message)
+                    .show()
                 } else {
-                window.location.href = '/'
+                    window.location.href = '/'
                 }
             },
             error: function(err) {

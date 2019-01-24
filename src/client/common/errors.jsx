@@ -33,5 +33,43 @@ class E401 extends Component {
         )
     }
 }
+
+class ErrorBoundary extends Component {
+    constructor(props) {
+        super(props)
+        this.state = { hasError: false }
+    }
+
+    componentDidCatch(err, info) {
+        this.setState({ 
+            hasError: true,
+            error: err
+        })
+        console.error(err, ' ', info)
+    }
+
+    render() { 
+        if (this.state.hasError) {
+            return (
+                <div className="fof-cont">
+                    <center>
+                        <div className="fof-title">
+                            <h1 className="error-code">Oops</h1>
+                        </div>
+                        <br />
+                        <div className="fof-desc">
+                            An unexpected error occurred. <a href="/" className="404-home">Click here to go home</a>
+                            <br/>
+                            <>
+                                {this.state.error.toString()}
+                            </>
+                        </div>
+                    </center>
+                </div>
+            )
+        }
+        return this.props.children
+    }
+}
  
-export { E404, E401 };
+export { E404, E401, ErrorBoundary };

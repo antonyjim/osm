@@ -1,31 +1,77 @@
 <html>
     <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <!--Stylesheet-->
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
-        <link rel="stylesheet" href="/public/style.css">
+        <link rel="stylesheet" type="text/css" href="/public/bootstrap.css">
+        <link rel="stylesheet" type="text/css" href="/public/style.css">
         <title>Tire-HQ</title>
     </head>
     <body>
-        <!--
-
-        <nav class="navbar navbar-expand-lg navbar-dark bg-goodyear">
-                <a class="navbar-brand" href="/"><img src="/public/images/logo.png" height="60px"></a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNnav" aria-controls="main-nav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="mainNav">
-                    <ul class="mr-auto navbar-nav" id="mainMenuContainer">
-                        
-                    </ul>
-                </div>
-        </nav> 
-        -->
+        <!-- Fallback to display while loading -->
+        <div id="loading-container">
+            <style id="loadingStyle">
+                html {
+                    height: 100%;
+                    background: radial-gradient(rgb(183, 214, 228) 55%, rgb(156, 197, 233) 100%);
+                }
+                #loading-container {
+                    margin: 0 auto;
+                    text-align: center;
+                    margin-top: 30px;
+                }
+                .logo {
+                    margin-top: 18%;
+                }
+                .loading {
+                    font-family: Verdana, Geneva, Tahoma, sans-serif;
+                    font-size: 1.4em;
+                    margin-top: 15px;
+                }
+        
+                #loadingMessage {
+                    animation: messages 2s ease-in-out infinite ;
+                }
+        
+                @keyframes messages {
+                    0%,40% {
+                        opacity: 1;
+                    }
+                    to {
+                        opacity: 0
+                    }
+                }
+            </style>
+            <div class="logo">
+                <img src="/public/images/wingfoot_yellow.png">
+            </div>
+            <div class="loading">
+                Loading something <span id="loadingMessage" >great...</span>
+            </div>
+            <script id="loadingScript">
+                let loadingInterval = setInterval(showMessage, 2000)
+                function showMessage() {
+                    var messages = [
+                        'great...',
+                        'wonderful...',
+                        'fun-filled...',
+                        'amazing...',
+                        'better than you\'ve ever experienced...',
+                        'out of a fairy tale...',
+                        'that exists in dreams...',
+                        'starring wingfoot...',
+                        'that takes forever to load...',
+                        'horrible...'
+                    ]
+                    document.getElementById('loadingMessage').innerText = messages[Math.ciel(Math.random() * 10)]
+                }
+            </script>
+        </div>
         <!--Container for React rendering-->
         <div id="root"></div>
         <!--Bundled file and JS-->
-        <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+        <script src="/public/scripts/jq.js"></script>
         <!-- <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script> -->
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+        <script src="/public/scripts/bootstrap.js"></script>
         <script src="/public/bundle.js"></script>
     </body>
 </html>

@@ -3,7 +3,11 @@ function fetchLogin(token) {
         let token = window.THQ.token
         let details = JSON.parse(atob(token.split('.')[1]))
         window.THQ.user = details
-        if (details.userId === window.localStorage.getItem('userId') && window.localStorage.getItem('navigation')) {
+        if (details.userId === window.localStorage.getItem('userId') 
+        && window.localStorage.getItem('navigation') 
+        && (window.THQ.privs && window.THQ.user.privs.length > 0)) {
+            console.log('New user userId = ', details.userId, ' Existing userId = ', localStorage.userId)
+            document.dispatchEvent(new Event('thq.receivedNav'))
             resolve(JSON.parse(window.localStorage.getItem('navigation')))
         } else {
             window.localStorage.setItem('userId', details.userId)
@@ -12,32 +16,22 @@ function fetchLogin(token) {
                     withCredentials: true
                 },
                 success: function(response) {
-                    console.log(response)
                     if (!response.errror) {
-                        let menus = formatNavigation(response.details)
+                        let menus = formatNavigation(response.details.navs)
+                        window.THQ.user.privs = response.details.privs
                         window.localStorage.setItem('navigation', JSON.stringify(menus))
+                        document.dispatchEvent(new Event('thq.receivedNav'))
                         resolve(menus)
                     } else {
                         throw err
                     }
                 },
                 error: function(err) {
+                    alert(err)
                     throw err
                 }
             })
         }
-        /*
-        fetch('/account/navigation?token=' + token)
-        .then(res => {
-            return res.json()
-        })
-        .then(navigation => {
-            resolve(formatNavigation(navigation.details))
-        })
-        .catch(err => {
-            throw err
-        })
-        */
     })
 }
 
@@ -55,6 +49,7 @@ function formatNavigation(navigationLinks) {
             innerText: link.navInnerText
         })
     }
+    window.THQ.menus = Object.keys(menus)
     return menus
 }
 

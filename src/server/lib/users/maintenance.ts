@@ -8,15 +8,15 @@
 
 // NPM Modules
 import * as uuid from 'uuid'
-import { hash } from 'bcrypt'
-import { sign } from 'jsonwebtoken'
+import { hashSync } from 'bcrypt'
+import { sign, verify } from 'jsonwebtoken'
 
 // Local Modules
 import { UserTypes } from '../../types/users'
 import { Validation } from '../validation'
 import { StatusMessage } from '../../types/server';
 import { getPool, jwtSecret } from '../connection';
-import { sendConfirmation } from '../email/emails';
+import { sendConfirmation, sendFailedPasswordReset, sendPasswordReset } from '../email/emails';
 import { NonsigTypes } from '../../types/nonsig';
 
 
@@ -223,6 +223,22 @@ export class User {
         this.userOpt = options
     }
 
+    private clearPasswordResets() {
+        if(!this.userOpt.userId) {
+            return 1
+        } else {
+            let sql = `
+                UPDATE userRegistration
+                SET userConfirmation = NULL
+                WHERE userId = ${pool.escape(this.userOpt.userId)}
+            `
+            pool.query(sql, (err: Error, results) => {
+                return 1
+            })
+        }
+    }
+
+    /*
     private newAccount(accountOpts: UserTypes.All): Promise<StatusMessage> {
         return new Promise((resolve, reject) => {
             pool.query(
@@ -252,7 +268,7 @@ export class User {
                                             accountOpts.userEmail.toLowerCase(),
                                             accountOpts.userDefaultNonsig,
                                             (accountOpts.userIsLocked === true ? 1 : 0),
-                                            false,
+                                            0,
                                             accountOpts.userFirstName,
                                             accountOpts.userLastName,
                                             accountOpts.userPhone,
@@ -265,14 +281,19 @@ export class User {
                                             message: 'User account created successfully'
                                         }
                                         let confirmationToken = sign({
-                                            userId: accountOpts.userId,
-                                            action: 'newUser'
+                                            t: accountOpts.userConfirmation,
+                                            action: 'r'
                                         },
                                         jwtSecret,
                                         {
                                             expiresIn: '30d'
                                         })
-                                        sendConfirmation({userEmail: accountOpts.userEmail, confirmationToken})
+                                        sendConfirmation(
+                                            {
+                                                userEmail: accountOpts.userEmail, 
+                                                confirmationToken
+                                            }
+                                        )
                                         .then(onEmailSent => {
                                             resolve(reason)
                                         }, onEmailNotSent => {
@@ -298,7 +319,130 @@ export class User {
                 }
             )
         })
-    } // newAccount()
+    } // newAccount() */
+
+    public confirmAccount(password1, password2) {
+        return new Promise((resolve, reject) => {
+            if (
+                this.userOpt.userConfirmation 
+                && password1 
+                && password2
+            ) {
+                verify(this.userOpt.userConfirmation, jwtSecret, (err, decoded: {t: string, g: string}) => {
+                    if (err) {
+                        if (err.name === 'TokenExpiredError' && decoded.g === 'r') {
+                            reject({
+                                error: true,
+                                message: 'Account was not confirmed within 30 days. Please reregister.'
+                            })
+                        } else if (err.name === 'TokenExpiredError' && decoded.g === 'h') {
+                            reject({
+                                error: true,
+                                message: 'Password was not reset within 1 hour. Please click on forgot password to restart password reset process.'
+                            })
+                        } else {
+                            reject({
+                                error: true,
+                                message: 'Token is not valid. Please click on forgot password'
+                            })
+                        }
+                    } else {
+                        if (decoded.t) {
+                            let hashed: string = ''
+                            try {
+                                hashed = this.verifyAndHashPassword(password1, password2)
+                            } catch(err) {
+                                reject({
+                                    error: true,
+                                    message: err.message
+                                })
+                            }
+                            console.log(hashed)
+                            let confirmUser = `
+                                SELECT confirmUser(
+                                    ${pool.escape([
+                                        decoded.t,
+                                        hashed
+                                    ])}
+                                ) AS confirmed
+                            `
+                            console.log(confirmUser)
+                            pool.query(confirmUser, (err: Error, results) => {
+                                if (err) {
+                                    throw err
+                                 } else {
+                                    if (results[0].confirmed === 0) {
+                                        resolve({
+                                            error: false,
+                                            message: 'Confirmed'
+                                        })
+                                    } else {
+                                        reject({
+                                            error: true,
+                                            message: 'Key does not match confirmation.'
+                                        })
+                                    }
+                                 }
+                            })
+                        } else {
+                            reject({
+                                error: true,
+                                message: 'Missing user id or confirmation key.'
+                            })
+                        }
+                    }
+                })
+            } else {
+                reject({
+                    error: true,
+                    message: 'Missing User Id or Password or confirmation token'
+                })
+            }
+        })
+    }
+
+    public forgotPassword() {
+        function setConfirmation(id: string, unique: string) {
+            let updateConf = `
+                UPDATE userRegistration
+                SET 
+                    userConfirmation = ${pool.escape(unique)},
+                    userAwaitingPassword = 1
+                WHERE userId = ${pool.escape(id)}
+            `
+            pool.query(updateConf, (err: Error, results) => {
+                if (err) {
+                    console.error('Error setting password confirmation, ', err)
+                }
+            })
+        }
+        let sql = `
+            SELECT 
+                userEmail, 
+                userId
+            FROM userRegistration
+            WHERE userEmail = ${pool.escape(this.userOpt.userEmail)}
+        `
+        pool.query(sql, (err: Error, results) => {
+            if (err) {
+                console.error(err)
+                sendFailedPasswordReset(this.userOpt.userEmail)
+             } else {
+                if(results.length === 1) {
+                    console.log('User exists')
+                    let uniqueReset = uuid.v4()
+                    setConfirmation(results[0].userId, uniqueReset)
+                    sign({t: uniqueReset, g: 'h'}, jwtSecret, (err: Error, token: string) => {
+                        if(err) console.error(err)
+                        sendPasswordReset(this.userOpt.userEmail, token)
+                    })
+                } else {
+                    console.log('user does not exist')
+                    sendFailedPasswordReset(this.userOpt.userEmail)
+                }
+             }
+        })
+    }
 
     public verifyUsername() {
         return new Promise((resolve, reject) => {
@@ -318,7 +462,7 @@ export class User {
                     conditions.push(`userEmail = ${pool.escape(this.userOpt.userEmail.toLowerCase())}`)
                 }
                 sql += conditions.join(' OR ')
-                pool.query(sql, (err: Error, results) => {
+                pool.query(sql, (err: Error, results: Array<any>) => {
                     if (err) {
                         throw err
                      } else {
@@ -349,63 +493,59 @@ export class User {
         })
     }
 
+    private verifyAndHashPassword(password1, password2): string {
+        if (password1 !== password2) {
+            throw new TypeError('Passwords do not match')
+        } else if (!/[A-Z]/.test(password1)) {
+            message: 'Passwords should contain an uppercase letter'
+        } else if (!/[0-9]/.test(password1)) {
+            throw new TypeError('Passwords should contain a number')
+        } else if (password1.length < 8) {
+            throw new TypeError('Password needs to be at least 8 characters long')
+        } else if (password1.length > 50) {
+            throw new TypeError('Passwords can not be over 50 characters long')
+        } else {
+            return hashSync(password1, saltRounds)
+        }
+    }
+
     public setPassword(password1, password2) {
         return new Promise((resolve, reject) => {
-            if (password1 !== password2) {
-                reject({
-                    error: true,
-                    message: 'Passwords do not match'
-                })
-            } else if (!/[A-Z]/.test(password1)) {
-                reject({
-                    error: true,
-                    message: 'Passwords should contain an uppercase letter'
-                })
-            } else if (!/[0-9]/.test(password1)) {
-                reject({
-                    error: true,
-                    message: 'Passwords should contain a number'
-                })
-            } else if (password1.length < 8) {
-                reject({
-                    error: true,
-                    message: 'Password needs to be at least 8 characters long'
-                })
-            } else if (password1.length > 50) {
-                reject({
-                    error: true,
-                    message: 'Passwords can not be over 50 characters long'
-                })
-            } else {
-                if (this.userOpt.userId) {
-                    hash(password1, saltRounds, (hashed) => {
-                        const sql = `
-                            UPDATE userRegistration
-                            SET 
-                                userPass = ${pool.escape(hashed)},
-                                userIsConfirmed = 1
-                            WHERE 
-                                userId = ${pool.escape(this.userOpt.userId)}
-                        `
-                        console.log(sql)
-                        pool.query(sql, (err: Error, results) => {
-                            if (err) {throw err}
-                            resolve({
-                                error: false,
-                                message: "Password set successfully."
-                            })
-                        })
-                    })
-                } else {
+            if (this.userOpt.userId) {
+                let hashed: string = ''
+                try {
+                    hashed = this.verifyAndHashPassword(password1, password2)
+                } catch (err) {
                     reject({
                         error: true,
-                        message: 'Missing userId'
+                        message: err.message
                     })
                 }
+                const sql = `
+                    UPDATE userRegistration
+                    SET 
+                        userPass = ${pool.escape(hashed)}
+                    WHERE 
+                        userId = ${pool.escape(this.userOpt.userId)}
+                `
+                console.log(sql)
+                pool.query(sql, (err: Error, results) => {
+                    if (err) {throw err}
+                    resolve({
+                        error: false,
+                        message: "Password set successfully."
+                    })
+                })
+            } else {
+                reject({
+                    error: true,
+                    message: 'Missing userId'
+                })
             }
         })
     } // setPassword()
 
+    /*
     public createNew(): Promise<StatusMessage> {
         return new Promise((resolve, reject) => {
             this.userOpt.userId = uuid.v4()
@@ -467,4 +607,5 @@ export class User {
             }
         })
     } // createNew()
+    */
 }

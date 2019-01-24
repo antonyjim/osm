@@ -68,10 +68,7 @@ export class Navigation {
                 console.log(sql)
                 pool.query(sql, (err: Error, results) => {
                     if (err) {
-                        throw {
-                            error: true,
-                            message: err
-                        }
+                        throw err
                      } else {
                         resolve({
                             error: false,
@@ -137,10 +134,8 @@ export class Navigation {
                     WHERE rpPriv = ${pool.escape(priv)}
                 `
                 pool.query(sql, (err: Error, roles: Array<RolePermissions>) => {
-                    if (err) {throw {
-                        error: true,
-                        message: err
-                    }} else {
+                    if (err) {throw err} 
+                    else {
                         if (roles.length > 0) {
                             console.log('Privilege %s exists', priv)
                             resolve({
@@ -158,10 +153,8 @@ export class Navigation {
                             `
                             console.log('Adding priv %s', priv)
                             pool.query(injectionSql, (err:Error, results) => {
-                                if (err) {throw{
-                                    error: true,
-                                    message: err
-                                }} else {
+                                if (err) {throw err} 
+                                else {
                                     resolve({
                                         error: false,
                                         message: 'Added',
@@ -224,71 +217,63 @@ export class Navigation {
                     navQueryString: null,
                     navActive: true
                 })
-            // Verify that the privilege exists
-            this.verPriv(navLinkToBeEntered.navPriv.slice(0, 36))
-            .then((onPrivExistsOrEntered: StatusMessage) => {  
-                let checkForExistingNav = `
-                    SELECT *
-                    FROM navigation
-                    WHERE
-                        navPathName = ${pool.escape(navLinkToBeEntered.navPathName)}
-                        AND
-                        navMethod = ${pool.escape(navLinkToBeEntered.navMethod)}
-                `
-                pool.query(checkForExistingNav, (err: Error, results) => {
-                    if (err) {
-                        throw {
-                            error: true,
-                            message: err
-                        }
-                     } else {
-                        if (results.length > 0) {
-                            reject({
+            // Verify that the privilege exist
+            let checkForExistingNav = `
+                SELECT *
+                FROM navigation
+                WHERE
+                    navPathName = ${pool.escape(navLinkToBeEntered.navPathName)}
+                    AND
+                    navMethod = ${pool.escape(navLinkToBeEntered.navMethod)}
+            `
+            pool.query(checkForExistingNav, (err: Error, results) => {
+                if (err) {
+                    throw {
+                        error: true,
+                        message: err
+                    }
+                    } else {
+                    if (results.length > 0) {
+                        reject({
+                            error: false,
+                            message: 'Endpoint already exists',
+                            details: results[0]
+                        })
+                    } else {
+                        navLinkToBeEntered.navActive = navLinkToBeEntered.navActive === true ? 1 : 0
+                        navLinkToBeEntered.navIsNotApi = navLinkToBeEntered.navIsNotApi === true ? 1 : 0
+                        let sql = `
+                            CALL addNav(
+                                ${pool.escape([
+                                    navLinkToBeEntered.navInnerText.slice(0, 40),
+                                    navLinkToBeEntered.navPathName.slice(0, 120),
+                                    navLinkToBeEntered.navQueryString,
+                                    navLinkToBeEntered.navMethod,
+                                    navLinkToBeEntered.navHeader,
+                                    navLinkToBeEntered.navMenu,
+                                    navLinkToBeEntered.navActive,
+                                    navLinkToBeEntered.navPriv.slice(0, 36),
+                                    navLinkToBeEntered.navIsNotApi
+                                ])}
+                            )
+                        `
+                        console.log(sql)
+                        pool.query(sql, (err: Error, results) => {
+                            if (err) {console.error(err); throw {
+                                error: true,
+                                message: err,
+                                details: navLinkToBeEntered
+                            }}
+                            this.verPriv(navLinkToBeEntered.navPriv.slice(0, 36))
+                            .catch(err => console.error(err))
+                            resolve({
                                 error: false,
-                                message: 'Endpoint already exists',
-                                details: results[0]
+                                message: 'Added link',
+                                details: navLinkToBeEntered
                             })
-                        } else {
-                            navLinkToBeEntered.navActive = navLinkToBeEntered.navActive === true ? 1 : 0
-                            navLinkToBeEntered.navIsNotApi = navLinkToBeEntered.navIsNotApi === true ? 1 : 0
-                            let sql = `
-                                CALL addNav(
-                                    ${pool.escape([
-                                        navLinkToBeEntered.navInnerText.slice(0, 40),
-                                        navLinkToBeEntered.navPathName.slice(0, 120),
-                                        navLinkToBeEntered.navQueryString,
-                                        navLinkToBeEntered.navMethod,
-                                        navLinkToBeEntered.navHeader,
-                                        navLinkToBeEntered.navMenu,
-                                        navLinkToBeEntered.navActive,
-                                        navLinkToBeEntered.navPriv.slice(0, 36),
-                                        navLinkToBeEntered.navIsNotApi
-                                    ])}
-                                )
-                            `
-                            console.log(sql)
-                            pool.query(sql, function(err: Error, results) {
-                                if (err) {console.error(err); throw {
-                                    error: true,
-                                    message: err,
-                                    details: navLinkToBeEntered
-                                }}
-                                resolve({
-                                    error: false,
-                                    message: 'Added link',
-                                    details: navLinkToBeEntered
-                                })
-                            })  
-                        }
-                     }
-                })
-            })
-            .catch((err: Error) => {
-                reject({
-                    error: true,
-                    message: 'Could not add priv',
-                    details: navLinkToBeEntered
-                })
+                        })  
+                    }
+                    }
             })
         })
     }
@@ -393,30 +378,25 @@ export class Navigation {
                             if (results.length === 1) {
                                 console.log(JSON.stringify(sanitizedUpdate))
                                 if (sanitizedUpdate.navPriv) {
-                                    this.verPriv(sanitizedUpdate.navPriv)
-                                    .then((onAdded) => {
-                                        let updateStatement = `
-                                            UPDATE navigation
-                                            SET ?
-                                            WHERE navId = ?
-                                        `
-                                        pool.query(updateStatement, [sanitizedUpdate, sanitizedUpdate.navId], (err: Error, results) => {
-                                            if (err) {
-                                                throw {
-                                                    error: true,
-                                                    message: err
-                                                }
-                                            } else {
-                                                resolve({
-                                                    error: false,
-                                                    message: 'Updated',
-                                                    details: sanitizedUpdate
-                                                })
+                                    let updateStatement = `
+                                        UPDATE navigation
+                                        SET ?
+                                        WHERE navId = ?
+                                    `
+                                    pool.query(updateStatement, [sanitizedUpdate, sanitizedUpdate.navId], (err: Error, results) => {
+                                        if (err) {
+                                            throw {
+                                                error: true,
+                                                message: err
                                             }
-                                        })
-                                    })
-                                    .catch(err => {
-                                        throw err
+                                        } else {
+                                            this.verPriv(sanitizedUpdate.navPriv)
+                                            resolve({
+                                                error: false,
+                                                message: 'Updated',
+                                                details: sanitizedUpdate
+                                            })
+                                        }
                                     })
                                 } else {
                                     let updateStatement = `
@@ -431,6 +411,7 @@ export class Navigation {
                                                 message: err
                                             }
                                         } else {
+                                            this.verPriv(sanitizedUpdate.navPriv)
                                             resolve({
                                                 error: false,
                                                 message: 'Updated',

@@ -50,6 +50,7 @@ export namespace UserTypes {
         userIsAuthenticated?: boolean;
         userRole?: string;
         token?: string;
+        userNonsig: string;
     }
 
     interface Credentials {

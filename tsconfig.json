@@ -3,9 +3,11 @@
         "outDir": "dist/",
         "rootDir" : "src/server",
         "removeComments": true,
+        "allowJs": true,
         "typeRoots": ["./src/types"],
         "lib" : [
-            "es6"
+            "es6",
+            "esnext.asynciterable"
         ],
         "types" : [
             "node",
@@ -20,6 +22,7 @@
         "src/**/*"
     ],
     "exclude" : [
-        "node_modules"
+        "node_modules",
+        "src/client/**/*"
     ]
 }

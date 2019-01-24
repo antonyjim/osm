@@ -20,7 +20,7 @@ const apiAccountRoutes = Router()
 
 apiAccountRoutes.get('/navigation', function(req: Request, res: Response) {
     console.log(JSON.stringify(req.auth))
-    getRoleAuthorizedNavigation(req.auth.userRole)
+    getRoleAuthorizedNavigation(req.auth.userId, req.auth.userNonsig)
     .then((onResolved: StatusMessage) => {
         res.status(200).json(onResolved)
     }, (onFailure: StatusMessage) => {

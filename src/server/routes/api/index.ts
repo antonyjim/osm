@@ -19,6 +19,8 @@ import { Login } from './../../lib/users/login'
 import { StatusMessage, Response } from '../../types/server';
 import { jwtSecret } from '../../lib/connection';
 import { Request } from 'express-serve-static-core';
+import { q } from './q';
+import bodyParser = require('body-parser');
 
 // Constants and global variables
 const apiRoutes = Router()
@@ -58,18 +60,21 @@ apiRoutes.get('/getToken', function(req, res) {
 
 apiRoutes.use(apiTokenValidation())
 apiRoutes.use(endpointAuthentication())
+apiRoutes.use('/q', q)
+apiRoutes.use(bodyParser.json())
 apiRoutes.use('/admin', adminRoutes)
 apiRoutes.use('/ordering', orderRoutes)
 apiRoutes.use('/accounts', apiAccountRoutes)
 apiRoutes.get('/refresh', (req: Request, res: Response) => {
-    if (req.auth.isAuthenticated) {
+    if (req.auth.isAuthenticated && req.auth.userNonsig) {
         let payload = {
             userIsAuthenticated: true,
             userId: req.auth.userId,
-            userRole: req.auth.userRole
+            userRole: req.auth.userRole,
+            userNonsig: req.auth.userNonsig
             }
         sign(payload, jwtSecret, {expiresIn: '10m'}, function(err: Error, token: string) {
-            if (err) res.status(500)
+            if (err) res.status(500).end()
             res.status(200).json({
                 token,
                 error: false,
@@ -77,10 +82,14 @@ apiRoutes.get('/refresh', (req: Request, res: Response) => {
             })
         })
     } else {
-        res.status(200).json({
-            error: true,
-            message: 'User is not authenticated'
-        })
+        if (!res.headersSent) {
+            res.status(401).json({
+                error: true,
+                message: 'User is not authenticated'
+            })
+        } else {
+            return 0
+        }
     }
 })
 export { apiRoutes }

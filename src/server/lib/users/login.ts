@@ -139,6 +139,7 @@ export class Login {
                         })
                     }
                 } else {
+                    console.log('More than one user ', users.length)
                     console.log(JSON.stringify(users))
                     reject({
                         error: true,
@@ -158,7 +159,9 @@ export function getToken(payload?: UserTypes.AuthToken) {
     if (!payload) {
         payload = {
             userIsAuthenticated: false,
-            userId: null
+            userId: null,
+            userNonsig: null,
+            userRole: 'No-Conf'
         }
     }
     return sign(payload, jwtSecret, {expiresIn: '1h'})

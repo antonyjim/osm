@@ -6,7 +6,6 @@
 
 // Node Modules
 
-
 // NPM Modules
 
 
@@ -18,28 +17,49 @@ import { RolePermissions } from '../../types/roles';
 // Constants and global variables
 const pool = getPool()
 
-export function getRoleAuthorizedNavigation(roleId: string): Promise<StatusMessage> {
+export function getRoleAuthorizedNavigation(userId: string, userNonsig: string): Promise<StatusMessage> {
     return new Promise((resolve, reject) => {
-        if (roleId) {
+        let resultSet = {
+            navs: null,
+            privs: null
+        }
+
+        if (userId && userNonsig) {
             let navigation = `
                 SELECT *
                 FROM thq.uiNavigation
-                WHERE rpId = ${pool.escape(roleId)}
+                WHERE rpId = (
+                    SELECT nsaRole
+                    FROM nsAccess
+                    WHERE nsaUserId = ${pool.escape(userId)}
+                    AND nsaNonsig = ${pool.escape(userNonsig)}
+                )
             `
-            pool.query(navigation, (err: Error, results) => {
+            console.log(navigation)
+            pool.query(navigation, (err: Error, authorizedNavigationLinks) => {
                 if (err) {
-                    throw {
-                        error: true,
-                        message: err
-                    }
+                    console.error(err)
+                    throw err
                  } else {
-                    if (results.length > 0) {
-                        resolve({
-                            error: false,
-                            message: 'Retrieved',
-                            details: results
-                        })
-                    }
+                    resultSet.navs = authorizedNavigationLinks
+                    let getPrivs = `
+                        SELECT DISTINCT rpPriv
+                        FROM rolePermissions
+                        WHERE rpId = ${pool.escape(authorizedNavigationLinks[0].rpId)}
+                    `
+                    console.log(getPrivs)
+                    pool.query(getPrivs, (err: Error, authorizePrivs) => {
+                        if (err) {
+                            throw err
+                         } else {
+                            resultSet.privs = authorizePrivs.map(priv => priv.rpPriv)
+                            resolve({
+                                error: false,
+                                message: 'Retrieved',
+                                details: resultSet
+                            })
+                         }
+                    })
                  }
             })
         } else {
@@ -60,15 +80,14 @@ export function getRoleAuthorizedNavigation(roleId: string): Promise<StatusMessa
 export function validateEndpoint(method, endpoint, role): Promise<StatusMessage> {
     return new Promise(function(resolve, reject) {
         if (method && endpoint && role) {
-            let sqlStatement = `
-                SELECT endpointValidation(${pool.escape([role, endpoint.split('?')[0], method])}) AS authed
-            `
-            pool.query(sqlStatement, function(err: Error, results: Array<RolePermissions>) {
+            let sqlStatement = `SELECT endpointValidation(${pool.escape([role, endpoint.split('?')[0], method])}) AS authed`
+            console.log(sqlStatement)
+            pool.query(sqlStatement, function(err: Error, authorizedNavigationLinks: Array<RolePermissions>) {
                 if (err) {
                     console.error(err)
-                    throw {error: true, message: err}
+                    throw err
                 }
-                if (results[0]['authed'] === 1) {
+                if (authorizedNavigationLinks[0]['authed'] === 1) {
                     resolve({
                         error: false,
                         message: 'User allowed',

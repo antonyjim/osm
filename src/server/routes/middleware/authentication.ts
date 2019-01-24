@@ -24,7 +24,8 @@ export function tokenValidation() {
         let anonToken: UserTypes.AuthToken = {
             userIsAuthenticated: false,
             userId: null,
-            userRole: null
+            userRole: null,
+            userNonsig: null
         }
         let tokenCookie = req.cookies.token
         if (tokenCookie) {
@@ -35,14 +36,16 @@ export function tokenValidation() {
             req.auth = {
                 isAuthenticated: false,
                 isAuthorized: false,
-                userId: null
+                userId: null,
+                userNonsig: null
             }
             sign(anonToken, jwtSecret, {expiresIn: '1h'}, function(err: Error, token: string) {
                 if (err) handleOnAuthError(err)
                 req.auth = {
                     isAuthenticated: false,
                     isAuthorized: false,
-                    userId: null
+                    userId: null,
+                    userNonsig: null
                 }
                 res.cookie('token', token)
                 next()
@@ -54,7 +57,8 @@ export function tokenValidation() {
                 req.auth = {
                     isAuthenticated: false,
                     isAuthorized: false,
-                    userId: null
+                    userId: null,
+                    userNonsig: null
                 }
                 res.cookie('token', token)
                 next()
@@ -66,7 +70,8 @@ export function tokenValidation() {
                     let authToken: UserTypes.AuthToken = {
                         userIsAuthenticated: true,
                         userId: decoded.userId,
-                        userRole: decoded.userRole
+                        userRole: decoded.userRole,
+                        userNonsig: decoded.userNonsig
                     }
                     sign(authToken, jwtSecret, {expiresIn: '1h'}, function(err: Error, token: string) {
                         if (err) handleOnAuthError(err)
@@ -74,7 +79,8 @@ export function tokenValidation() {
                             isAuthenticated: true,
                             isAuthorized: false,
                             userId: decoded.userId,
-                            userRole: decoded.userRole
+                            userRole: decoded.userRole,
+                            userNonsig: decoded.userNonsig
                         }
                         res.cookie('token', token)
                         next()
@@ -92,7 +98,8 @@ export function apiTokenValidation() {
         let anonToken: UserTypes.AuthToken = {
             userIsAuthenticated: false,
             userId: null,
-            userRole: null
+            userRole: null,
+            userNonsig: null
         }
         let tokenCookie = req.query.token
         if (tokenCookie) {
@@ -103,14 +110,16 @@ export function apiTokenValidation() {
             req.auth = {
                 isAuthenticated: false,
                 isAuthorized: false,
-                userId: null
+                userId: null,
+                userNonsig: null
             }
             sign(anonToken, jwtSecret, {expiresIn: '1h'}, function(err: Error, token: string) {
-                if (err) handleOnAuthError(err)
+                if (err) res.status(500).end()
                 req.auth = {
                     isAuthenticated: false,
                     isAuthorized: false,
-                    userId: null
+                    userId: null,
+                    userNonsig: null
                 }
                 req.auth.token = token
                 next()
@@ -122,7 +131,8 @@ export function apiTokenValidation() {
                 req.auth = {
                     isAuthenticated: false,
                     isAuthorized: false,
-                    userId: null
+                    userId: null,
+                    userNonsig: null
                 }
                 req.auth.token = token
                 next()
@@ -134,7 +144,8 @@ export function apiTokenValidation() {
                     let authToken: UserTypes.AuthToken = {
                         userIsAuthenticated: true,
                         userId: decoded.userId,
-                        userRole: decoded.userRole
+                        userRole: decoded.userRole,
+                        userNonsig: decoded.userNonsig
                     }
                     console.log("Decoded token is: ", JSON.stringify(authToken))
                     sign(authToken, jwtSecret, {expiresIn: '1h'}, function(err: Error, token: string) {
@@ -143,7 +154,8 @@ export function apiTokenValidation() {
                             isAuthenticated: true,
                             isAuthorized: false,
                             userId: decoded.userId,
-                            userRole: decoded.userRole
+                            userRole: decoded.userRole,
+                            userNonsig: decoded.userNonsig
                         }
                         req.auth.token = token
                         next()
@@ -161,11 +173,10 @@ export function endpointAuthentication() {
         if (!req.auth || !req.auth.isAuthenticated || !req.auth.userId) {
             req.auth.isAuthorized = false
             console.log(JSON.stringify(req.auth))
-            res.status(401).json({
+            return res.status(401).json({
                 error: true,
                 message: 'User unauthenticated or token expired'
             })
-            res.end()
         } else {
             validateEndpoint(req.method, req.originalUrl, req.auth.userRole)
             .then((onUserAuthorized: StatusMessage) => {
@@ -173,20 +184,19 @@ export function endpointAuthentication() {
                 next()
             }, (onUserUnAuthorized: StatusMessage) => {
                 req.auth.isAuthorized = onUserUnAuthorized.details.authorized
-                res.status(401).json({
+                console.log('User is not authorized')
+                return res.status(401).json({
                     error: true,
                     message: 'User unauthorized with current privileges'
                 })
-                res.end()
             })
             .catch((error: StatusMessage) => {
                 console.error(error)
                 req.auth.isAuthorized = false
-                res.status(401).json({
+                return res.status(401).json({
                     error: true,
                     message: 'User authorization failed'
                 })
-                res.end()
             })
         }
     }

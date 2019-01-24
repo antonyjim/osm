@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
 import { fetchLogin } from './loginProcess/getNavigation';
-import { Admin } from './admin/NavigationRoles.jsx'
 
 // React-Router
 import { Route, Link } from 'react-router-dom'
@@ -78,7 +77,7 @@ class Navigation extends Component {
         fetchLogin()
         .then(navigation => {
             if (navigation.error) {
-                
+                console.error(err)
             }
             this.setState({nav: navigation})
         })
@@ -100,7 +99,7 @@ class Navigation extends Component {
                 key++
             })
             return (
-                <nav className="navbar navbar-expand-lg bg-goodyear">
+                <nav className="navbar navbar-expand-lg navbar-dark bg-goodyear">
                     <Link className="navbar-brand" to="/">
                         <img src="/public/images/logo.png" height="60px"></img>
                     </Link>
@@ -112,17 +111,13 @@ class Navigation extends Component {
                             <ul className="mr-auto navbar-nav" id="menuContainer">
                                     {menus}
                             </ul>
-
-                            <a className="btn btn-info ml-auto">
-                                <span className="glyphicon glyphicon-print"></span>Print Queued
-                            </a>
                             <ul className="navbar-nav">
                                 <li className="nav-item dropdown">
                                     <a className="dropdown-toggle pl-3 nav-item ml-auto" data-toggle="dropdown" id="account" aria-haspopup="true" aria-expanded="false"><img className="rounded-circle img" src="/public/images/account.png"/></a>
                                         <div className="dropdown-menu dropdown-menu-right" aria-labelledby="account">
-                                            <a className="dropdown-item" href="#">Change Customer</a>
-                                            <a className="dropdown-item" href="#">User Admin</a>
-                                            <a className="dropdown-item" href="#">Change Password</a>
+                                            <Link className="dropdown-item" to="/customer/change">Change Customer</Link>
+                                            <Link className="dropdown-item" to="/profile/administration">User Administration</Link>
+                                            <Link className="dropdown-item" to="/profile">Profile</Link>
                                             <a className="dropdown-item" href="#">French</a>
                                             <a className="dropdown-item" href="/logout">Logout</a>
                                         </div>

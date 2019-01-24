@@ -6,11 +6,11 @@ class Field extends Component {
     }
     render() { 
         return !this.props.isHidden && (
-            <div className="form-group"  id={'cont' + this.props.id}>
+            <div className={'form-group ' + this.props.className}  id={'cont' + this.props.id}>
                 <label htmlFor={this.props.id}>
                     {this.props.label}
                 </label>
-                <input type={this.props.type} className="form-control" id={this.props.id} value={this.props.value} onChange={this.props.onChange}></input>
+                <input {...this.props.attributes} type={this.props.type} className="form-control" id={this.props.id} value={this.props.value} onChange={this.props.onChange} />
             </div>
         )
     }

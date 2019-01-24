@@ -3,16 +3,22 @@ import { render } from 'react-dom'
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 import { Navigation } from './navigation.jsx'
 import { Footer } from './common/footer.jsx'
-import { Dashboard } from './common/dashboard.jsx'
-import { AdminWireFrame } from './admin/NavigationRoles.jsx'
-import { E404 } from './common/errors.jsx';
+import { Dashboard } from './home/dashboard.jsx'
+import { Admin } from './admin/Admin.jsx'
+import { E404, ErrorBoundary } from './common/errors.jsx';
+import UserProfile from './home/UserProfile.jsx';
 
 class App extends Component {
     constructor(props) {
         super(props)
-        let token = new URLSearchParams(window.location.href.split('?')[1]).get('token')
+        let token = this.qs('token')
+        let user = {
+            userId: null,
+            privs: []
+        }
         window.THQ = {
-            token
+            token,
+            user
         }
         if (token) {
             if (window.sessionStorage) {
@@ -29,6 +35,12 @@ class App extends Component {
             }
         }
         setInterval(this.refreshToken, 30000)
+    }
+
+    qs(key) {
+        key = key.replace(/[*+?^$.\[\]{}()|\\\/]/g, "\\$&"); // escape RegEx meta chars
+        var match = location.search.match(new RegExp("[?&]"+key+"=([^&]+)(&|$)"));
+        return match && decodeURIComponent(match[1].replace(/\+/g, " "));
     }
 
     logout() {
@@ -49,32 +61,40 @@ class App extends Component {
                         if (response.token && !response.error) {
                             window.THQ.token = response.token
                             sessionStorage.setItem('token', response.token)
-                            console.log('Token successfully refreshed')
                         } else {
-                            console.log('Something happening in the response.')
                             console.log(response)
                         }
+                    },
+                    error: function(err) {
+                        console.log('Token not okay')
                     }
                 })
-            } else {
-                console.log('Token is okay for %s more minutes.', diff / 60000)
             }
         }
     }
 
     render() {
+        if (loadingInterval) {
+            clearInterval(loadingInterval)
+            document.getElementById('loading-container').parentElement.removeChild(document.getElementById('loading-container'))
+        }
         return (
-            <Router>
-                <div>
-                    <Navigation/>
-                    <Switch>
-                        <Route exact path="/" component={Dashboard}></Route>
-                        <Route path="/admin/navroles/" component={AdminWireFrame} />
-                        <Route component={E404}/>
-                    </Switch>
-                    <Footer />
-                </div>
-            </Router>
+            <ErrorBoundary>
+                <Router>
+                    <>
+                        <Navigation/>
+                        <ErrorBoundary>
+                            <Switch>
+                                <Route exact path="/" component={Dashboard}></Route>
+                                <Route path="/profile" component={UserProfile}/>
+                                <Route path="/admin/" component={Admin} />
+                                <Route component={E404}/>
+                            </Switch>
+                        </ErrorBoundary>
+                        <Footer />
+                    </>
+                </Router>
+            </ErrorBoundary>
         )
     }
 }

@@ -2,7 +2,8 @@
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <!--Stylesheet-->
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+        <link rel="stylesheet" href="/public/bootstrap.css">
+        <!--<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">-->
         <link rel="stylesheet" href="/public/style.css">
         <title>Tire-HQ</title>
     </head>
@@ -26,10 +27,13 @@
                                     <input type="password" class="form-control" id="password" aria-describedby="Password">
                                 </div>
                                 <div class="alert alert-danger" id="passwordError" role="alert" style="display: none;"></div>
-                                <button type="button" class="btn btn-primary btn-block" id="loginBtn">Login</button>
+                                <button type="button" class="btn btn-primary btn-block" id="loginBtn">
+                                  <span id="loginDisplay">Login</span>
+                                  <span id="loginLoading" style="display:none;" class="spinner-border spinner-border-sm"></span>
+                                </button>
                             </form>
                             <div class="text-center text-muted">
-                                <a href="#" class="text-muted">Forgot</a>
+                                <a href="#" class="text-muted" data-toggle="modal" data-target="#forgot">Forgot</a>
                                 |
                                 <a href="#" class="text-muted" data-toggle="modal" data-target="#register"> Register</a>
                             </div>
@@ -94,10 +98,54 @@
                   </div>
                 </div>
             </div>
+            <!-- Forgot password modal -->
+            <div class="modal fade" tabindex="-1" role="dialog" id="forgot">
+                    <div class="modal-dialog" role="document">
+                      <div class="modal-content">
+                         <div class="modal-header">
+                           <h5 class="modal-title">Forgot Password</h5>
+                           <button type="button" class="close" data-dismiss="modal" aria-label="close">
+                             <span aria-hidden="true">&times;</span>
+                           </button>
+                        </div>
+                        <div class="modal-body">
+                          <div class="row">
+                            <div class="col"></div>
+                            <div class="col-sm-10 col-md-8 col-lg-8">
+                              <div class="row">
+                                <div class="alert fade" role="alert" id="forgotAlert" style="display: none;">
+                                    <p id="forgotAlertMessage"></p>
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="form-group col-12">
+                                  <label for="email">Email</label>
+                                  <input id="email" name="email" class="form-control">
+                                </div>
+                              </div>
+                            </div>
+                            <div class="col"></div>
+                          </div>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                          <button type="button" class="btn btn-primary" id="subForgot">Submit</button>
+                        </div>
+                      </div>
+                    </div>
+                </div>
         </div>
-        <script src="/public/scripts/login.js"></script>
-        <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+        <script src="/public/scripts/jq.js"></script>
         <!-- <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script> -->
+        <script src="/public/scripts/bootstrap.js"></script>
+        <script src="/public/scripts/login.js"></script>
+        
+        <!--
+          Online scripts
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+        -->
     </body>
 </html>

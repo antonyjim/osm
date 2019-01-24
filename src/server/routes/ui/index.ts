@@ -15,13 +15,14 @@ import { UserTypes } from '../../types/users';
 import { Login, getToken } from '../../lib/users/login';
 import { tokenValidation } from './../middleware/authentication'
 import { User } from '../../lib/users/maintenance';
-import { verify } from 'jsonwebtoken';
-import { jwtSecret } from '../../lib/connection';
+import bodyParser = require('body-parser');
 
 
 // Constants and global variables
 const uiRoutes = Router()
 
+// Body parser must be included in api and ui separately due to GraphQL request errors
+uiRoutes.use(bodyParser.json())
 uiRoutes.use(tokenValidation())
 
 uiRoutes.get('/verifyToken', function(req: Request, res: Response) {
@@ -36,75 +37,64 @@ uiRoutes.get('/verifyToken', function(req: Request, res: Response) {
             return
         })
     } else {
-        verify(req.query.token, jwtSecret, (err, decoded) => {
-            if (err) {
-                res.writeHead(200, {'Content-Type': 'text/html; charset=UTF-8'})
-                let fileStream = createReadStream('./static/tokenError.html')
-                fileStream.on('data', function(data) {
-                    res.write(data)
-                })
-                fileStream.on('end', function() {
-                    res.end()
-                    return
-                })
-            } else if (decoded.userId) {
-                res.writeHead(200, {'Content-Type': 'text/html; charset=UTF-8'})
-                let fileStream = createReadStream('./static/setpass.html')
-                fileStream.on('data', function(data) {
-                    res.write(data)
-                })
-                fileStream.on('end', function() {
-                    res.end()
-                    return
-                })
-            } else {
-                res.writeHead(200, {'Content-Type': 'text/html; charset=UTF-8'})
-                let fileStream = createReadStream('./static/tokenError.html')
-                fileStream.on('data', function(data) {
-                    res.write(data)
-                })
-                fileStream.on('end', function() {
-                    res.end()
-                    return
-                })
-            }
+        res.writeHead(200, {'Content-Type': 'text/html; charset=UTF-8'})
+        let fileStream = createReadStream('./static/setpass.html')
+        fileStream.on('data', function(data) {
+            res.write(data)
+        })
+        fileStream.on('end', function() {
+            res.end()
+            return
         })
     }
 })
 
-uiRoutes.post('/setPassword', (function(req: Request, res: Response) {
-    if(!req.body.token) {
-        res.status(200).json({
-            error: true,
-            message: 'No token provided. Please click on forgot password'
+uiRoutes.post('/verify', function(req: Request, res: Response) {
+    if (req.body.token && req.body.password1 && req.body.password2) {
+        new User({userConfirmation: req.body.token})
+        .confirmAccount(req.body.password1, req.body.password2)
+        .then((onConfirmed) => {
+            res.status(200).json(onConfirmed)
+        }, (onNotConfirmed) => {
+            res.status(200).json(onNotConfirmed)
+        })
+        .catch(err => {
+            res.status(200).json({
+                error: true,
+                message: 'Unexpected error occurred. Please try again later.'
+            })
         })
     } else {
-        verify(req.body.token, jwtSecret, (err: Error, decoded) => {
-            if (err || !decoded.userId) {
-                console.error(err)
-                console.log(JSON.stringify(decoded))
-                res.status(200).json({
-                    error: true,
-                    message: 'Token expired or invalid. Please click on forgot password'
-                })
-            } else {
-                new User({userId: decoded.userId})
-                .setPassword(req.body.password1, req.body.password2)
-                .then(onPasswordSet => {
-                    res.status(200).json(onPasswordSet)
-                }, onPasswordNotSet => {
-                    res.status(200).json(onPasswordNotSet)
-                })
-                .catch(err => {
-                    console.error(err)
-                    res.status(500).send()
-                })
-
-            }
+        res.status(200).json({
+            error: true,
+            message: 'Missing required fields.'
         })
     }
-}))
+})
 
+uiRoutes.post('/forgot', function(req: Request, res: Response) {
+    /**
+     * create table userLogging (
+     *      userId CHAR(36),
+     *      logAction VARCHAR(50), -- Password changed, password request initiated, user account created, user nonsig changed
+     *      logTimeStamp INT(10) -- Epoch timestamp
+     * )
+     */
+    if (!req.body.email) {
+        res.status(200).json({
+            error: true,
+            message: 'No email provided'
+        })
+    } else {
+        new User({userEmail: req.body.email}).forgotPassword()
+        res.status(200).json({
+            error: false,
+            message: 'Instructions have been sent to ' + req.body.email
+        })
+    }
+})
+
+/*
 uiRoutes.post('/newUser', function(req: Request, res: Response) {
     if (req.body) {
         if (req.body.userNonsig) {
@@ -136,6 +126,7 @@ uiRoutes.post('/newUser', function(req: Request, res: Response) {
         })
     }
 })
+*/
 
 uiRoutes.post('/login', function(req: Request, res: Response) {
     let responseBody: ResponseMessage
@@ -147,7 +138,8 @@ uiRoutes.post('/login', function(req: Request, res: Response) {
             tokenPayload = {
                 userIsAuthenticated: true,
                 userId: onUserAuthenticated.details.userId,
-                userRole: onUserAuthenticated.details.userRole
+                userRole: onUserAuthenticated.details.userRole,
+                userNonsig: onUserAuthenticated.details.userNonsig
             }
             let token = getToken(tokenPayload)
             responseBody = {

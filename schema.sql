@@ -7,14 +7,6 @@ USE thq;
 -- +-----------------------------------------+
 -- |Start Schema for site navigation         |
 -- +-----------------------------------------+
-
-CREATE TABLE rolePermissions (
-    rpId CHAR(36) NOT NULL, -- Role ID
-    rpPriv VARCHAR(36), -- Priviledge assigned to role
-    
-    PRIMARY KEY (rpPriv, rpId)
-);
-
 -- Store navigation through the site
 CREATE TABLE navigation (
     navInnerText VARCHAR(40) NOT NULL, -- Inner text of the <a> element
@@ -27,11 +19,18 @@ CREATE TABLE navigation (
     navPriv VARCHAR(36), -- Priv associated with link
     navIsNotApi BOOLEAN NOT NULL, -- Whether or not the route is an api
 
-    PRIMARY KEY (navMethod, navPathName),
+    PRIMARY KEY (navMethod, navPathName)
+);
 
-    FOREIGN KEY (navPriv)
-        REFERENCES rolePermissions(rpPriv)
-        ON DELETE RESTRICT
+CREATE TABLE rolePermissions (
+    rpId CHAR(9) NOT NULL, -- Role ID
+    rpPriv VARCHAR(36), -- Priviledge assigned to role
+    
+    PRIMARY KEY (rpPriv, rpId),
+
+    FOREIGN KEY (rpPriv)
+        REFERENCES navigation(navPriv)
+        ON DELETE CASCADE
         ON UPDATE CASCADE
 );
 
@@ -41,7 +40,7 @@ CREATE TABLE navigation (
 
 -- This data will not be tied to any one user account
 CREATE TABLE nsInfo (
-    nsNonsig BINARY(9) NOT NULL,
+    nsNonsig CHAR(9) NOT NULL,
     nsTradeStyle VARCHAR(100) NOT NULL,
     nsAddr1 VARCHAR(40),
     nsAddr2 VARCHAR(40),
@@ -63,8 +62,9 @@ CREATE TABLE nsInfo (
 
 CREATE TABLE nsAccess (
     nsaUserId CHAR(36) NOT NULL,
-    nsaNonsig BINARY(9) NOT NULL,
+    nsaNonsig CHAR(9) NOT NULL,
     nsaRole CHAR(7) NOT NULL,
+    nsaConfirmedByAdmin BOOLEAN NOT NULL DEFAULT 0,
     nsaIsAdmin BOOLEAN NOT NULL DEFAULT FALSE,
 
     FOREIGN KEY (nsaNonsig)
@@ -89,7 +89,7 @@ CREATE TABLE userRegistration (
     userAwaitingPassword BOOLEAN NOT NULL DEFAULT 0, -- If user has password reset pending
     userConfirmation CHAR(36), -- Token used for confirmation and password reset
     userInvalidLoginAttempts INT(1),
-    userDefaultNonsig BINARY(9) NOT NULL,
+    userDefaultNonsig CHAR(9) NOT NULL,
 
     PRIMARY KEY (userId),
 
@@ -421,7 +421,7 @@ AS
         navigation.navHeader,
         navigation.navMenu,
         navigation.navIsNotApi,
-        rolePermissions.rpid
+        rolePermissions.rpId
     FROM 
         rolePermissions
     INNER JOIN
@@ -448,7 +448,9 @@ AS
         userRegistration.userInvalidLoginAttempts,
         userRegistration.userDefaultNonsig AS userNonsig,
         nsInfo.nsIsActive,
-        nsAccess.nsaRole AS userRole
+        nsAccess.nsaNonsig,
+        nsAccess.nsaRole AS userRole,
+        nsAccess.nsaUserId
     FROM
         userRegistration
     INNER JOIN
@@ -458,4 +460,28 @@ AS
     INNER JOIN
         nsAccess
     ON
-        nsAccess.nsaNonsig = userRegistration.userDefaultNonsig;
+        nsAccess.nsaNonsig = userRegistration.userDefaultNonsig
+    AND
+        nsAccess.nsaUserId = userRegistration.userId;
+
+
+CREATE VIEW users
+AS
+    SELECT
+        userRegistration.userId,
+        userRegistration.userName,
+        userRegistration.userEmail,
+        userRegistration.userIsLocked,
+        userRegistration.userIsConfirmed,
+        userRegistration.userDefaultNonsig,
+        userInformation.userId AS userInfo,
+        userInformation.userLastLogin,
+        userInformation.userFirstName,
+        userInformation.userLastName,
+        userInformation.userPhone
+    FROM
+        userRegistration
+    INNER JOIN
+        userInformation
+    ON
+        userRegistration.userId = userInformation.userId;

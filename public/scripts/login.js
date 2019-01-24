@@ -5,6 +5,8 @@
 function passLogin() {
     let username = document.querySelector('#username').value
     let password = document.querySelector('#password').value
+    $('#loginLoading').show()
+    $('#loginDisplay').hide()
     $.ajax('/login', {
         method: 'POST',
         data: JSON.stringify({
@@ -20,14 +22,41 @@ function passLogin() {
             if (authenticationResults.message === 'Success' && authenticationResults.details && authenticationResults.details.token) {
                 window.location.href = '/?token=' + authenticationResults.details.token
             } else {
-                document.querySelector('#passwordError').innerText = authenticationResults.message
-                document.querySelector('#passwordError').style.display = 'block'
+                $('#passwordError').text(authenticationResults.message)
+                $('#passwordError').show()
             }
         },
         error: function(err) {
+            $('#loginLoading').hide()
+            $('#loginDisplay').show()
             console.error(err)
         }
     })
+}
+
+function forgotPass(e) {
+    let email = document.getElementById('email').value
+    if(/\S+@\S+\.\S+/.test(email)) {
+        $.ajax({
+            url: '/forgot',
+            data: JSON.stringify({
+                email
+            }),
+            method: 'POST',
+            headers: {
+                'Content-Type': 'Application/JSON'
+            }
+        })
+        $('#email')
+            .addClass('alert-success')
+            .text('Email sent to ' + email)
+            .show()
+    } else {
+        $('#email')
+            .addClass('alert-danger')
+            .text('Please supply a valid email')
+            .show()
+    }
 }
 
 function submitRegistration(e) {
@@ -57,8 +86,16 @@ function submitRegistration(e) {
 }
 
 function handleOnLoad() {
-    document.querySelector('#loginBtn').addEventListener('click', passLogin)
+    $('#loginBtn').on('click', passLogin)
+    $('#register input').each((inp) => {
+        inp.on('keyup', (e) => {
+            if (e.keyCode === 13) {
+                passLogin()
+            }
+        })
+    })
     $('#submit').on('click', submitRegistration)
+    $('#subForgot').on('click', forgotPass)
     if (window.location.pathname === '/logout') {
         history.pushState({loaded: true}, 'Tire-HQ', '/')
     }

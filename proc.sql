@@ -120,23 +120,40 @@ CREATE PROCEDURE newUser (
                 _userConfirmation
             );
         
-            INSERT INTO userInformation
-                (
-                    userId,
-                    userFirstName,
-                    userLastName,
-                    userPhone
-                )
-            VALUES 
-                (
-                    _userId,
-                    _userFirstName,
-                    _userLastName,
-                    _userPhone
-                );
+        INSERT INTO userInformation
+            (
+                userId,
+                userFirstName,
+                userLastName,
+                userPhone
+            )
+        VALUES 
+            (
+                _userId,
+                _userFirstName,
+                _userLastName,
+                _userPhone
+            );
+
+        INSERT INTO nsAccess
+            (
+                nsaUserId,
+                nsaNonsig,
+                nsaRole,
+                nsaIsAdmin,
+                nsaConfirmedByAdmin
+            )
+        VALUES
+            (
+                _userId,
+                _userDefaultNonsig,
+                'No-Conf',
+                0,
+                0
+            );
     END//
 
-CREATE FUNCTION changePassword(_userId CHAR(36), _confirmation CHAR(36), _hashedPassword BINARY(36))
+CREATE FUNCTION changePassword(_userId CHAR(36), _confirmation CHAR(36), _hashedPassword BINARY(60))
     RETURNS BOOLEAN
     BEGIN
         DECLARE _storedConfirmation CHAR(36);
@@ -168,19 +185,25 @@ CREATE FUNCTION changePassword(_userId CHAR(36), _confirmation CHAR(36), _hashed
         RETURN 0;
     END //
 
-CREATE FUNCTION confirmUser(_userId CHAR(36), _confirmation CHAR(36), _password BINARY(60))
+CREATE FUNCTION confirmUser(_confirmation CHAR(36), _password BINARY(60))
     RETURNS BOOLEAN
     BEGIN
         DECLARE _storedConfirmation CHAR(36);
+        DECLARE _userId CHAR(36);
 
         SELECT 
-            userConfirmation
+            userConfirmation,
+            userId
         INTO
-            _storedConfirmation
+            _storedConfirmation,
+            _userId
         FROM
             userRegistration
         WHERE
-            userId = _userId;
+            userConfirmation = _confirmation;
+
+        IF _userID IS NULL THEN RETURN 1;
+        END IF;
 
         IF _storedConfirmation = _confirmation THEN
             UPDATE
@@ -197,5 +220,100 @@ CREATE FUNCTION confirmUser(_userId CHAR(36), _confirmation CHAR(36), _password 
         RETURN 0;
     END //
 
+CREATE FUNCTION setForgotPassword(_userName VARCHAR(36), _userEmail VARCHAR(90), _passwordResetToken CHAR(36))
+    RETURNS BOOLEAN
+    BEGIN
+        DECLARE _userId CHAR(36);
 
+        IF NOT ISNULL(_userName) THEN
+            SELECT
+                userId
+            INTO
+                _userId
+            FROM
+                userRegistration
+            WHERE
+                userName = _userName;
+        ELSEIF NOT ISNULL(_userEmail) THEN
+            SELECT
+                userId
+            INTO
+                _userId
+            FROM
+                userRegistration
+            WHERE
+                userEmail = _userEmail;
+        ELSE RETURN 1;
+
+        IF NOT ISNULL(_userId) THEN
+            UPDATE 
+                userRegistration
+            SET
+                userConfirmation = _passwordResetToken,
+                userAwaitingPassword = 1;
+        ELSE RETURN 1;
+        RETURN 0;
+    END //
+
+CREATE FUNCTION AddCustomer(
+        _nsNonsig CHAR(9),
+        _nsTradeStyle VARCHAR(100),
+        _nsAddr1 VARCHAR(40),
+        _nsAddr2 VARCHAR(40),
+        _nsCity VARCHAR(40),
+        _nsState CHAR(2),
+        _nsCountry CHAR(2),
+        _nsPostalCode VARCHAR(10),
+        _nsBrandKey VARCHAR(4),
+        _nsIsActive BOOLEAN,
+        _nsIsActiveTHQ BOOLEAN,
+        _nsType CHAR(3)
+    )
+    RETURNS BOOLEAN
+    BEGIN
+        DECLARE _nsNonsigExisting CHAR(9);
+
+        SELECT
+            nsNonsig
+        INTO
+            _nsNonsigExisting
+        FROM
+            nsInfo
+        WHERE
+            nsNonsig = _nsNonsig;
+
+        IF ISNULL(_nsNonsigExisting) THEN
+            INSERT INTO nsInfo
+                (
+                    nsNonsig,
+                    nsTradeStyle,
+                    nsAddr1,
+                    nsAddr2,
+                    nsCity,
+                    nsState,
+                    nsCountry,
+                    nsPostalCode,
+                    nsBrandKey,
+                    nsIsActive,
+                    nsIsActiveTHQ,
+                    nsType
+                )
+            VALUES
+                (
+                    _nsNonsig,
+                    _nsTradeStyle,
+                    _nsAddr1,
+                    IFNULL(_nsAddr2, ''),
+                    _nsCity,
+                    _nsState,
+                    _nsCountry,
+                    _nsPostalCode,
+                    _nsBrandKey,
+                    _nsIsActive,
+                    _nsIsActiveTHQ,
+                    _nsType
+                );
+        ELSE RETURN 1;
+        RETURN 0;
+    END //
 DELIMITER ;

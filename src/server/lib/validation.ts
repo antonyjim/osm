@@ -11,7 +11,6 @@
 
 // Local Modules
 import { ValidationFields } from "../types/server";
-import { UserTypes } from "../types/users";
 
 // Constants and global variables
 
@@ -104,6 +103,49 @@ export class Validation {
                 }
             }
             return sanitizedObject
+        }
+    }
+
+    public exists() {
+        return this.providedFields !== null && this.providedFields !== undefined
+    }
+
+    public matches(test) {
+        return this.providedFields === test
+    }
+
+    public isEmail() {
+        const emailRegex = /^\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,3}$/
+        return emailRegex.test(this.providedFields)
+    }
+
+    public notEmpty(fields: any, minLen?: number) {
+        const min = minLen || 0
+        if (Array.isArray(fields)) {
+            let validFields = []
+            fields.map(field => {
+                if (typeof field === 'string' && field.length > min) {
+                    validFields.push(field)
+                }
+            })
+            return validFields
+        } else if (typeof fields === 'object') {
+            let keys = Object.keys(fields)
+            let validFields: any = {}
+            keys.map(key => {
+                if (typeof fields[key] === 'string' && fields[key].length > min) {
+                    validFields[key] = fields[key]
+                }
+            })
+            return validFields
+        } else if (typeof fields === 'string') { 
+            if (fields.length > min) {
+                return fields
+            } else {
+                return null
+            }
+        } else {
+            return null
         }
     }
 }

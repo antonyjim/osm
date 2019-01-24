@@ -8,7 +8,6 @@
 
 // NPM Modules
 import { Router } from 'express'
-import * as bodyParser from 'body-parser'
 import * as cookieParser from 'cookie-parser'
 
 
@@ -22,9 +21,8 @@ import { staticRoutes } from './static'
 const router = Router()
 
 router.use('/public', staticRoutes)
-router.use(bodyParser.json())
-router.use(cookieParser())
 router.use('/api', apiRoutes)
+router.use(cookieParser())
 router.use('/', uiRoutes)
 
 

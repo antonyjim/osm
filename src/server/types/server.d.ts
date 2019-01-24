@@ -12,6 +12,13 @@ export interface StatusMessage {
     details?: any;
 }
 
+export interface QueryResponse {
+    error: boolean;
+    message: string;
+    count?: number;
+    results?: any;
+}
+
 export interface ResponseMessage {
     error: boolean;
     errorMessage?: string;
