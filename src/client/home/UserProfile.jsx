@@ -20,7 +20,8 @@ class UserProfile extends Component {
                 userPass: 'thisisnotanactualpassword',
                 userPassConfirmation: 'thisisnotanactualpassword'
             },
-            modifiedFields: []
+            modifiedFields: [],
+            userId: this.props.match.params.userId || false
         }
         this.getUser()
     }
@@ -44,8 +45,8 @@ class UserProfile extends Component {
             path: '/api/q/user',
             body: JSON.stringify({
                 query: `
-                    query SingleUser {
-                        user {
+                    query SingleUser ($userId: ID!) {
+                        user (userId: $userId) {
                             userId
                             userName
                             userEmail
@@ -55,7 +56,10 @@ class UserProfile extends Component {
                             userPhone
                         }
                     }
-                `
+                `,
+                variables: {
+                    userId: this.state.userId || null
+                }
             })
         })
         .then(response => {

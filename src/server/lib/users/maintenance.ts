@@ -53,7 +53,7 @@ export class Nonsig {
         return new Promise((resolve, reject) => {
             let sql = `
                 SELECT *
-                FROM nsInfo
+                FROM sys_customer
                 WHERE nsNonsig = ${pool.escape(nsNonsig)}
             `
             pool.query(sql, (err: Error, results) => {
@@ -112,7 +112,7 @@ export class Nonsig {
                     })
                     let insertionSql = `
                         INSERT INTO
-                            nsInfo (
+                            sys_customer (
                                 nsId,
                                 nsTradeStyle,
                                 nsNonsig,
@@ -173,7 +173,7 @@ export class Nonsig {
         return new Promise((resolve, reject) => {
             let sql = `
                 SELECT nsNonsig, nsIsActive, nsIsActiveTHQ
-                FROM nsInfo
+                FROM sys_customer
                 WHERE nsNonsig = ${pool.escape(this.nonsig.nsNonsig)}
             `
             pool.query(sql, (err: Error, results: Array<NonsigTypes.nsInfo>) => {
@@ -228,7 +228,7 @@ export class User {
             return 1
         } else {
             let sql = `
-                UPDATE userRegistration
+                UPDATE sys_user
                 SET userConfirmation = NULL
                 WHERE userId = ${pool.escape(this.userOpt.userId)}
             `
@@ -243,7 +243,7 @@ export class User {
         return new Promise((resolve, reject) => {
             pool.query(
                 `SELECT * 
-                FROM userRegistration
+                FROM sys_user
                 WHERE userName = ${pool.escape(accountOpts.userName)}
                     OR userId = ${pool.escape(accountOpts.userId)}
                     OR userEmail = ${pool.escape(accountOpts.userEmail)}`,
@@ -404,7 +404,7 @@ export class User {
     public forgotPassword() {
         function setConfirmation(id: string, unique: string) {
             let updateConf = `
-                UPDATE userRegistration
+                UPDATE sys_user
                 SET 
                     userConfirmation = ${pool.escape(unique)},
                     userAwaitingPassword = 1
@@ -420,7 +420,7 @@ export class User {
             SELECT 
                 userEmail, 
                 userId
-            FROM userRegistration
+            FROM sys_user
             WHERE userEmail = ${pool.escape(this.userOpt.userEmail)}
         `
         pool.query(sql, (err: Error, results) => {
@@ -452,7 +452,7 @@ export class User {
                 let conditions = []
                 let sql = `
                     SELECT userName, userEmail
-                    FROM userRegistration
+                    FROM sys_user
                     WHERE
                 `
                 if (this.userOpt.userName) {
@@ -522,7 +522,7 @@ export class User {
                     })
                 }
                 const sql = `
-                    UPDATE userRegistration
+                    UPDATE sys_user
                     SET 
                         userPass = ${pool.escape(hashed)}
                     WHERE 

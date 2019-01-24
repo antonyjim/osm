@@ -46,6 +46,6 @@ export const userQueries = {
                 type: GraphQLID
             }
         },
-        resolve: ((_, userId, context) => new User().getById(userId, context))
+        resolve: ((_, {userId}, context) => new User().getById(userId, context))
     }
 }

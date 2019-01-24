@@ -62,7 +62,7 @@ export class Navigation {
                 let searchPhrase: string = parameters.join(' AND ')
                 let sql = `
                     SELECT *
-                    FROM navigation
+                    FROM sys_navigation
                     WHERE ${searchPhrase}
                 `
                 console.log(sql)
@@ -102,7 +102,7 @@ export class Navigation {
                  navActive,
                  navPriv,
                  navIsNotApi
-                FROM navigation
+                FROM sys_navigation
                 ORDER BY navMenu, navHeader, navInnerText
             `
             pool.query(sql, (err: Error, results) => {
@@ -220,7 +220,7 @@ export class Navigation {
             // Verify that the privilege exist
             let checkForExistingNav = `
                 SELECT *
-                FROM navigation
+                FROM sys_navigation
                 WHERE
                     navPathName = ${pool.escape(navLinkToBeEntered.navPathName)}
                     AND
@@ -355,7 +355,7 @@ export class Navigation {
 
                     let findNav = `
                         SELECT *
-                        FROM navigation
+                        FROM sys_navigation
                         WHERE navId = ${pool.escape(sanitizedUpdate.navId)}
                     `
                     if (sanitizedUpdate.navIsNotApi && (!sanitizedUpdate.navHeader || !sanitizedUpdate.navMenu)) {
@@ -379,7 +379,7 @@ export class Navigation {
                                 console.log(JSON.stringify(sanitizedUpdate))
                                 if (sanitizedUpdate.navPriv) {
                                     let updateStatement = `
-                                        UPDATE navigation
+                                        UPDATE sys_navigation
                                         SET ?
                                         WHERE navId = ?
                                     `
@@ -400,7 +400,7 @@ export class Navigation {
                                     })
                                 } else {
                                     let updateStatement = `
-                                        UPDATE navigation
+                                        UPDATE sys_navigation
                                         SET ?
                                         WHERE navId = ?
                                     `

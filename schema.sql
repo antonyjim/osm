@@ -8,7 +8,7 @@ USE thq;
 -- |Start Schema for site navigation         |
 -- +-----------------------------------------+
 -- Store navigation through the site
-CREATE TABLE navigation (
+CREATE TABLE sys_navigation (
     navInnerText VARCHAR(40) NOT NULL, -- Inner text of the <a> element
     navMethod VARCHAR(6) NOT NULL DEFAULT 'GET', -- HTTP Request method
     navPathName VARCHAR(120) NOT NULL, -- Href of the <a> element
@@ -22,14 +22,14 @@ CREATE TABLE navigation (
     PRIMARY KEY (navMethod, navPathName)
 );
 
-CREATE TABLE rolePermissions (
+CREATE TABLE sys_role (
     rpId CHAR(9) NOT NULL, -- Role ID
     rpPriv VARCHAR(36), -- Priviledge assigned to role
     
     PRIMARY KEY (rpPriv, rpId),
 
     FOREIGN KEY (rpPriv)
-        REFERENCES navigation(navPriv)
+        REFERENCES sys_navigation(navPriv)
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
@@ -39,7 +39,7 @@ CREATE TABLE rolePermissions (
 -- +-----------------------------------------+
 
 -- This data will not be tied to any one user account
-CREATE TABLE nsInfo (
+CREATE TABLE sys_customer (
     nsNonsig CHAR(9) NOT NULL,
     nsTradeStyle VARCHAR(100) NOT NULL,
     nsAddr1 VARCHAR(40),
@@ -60,7 +60,7 @@ CREATE TABLE nsInfo (
 -- |Start Document Schema for Users          |
 -- +-----------------------------------------+
 
-CREATE TABLE nsAccess (
+CREATE TABLE sys_user_nsacl (
     nsaUserId CHAR(36) NOT NULL,
     nsaNonsig CHAR(9) NOT NULL,
     nsaRole CHAR(7) NOT NULL,
@@ -68,18 +68,18 @@ CREATE TABLE nsAccess (
     nsaIsAdmin BOOLEAN NOT NULL DEFAULT FALSE,
 
     FOREIGN KEY (nsaNonsig)
-        REFERENCES nsInfo(nsNonsig)
+        REFERENCES sys_customer(nsNonsig)
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
 
     FOREIGN KEY (nsaRole)
-        REFERENCES rolePermissions(rpId)
+        REFERENCES sys_role(rpId)
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
 
 -- Keep this table to a minimum, only to be used for login, password reset
-CREATE TABLE userRegistration (
+CREATE TABLE sys_user (
     userId CHAR(36) NOT NULL,
     userName VARCHAR(36) NOT NULL UNIQUE,
     userPass BINARY(60),
@@ -96,48 +96,17 @@ CREATE TABLE userRegistration (
     INDEX(userName),
 
     FOREIGN KEY (userDefaultNonsig)
-        REFERENCES nsInfo(nsNonsig)
+        REFERENCES sys_customer(nsNonsig)
         ON DELETE RESTRICT
         ON UPDATE CASCADE
 );
 
--- Add final foreign key after creating userRegistration
-ALTER TABLE nsAccess ADD 
+-- Add final foreign key after creating sys_user
+ALTER TABLE sys_user_nsacl ADD 
     FOREIGN KEY (nsaUserId)
-        REFERENCES userRegistration(userId)
+        REFERENCES sys_user(userId)
         ON DELETE CASCADE
         ON UPDATE CASCADE;
-
--- Store all of the info that is not used on every login here
-CREATE TABLE userInformation (
-    userId CHAR(36) NOT NULL,
-    userLastLogin DATE,
-    userLastPasswordChange DATE,
-    userFirstName VARCHAR(30),
-    userLastName VARCHAR(30),
-    userType INT(1),
-    userPhone VARCHAR(13), -- I know I'm being lazy here. Shut up
-    /* At first I was going to store an address with each user, but the address should really be 
-    pulled from the nonsig that the user is currently logged in as
-
-    userAddress VARCHAR(90),
-    userCity VARCHAR(90),
-    userState CHAR(2),
-    */
-    userView CHAR(36),
-    
-    PRIMARY KEY (userId),
-
-    FOREIGN KEY (userId)
-        REFERENCES userRegistration(userId)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE,
-
-    FOREIGN KEY (userView)
-        REFERENCES userRegistration(userId)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE
-);
 
 -- +-----------------------------------------+
 -- |Start Document Schema for Docs A,B,C etc |
@@ -146,7 +115,7 @@ CREATE TABLE userInformation (
     This table seems monolithic, and in some ways it is. But it is absolutely vital to store this
     information in it's own table with it's own columns that are seperate from any dynamic data.
 */
-CREATE TABLE finalDocumentsMast (
+CREATE TABLE doc_final (
     docId CHAR(36) NOT NULL, -- UUIDV4 unique identifier
     docSubmitted DATE, -- When the doc was submitted
     docSourceNumber INT(9) NOT NULL, -- Visible document number
@@ -196,7 +165,7 @@ CREATE TABLE finalDocumentsMast (
     INDEX(docDealer)
 );
 
-CREATE TABLE finalDocumentsReqs (
+CREATE TABLE doc_final_req (
     docReq INT AUTO_INCREMENT NOT NULL,
     docId CHAR(36) NOT NULL,
     docReqKeyWord CHAR(3), -- Not a foreign key to allow submitted documents to still reference old requirements
@@ -207,14 +176,14 @@ CREATE TABLE finalDocumentsReqs (
     INDEX(docId),
 
     FOREIGN KEY (docId)
-        REFERENCES finalDocumentsMast(docId)
+        REFERENCES doc_final(docId)
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
 
--- Store documents on hold and pending documents in documentsOnHold
--- Dynamically pull shipto/billto from docProducts table
-CREATE TABLE documentsOnHold (
+-- Store documents on hold and pending documents in doc_onhold
+-- Dynamically pull shipto/billto from doc_prod table
+CREATE TABLE doc_onhold (
     dohId CHAR(36) NOT NULL, -- UUIDV4 unique identifier
     dohLastScreen INT(1), -- Last screen the doc was opened to
     dohLastOpened DATE, -- Last time the doc was opened
@@ -247,12 +216,12 @@ CREATE TABLE documentsOnHold (
     INDEX(dohDealer),
 
     FOREIGN KEY (dohCorrectionReference)
-        REFERENCES finalDocumentsMast(docId)
+        REFERENCES doc_final(docId)
         ON DELETE RESTRICT
         ON UPDATE CASCADE
 );
 
-CREATE TABLE docProducts (
+CREATE TABLE doc_prod (
     dpKey INT NOT NULL AUTO_INCREMENT,
     dpDocId CHAR(36) NOT NULL, -- Reference the document that this is connected to
     dpCode INT(9) NOT NULL,
@@ -265,7 +234,7 @@ CREATE TABLE docProducts (
     PRIMARY KEY(dpKey),
 
     FOREIGN KEY (dpDocId)
-        REFERENCES documentsOnHold(dohId)
+        REFERENCES doc_onhold(dohId)
         ON DELETE CASCADE 
         ON UPDATE CASCADE
 );
@@ -273,7 +242,7 @@ CREATE TABLE docProducts (
 -- Store billTo/shipTo addresses for dealers
 -- Only allow dealers to access their own addresses
 -- Modifying these values will also affect any documents on hold
-CREATE TABLE addrBook (
+CREATE TABLE sys_addr (
    -- addrId CHAR(36) NOT NULL, -- Unique UUIDV4 identifying the address
     abNonsig INT NOT NULL AUTO_INCREMENT, -- Simple number to search by
     abOwner INT(9) NOT NULL, -- The creating dealer's nonsig
@@ -293,7 +262,7 @@ CREATE TABLE addrBook (
 -- +---------------------------------------------+
 
 -- Store data about the national account
-CREATE TABLE nationalAccount (
+CREATE TABLE sys_customer_account (
     naId CHAR(36) NOT NULL,
     naNbr VARCHAR(7),
     naNonsig VARCHAR(7),
@@ -312,7 +281,7 @@ CREATE TABLE nationalAccount (
     INDEX(naNbr, naNonsig)
 );
 
-CREATE TABLE shipToNonsig (
+CREATE TABLE sys_addr_ship (
     stnId CHAR(36) NOT NULL,
     stnAcct CHAR(36),
     stnNonsig VARCHAR(7),
@@ -327,14 +296,14 @@ CREATE TABLE shipToNonsig (
     PRIMARY KEY (stnId),
 
     FOREIGN KEY (stnAcct)
-        REFERENCES nationalAccount(naId)
+        REFERENCES sys_customer_account(naId)
         ON DELETE RESTRICT
         ON UPDATE CASCADE
 );
 
 -- Store the data for the various types of requirements,
 -- E.g. PO, Unit Number, Location Code
-CREATE TABLE requirementElements (
+CREATE TABLE doc_req(
     reKeyWord CHAR(3), -- ShortHand, E.g. Location code could be shortened to EO3 / Whatever
     reShortDesc VARCHAR(40), -- The label that will be used in the <label> element
     reId VARCHAR(20), -- The id/name that the <input> element will be assigned
@@ -344,7 +313,7 @@ CREATE TABLE requirementElements (
     PRIMARY KEY (reKeyWord)
 );
 
-CREATE TABLE requirementAcceptableValues (
+CREATE TABLE doc_req_accept (
     ravId CHAR(36) NOT NULL, -- Unique indentifier for each value in the mask
     ravMask VARCHAR(40), -- NXAB mask
     ravValue VARCHAR(40) NOT NULL, -- Actual value
@@ -360,12 +329,12 @@ CREATE TABLE requirementAcceptableValues (
         ON UPDATE CASCADE,
 
     FOREIGN KEY (ravAcct)
-        REFERENCES nationalAccount(naId)
+        REFERENCES sys_customer_account(naId)
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
 
     FOREIGN KEY (ravNonsig)
-        REFERENCES shipToNonsig(stnId)
+        REFERENCES sys_addr_ship(stnId)
         ON DELETE RESTRICT
         ON UPDATE CASCADE
 );
@@ -373,7 +342,7 @@ CREATE TABLE requirementAcceptableValues (
 -- Store the attributes for the requirements
 -- Since these are <input> attributes, I don't expect any huge chunks of data
 -- to be stored here. The largest would probably be the placeholder attribute. 
-CREATE TABLE requirementAttributes (
+CREATE TABLE doc_req_attr (
     raKey INT(7) NOT NULL AUTO_INCREMENT, -- Nonsignificant, unique key
     raKeyWord CHAR(3), -- Link to requirements.keyWord
     raAttributeName VARCHAR(20), -- HTML attribute name
@@ -389,7 +358,7 @@ CREATE TABLE requirementAttributes (
 
 
 -- Store any MDSE that is excluded from a national account
-CREATE TABLE disallowedMerchandise (
+CREATE TABLE doc_prod_accept (
     dmId INT NOT NULL AUTO_INCREMENT,
     dmAcct CHAR(36),
     dmShipToNonsig CHAR(36),
@@ -401,12 +370,12 @@ CREATE TABLE disallowedMerchandise (
     PRIMARY KEY (dmId),
 
     FOREIGN KEY (dmAcct)
-        REFERENCES nationalAccount(naId)
+        REFERENCES sys_customer_account(naId)
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
 
     FOREIGN KEY (dmShipToNonsig)
-        REFERENCES shipToNonsig(stnId)
+        REFERENCES sys_addr_shop=(stnId)
         ON DELETE RESTRICT
         ON UPDATE CASCADE
 );
@@ -416,18 +385,18 @@ CREATE VIEW
     thq.uiNavigation
 AS
     SELECT
-        CONCAT( navigation.navPathName, '?', IFNULL(navigation.navQueryString, '')) AS navHref,    
-        navigation.navInnerText,
-        navigation.navHeader,
-        navigation.navMenu,
-        navigation.navIsNotApi,
-        rolePermissions.rpId
+        CONCAT( sys_navigation.navPathName, '?', IFNULL(sys_navigation.navQueryString, '')) AS navHref,    
+        sys_navigation.navInnerText,
+        sys_navigation.navHeader,
+        sys_navigation.navMenu,
+        sys_navigation.navIsNotApi,
+        sys_role.rpId
     FROM 
-        rolePermissions
+        sys_role
     INNER JOIN
-        navigation
+        sys_navigation
     ON
-        navigation.navPriv = rolePermissions.rpPriv
+        sys_navigation.navPriv = sys_role.rpPriv
     WHERE 
         navIsNotApi = 1
     AND
@@ -439,49 +408,49 @@ CREATE VIEW
     thq.userLogin
 AS
     SELECT
-        userRegistration.userId,
-        userRegistration.userName, 
-        userRegistration.userPass,
-        userRegistration.userEmail,
-        userRegistration.userIsConfirmed,
-        userRegistration.userIsLocked,
-        userRegistration.userInvalidLoginAttempts,
-        userRegistration.userDefaultNonsig AS userNonsig,
-        nsInfo.nsIsActive,
-        nsAccess.nsaNonsig,
-        nsAccess.nsaRole AS userRole,
-        nsAccess.nsaUserId
+        sys_user.userId,
+        sys_user.userName, 
+        sys_user.userPass,
+        sys_user.userEmail,
+        sys_user.userIsConfirmed,
+        sys_user.userIsLocked,
+        sys_user.userInvalidLoginAttempts,
+        sys_user.userDefaultNonsig AS userNonsig,
+        sys_customer.nsIsActive,
+        sys_user_nsacl.nsaNonsig,
+        sys_user_nsacl.nsaRole AS userRole,
+        sys_user_nsacl.nsaUserId
     FROM
-        userRegistration
+        sys_user
     INNER JOIN
-        nsInfo
+        sys_customer
     ON
-        nsInfo.nsNonsig = userRegistration.userDefaultNonsig
+        sys_customer.nsNonsig = sys_user.userDefaultNonsig
     INNER JOIN
-        nsAccess
+        sys_user_nsacl
     ON
-        nsAccess.nsaNonsig = userRegistration.userDefaultNonsig
+        sys_user_nsacl.nsaNonsig = sys_user.userDefaultNonsig
     AND
-        nsAccess.nsaUserId = userRegistration.userId;
+        sys_user_nsacl.nsaUserId = sys_user.userId;
 
 
 CREATE VIEW users
 AS
     SELECT
-        userRegistration.userId,
-        userRegistration.userName,
-        userRegistration.userEmail,
-        userRegistration.userIsLocked,
-        userRegistration.userIsConfirmed,
-        userRegistration.userDefaultNonsig,
+        sys_user.userId,
+        sys_user.userName,
+        sys_user.userEmail,
+        sys_user.userIsLocked,
+        sys_user.userIsConfirmed,
+        sys_user.userDefaultNonsig,
         userInformation.userId AS userInfo,
         userInformation.userLastLogin,
         userInformation.userFirstName,
         userInformation.userLastName,
         userInformation.userPhone
     FROM
-        userRegistration
+        sys_user
     INNER JOIN
         userInformation
     ON
-        userRegistration.userId = userInformation.userId;
+        sys_user.userId = userInformation.userId;

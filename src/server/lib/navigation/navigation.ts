@@ -80,8 +80,7 @@ export function getRoleAuthorizedNavigation(userId: string, userNonsig: string):
 export function validateEndpoint(method, endpoint, role): Promise<StatusMessage> {
     return new Promise(function(resolve, reject) {
         if (method && endpoint && role) {
-            let sqlStatement = `SELECT endpointValidation(${pool.escape([role, endpoint.split('?')[0], method])}) AS authed`
-            console.log(sqlStatement)
+            let sqlStatement = `SELECT endpointvalidation(${pool.escape([role, endpoint.split('?')[0], method])}) AS authed`
             pool.query(sqlStatement, function(err: Error, authorizedNavigationLinks: Array<RolePermissions>) {
                 if (err) {
                     console.error(err)

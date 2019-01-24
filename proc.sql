@@ -3,14 +3,14 @@ DELIMITER //
 CREATE PROCEDURE thq.getNavigation (IN role CHAR(36))
     BEGIN
         SELECT
-            navigation.*,
-            rolePermissions.*
+            sys_navigation.*,
+            sys_role.*
         FROM 
-            rolePermissions
+            sys_role
         INNER JOIN
-            navigation
+            sys_navigation
         ON
-            navigation.navPriv = rolePermissions.rpPriv
+            sys_navigation.navPriv = sys_role.rpPriv
         WHERE 
             navIsNotApi = 1
         AND
@@ -29,7 +29,7 @@ CREATE PROCEDURE thq.addNav(
         IN _navIsNotApi BOOLEAN
     )
     BEGIN
-        INSERT INTO navigation (
+        INSERT INTO sys_navigation (
             navInnerText,
             navPathName,
             navQueryString,
@@ -60,14 +60,14 @@ CREATE PROCEDURE thq.addNav(
             FROM 
             (
                 SELECT 
-                    navigation.navActive,
-                    rolePermissions.*
+                    sys_navigation.navActive,
+                    sys_role.*
                 FROM
-                    navigation
+                    sys_navigation
                 INNER JOIN
-                    rolePermissions
+                    sys_role
                 ON
-                    navigation.navPriv = rolePermissions.rpPriv
+                    sys_navigation.navPriv = sys_role.rpPriv
                 WHERE
                     navActive = 1
                 AND
@@ -97,7 +97,7 @@ CREATE PROCEDURE newUser (
     IN _userConfirmation CHAR(36)
 )
     BEGIN
-        INSERT INTO userRegistration
+        INSERT INTO sys_user
             (
                 userId,
                 userName, 
@@ -135,7 +135,7 @@ CREATE PROCEDURE newUser (
                 _userPhone
             );
 
-        INSERT INTO nsAccess
+        INSERT INTO sys_user_nsacl
             (
                 nsaUserId,
                 nsaNonsig,
@@ -166,7 +166,7 @@ CREATE FUNCTION changePassword(_userId CHAR(36), _confirmation CHAR(36), _hashed
             _storedConfirmation,
             _userPendingPassword
         FROM
-            userRegistration
+            sys_user
         WHERE
             userId = _userId;
 
@@ -174,7 +174,7 @@ CREATE FUNCTION changePassword(_userId CHAR(36), _confirmation CHAR(36), _hashed
         ELSE
             IF _storedConfirmation = _confirmation THEN
                 UPDATE
-                    userRegistration
+                    sys_user
                 SET
                     userAwaitingPassword = 0,
                     userPass = _hashedPassword,
@@ -198,7 +198,7 @@ CREATE FUNCTION confirmUser(_confirmation CHAR(36), _password BINARY(60))
             _storedConfirmation,
             _userId
         FROM
-            userRegistration
+            sys_user
         WHERE
             userConfirmation = _confirmation;
 
@@ -207,7 +207,7 @@ CREATE FUNCTION confirmUser(_confirmation CHAR(36), _password BINARY(60))
 
         IF _storedConfirmation = _confirmation THEN
             UPDATE
-                userRegistration
+                sys_user
             SET
                 userIsConfirmed = 1,
                 userConfirmation = NULL,
@@ -231,7 +231,7 @@ CREATE FUNCTION setForgotPassword(_userName VARCHAR(36), _userEmail VARCHAR(90),
             INTO
                 _userId
             FROM
-                userRegistration
+                sys_user
             WHERE
                 userName = _userName;
         ELSEIF NOT ISNULL(_userEmail) THEN
@@ -240,14 +240,14 @@ CREATE FUNCTION setForgotPassword(_userName VARCHAR(36), _userEmail VARCHAR(90),
             INTO
                 _userId
             FROM
-                userRegistration
+                sys_user
             WHERE
                 userEmail = _userEmail;
         ELSE RETURN 1;
 
         IF NOT ISNULL(_userId) THEN
             UPDATE 
-                userRegistration
+                sys_user
             SET
                 userConfirmation = _passwordResetToken,
                 userAwaitingPassword = 1;
@@ -278,12 +278,12 @@ CREATE FUNCTION AddCustomer(
         INTO
             _nsNonsigExisting
         FROM
-            nsInfo
+            sys_customer
         WHERE
             nsNonsig = _nsNonsig;
 
         IF ISNULL(_nsNonsigExisting) THEN
-            INSERT INTO nsInfo
+            INSERT INTO sys_customer
                 (
                     nsNonsig,
                     nsTradeStyle,

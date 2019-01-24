@@ -36,13 +36,13 @@ export class Roles {
             if (role) {
                 sql = `
                     SELECT rpPriv
-                    FROM rolePermissions
+                    FROM sys_role
                     WHERE rpId = ${pool.escape(role)}
                 `
             } else {
                 sql = `
                     SELECT DISTINCT rpPriv
-                    FROM rolePermissions
+                    FROM sys_role
                 `
             }
             pool.query(sql, (err: Error, results) => {
@@ -68,7 +68,7 @@ export class Roles {
             if (this.role) {
                 sql = `
                     SELECT *
-                    FROM rolePermissions
+                    FROM sys_role
                     WHERE rpId = ${pool.escape(this.role)}
                 `
             } else {
@@ -76,7 +76,7 @@ export class Roles {
                     SELECT DISTINCT
                         rpId
                     FROM
-                        rolePermissions
+                        sys_role
                 `
             }
             pool.query(sql, (err: Error, results) => {
@@ -139,7 +139,7 @@ export class Roles {
                                 ]
                             )}
                         )
-                        INSERT INTO rolePermissions
+                        INSERT INTO sys_role
                             rpId,
                             rpName
                         VALUES 
@@ -173,7 +173,7 @@ export class Roles {
             let verRole = `
                 SELECT *
                 FROM
-                    rolePermissions
+                    sys_role
                 WHERE
                     rpPriv = ${pool.escape(this.role.rpPriv)}
                 AND
@@ -188,7 +188,7 @@ export class Roles {
                     if (existingRoles.length === 1 && action === 'remove') {
                         let removeRole = `
                             DELETE FROM
-                                rolePermissions
+                                sys_role
                             WHERE
                                 rpId = ${pool.escape(this.role.rpId)}
                             AND
@@ -215,7 +215,7 @@ export class Roles {
                     } else if (action === 'add' && existingRoles.length === 0) {
                         let addRole = `
                             INSERT INTO
-                                rolePermissions (
+                                sys_role (
                                 rpId,
                                 rpPriv
                             ) VALUES (

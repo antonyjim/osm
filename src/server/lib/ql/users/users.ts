@@ -28,7 +28,7 @@ const saltRounds = 10
 class User extends Querynator {
     constructor() {
         super()
-        this.tableName = 'userRegistration'
+        this.tableName = 'sys_user'
         this.primaryKey = 'userId'
     }
 
@@ -49,6 +49,7 @@ class User extends Querynator {
     }
 
     public async getById(userId, context) {
+        console.log(userId)
         if (userId.length === 36) {
             return await this.byId(userId)
         } else if (userId.length !== 36 && context.auth && context.auth.userId) {
@@ -210,7 +211,7 @@ class User extends Querynator {
                             userPhone: fields.userPhone,
                             userNewEmail: fields.userEmail
                         },
-                        5
+                        3
                     )
                     Object.keys(validatedStrings).map(val => {
                         fieldsToUpdate[val] = validatedStrings[val]

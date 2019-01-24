@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Table } from './../common/tables.jsx'
+import Table from './../common/Table.jsx'
 
 class Customers extends Component {
     constructor(props) {

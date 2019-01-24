@@ -4,6 +4,8 @@ import { AdminWireFrame } from './NavigationRoles.jsx';
 import { Customers } from './Customers.jsx'
 import { E404 } from './../common/errors.jsx'
 import Wetty from './Wetty.jsx';
+import UserList from './Users.jsx';
+import UserProfile from '../home/UserProfile.jsx';
 
 class Admin extends Component {
     constructor(props) {
@@ -14,6 +16,8 @@ class Admin extends Component {
         return (
             <Switch>
                 <Route path="/admin/customers" component={Customers} />
+                <Route path="/admin/users" component={UserList} />
+                <Route path="/admin/user/:userId" component={UserProfile} />
                 <Route path="/admin/navroles" component={AdminWireFrame} />
                 <Route path="/admin/wetty" component={Wetty} />
                 <Route component={E404} />

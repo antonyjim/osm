@@ -43,22 +43,26 @@ export class Login {
         })
     }
 
-    // insert into userregistration values ('37355b43-af04-476e-b034-e4e82214135c', 'admin', '$2y$12$b6vJhKf4heY4FYIqjdjN2.hVqE6/5nqRqXOeCshvZJTB/nfUWWpXm', 'antonyjund@gmail.com', '1930d1ad-ae23-44b1-bbcd-0600f88a6091', 0, 1, 1, null, 1, null, 0);
+    // insert into sys_user values ('37355b43-af04-476e-b034-e4e82214135c', 'admin', '$2y$12$b6vJhKf4heY4FYIqjdjN2.hVqE6/5nqRqXOeCshvZJTB/nfUWWpXm', 'antonyjund@gmail.com', '1930d1ad-ae23-44b1-bbcd-0600f88a6091', 0, 1, 1, null, 1, null, 0);
 
     private incrementInvalidLogins(userId) {
-        pool.query(`UPDATE userRegistration
+        pool.query(`UPDATE sys_user
         SET userInvalidLoginAttempts = userInvalidLoginAttempts + 1
         WHERE userId = ${userId}`)
     }
 
-    private clearInvalidLogins(userId) {
-        pool.query(`UPDATE userRegistration
-        SET userInvalidLoginAttempts = 0
-        WHERE userId = ${userId}`)
+    private handleLogin(userId) {
+        const lastLogin: string = pool.escape(new Date().toISOString().replace('Z', ''))
+        console.log('Clearing invalid logins and setting last login to %s for user %s with %s', lastLogin, userId, `UPDATE sys_user
+        SET userInvalidLoginAttempts = 0, userLastLogin = ${lastLogin}
+        WHERE userId = ${pool.escape(userId)}`)
+        pool.query(`UPDATE sys_user
+        SET userInvalidLoginAttempts = 0, userLastLogin = ${lastLogin}
+        WHERE userId = ${pool.escape(userId)}`)
     }
 
     private lockUser(userId) {
-        pool.query(`UPDATE userRegistration
+        pool.query(`UPDATE sys_user
         SET userIsLocked = 1
         WHERE userId = ${userId}`)
     }
@@ -112,9 +116,7 @@ export class Login {
                                     userNonsig: user.userNonsig,
                                     userRole: user.userRole
                                 }
-                                if (user.userInvalidLoginAttempts > 0) {
-                                    this.clearInvalidLogins(user.userId)
-                                }
+                                this.handleLogin(user.userId)
                                 resolve({
                                     error: false,
                                     message: 'Login Accepted',
