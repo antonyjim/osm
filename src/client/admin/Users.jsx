@@ -54,6 +54,7 @@ class UserList extends Component {
                     query {
                         user_list {
                             userId
+			    count
                             userName
                             userEmail
                             userDefaultNonsig

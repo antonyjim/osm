@@ -130,7 +130,7 @@ export class Navigation {
                 console.log('Verifying privilege %s', priv)
                 let sql = `
                     SELECT *
-                    FROM rolePermissions
+                    FROM sys_role
                     WHERE rpPriv = ${pool.escape(priv)}
                 `
                 pool.query(sql, (err: Error, roles: Array<RolePermissions>) => {

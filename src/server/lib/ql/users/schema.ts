@@ -15,6 +15,9 @@ const UserType: GraphQLObjectType = new GraphQLObjectType({
         userId: {
             type: new GraphQLNonNull(GraphQLID)
         },
+	count: {
+	    type: GraphQLInt
+	},
         userName: {
             type: new GraphQLNonNull(GraphQLString)
         },

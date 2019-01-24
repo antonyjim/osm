@@ -1,5 +1,10 @@
 -- Create all procedures
 DELIMITER //
+
+/*
+	Select all links that the user is authorized to see
+*/
+DROP PROCEDURE IF EXISTS thq.getNavigation;
 CREATE PROCEDURE thq.getNavigation (IN role CHAR(36))
     BEGIN
         SELECT
@@ -17,6 +22,10 @@ CREATE PROCEDURE thq.getNavigation (IN role CHAR(36))
             rpId = @role;
     END //
 
+/*
+	Create new navigation links
+*/
+DROP PROCEDURE IF EXISTS thq.addNav;
 CREATE PROCEDURE thq.addNav(
         IN _navInnerText VARCHAR(40),
         IN _navPathName VARCHAR(120),
@@ -29,6 +38,30 @@ CREATE PROCEDURE thq.addNav(
         IN _navIsNotApi BOOLEAN
     )
     BEGIN
+	DECLARE _existingPriv BOOLEAN;
+
+	SELECT DISTINCT
+		priv INTO _existingPriv
+	FROM
+		sys_priv
+	WHERE
+		priv = _navPriv;
+
+	IF ISNULL(_existingPriv) THEN
+		INSERT INTO sys_priv (
+			priv
+		) VALUES (
+			_navPriv
+		);
+		INSERT INTO sys_role (
+			rpId,
+			rpPriv
+		) VALUES (
+			'SiteAdm',
+			_navPriv
+		);
+	END IF;
+
         INSERT INTO sys_navigation (
             navInnerText,
             navPathName,
@@ -36,7 +69,7 @@ CREATE PROCEDURE thq.addNav(
             navMethod,
             navHeader,
             navMenu,
-            navActive, 
+            navActive,
             navPriv,
             navIsNotApi
         ) VALUES (
@@ -52,14 +85,18 @@ CREATE PROCEDURE thq.addNav(
         );
     END//
 
+/*
+	Validate every endpoint on every request
+*/
+    DROP FUNCTION IF EXISTS endpointValidation;
     CREATE FUNCTION endpointValidation (_role CHAR(7), _path VARCHAR(120), _method VARCHAR(6))
         RETURNS BOOLEAN
         BEGIN
             DECLARE _authorized BOOLEAN;
             SELECT navActive
-            FROM 
+            FROM
             (
-                SELECT 
+                SELECT
                     sys_navigation.navActive,
                     sys_role.*
                 FROM
@@ -77,12 +114,13 @@ CREATE PROCEDURE thq.addNav(
                 AND
                     navMethod = _method
             ) AS authed
-            INTO 
+            INTO
                 _authorized;
-            
             RETURN _authorized;
         END//
 
+/* Create new users */
+DROP PROCEDURE IF EXISTS newUser;
 CREATE PROCEDURE newUser (
     IN _userId CHAR(36),
     IN _userName VARCHAR(36),
@@ -100,13 +138,16 @@ CREATE PROCEDURE newUser (
         INSERT INTO sys_user
             (
                 userId,
-                userName, 
+                userName,
                 userPass,
                 userEmail,
                 userDefaultNonsig,
                 userIsLocked,
                 userIsConfirmed,
-                userConfirmation
+                userConfirmation,
+		userFirstName,
+		userLastName,
+		userPhone
             )
         VALUES
             (
@@ -117,22 +158,10 @@ CREATE PROCEDURE newUser (
                 _userDefaultNonsig,
                 _userIsLocked,
                 _userIsConfirmed,
-                _userConfirmation
-            );
-        
-        INSERT INTO userInformation
-            (
-                userId,
-                userFirstName,
-                userLastName,
-                userPhone
-            )
-        VALUES 
-            (
-                _userId,
-                _userFirstName,
-                _userLastName,
-                _userPhone
+                _userConfirmation,
+		_userFirstName,
+		_userLastName,
+		_userPhone
             );
 
         INSERT INTO sys_user_nsacl
@@ -153,6 +182,8 @@ CREATE PROCEDURE newUser (
             );
     END//
 
+/* Update user passwords */
+DROP FUNCTION IF EXISTS changePassword;
 CREATE FUNCTION changePassword(_userId CHAR(36), _confirmation CHAR(36), _hashedPassword BINARY(60))
     RETURNS BOOLEAN
     BEGIN
@@ -185,13 +216,15 @@ CREATE FUNCTION changePassword(_userId CHAR(36), _confirmation CHAR(36), _hashed
         RETURN 0;
     END //
 
+/* Confirm new users */
+DROP FUNCTION IF EXISTS confirmUser;
 CREATE FUNCTION confirmUser(_confirmation CHAR(36), _password BINARY(60))
     RETURNS BOOLEAN
     BEGIN
         DECLARE _storedConfirmation CHAR(36);
         DECLARE _userId CHAR(36);
 
-        SELECT 
+        SELECT
             userConfirmation,
             userId
         INTO
@@ -220,6 +253,8 @@ CREATE FUNCTION confirmUser(_confirmation CHAR(36), _password BINARY(60))
         RETURN 0;
     END //
 
+/* Set the forgot password indicator */
+DROP FUNCTION IF EXISTS setForgotPassword;
 CREATE FUNCTION setForgotPassword(_userName VARCHAR(36), _userEmail VARCHAR(90), _passwordResetToken CHAR(36))
     RETURNS BOOLEAN
     BEGIN
@@ -244,17 +279,23 @@ CREATE FUNCTION setForgotPassword(_userName VARCHAR(36), _userEmail VARCHAR(90),
             WHERE
                 userEmail = _userEmail;
         ELSE RETURN 1;
+	END IF;
 
         IF NOT ISNULL(_userId) THEN
             UPDATE 
                 sys_user
             SET
                 userConfirmation = _passwordResetToken,
-                userAwaitingPassword = 1;
+                userAwaitingPassword = 1
+	    WHERE
+		userId = _userId;
         ELSE RETURN 1;
+	END IF;
         RETURN 0;
     END //
 
+/* Add new customers */
+DROP FUNCTION IF EXISTS AddCustomer;
 CREATE FUNCTION AddCustomer(
         _nsNonsig CHAR(9),
         _nsTradeStyle VARCHAR(100),
@@ -314,6 +355,7 @@ CREATE FUNCTION AddCustomer(
                     _nsType
                 );
         ELSE RETURN 1;
-        RETURN 0;
+	END IF; 
+       RETURN 0;
     END //
 DELIMITER ;

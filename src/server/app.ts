@@ -15,7 +15,7 @@ import { router } from './routes/index'
 
 // Constants and global variables
 const app = express()
-const port = 8085
+const port = 8020
 
 // Routes
 app.disable('x-powered-by')

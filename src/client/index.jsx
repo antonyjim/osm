@@ -82,16 +82,18 @@ class App extends Component {
             <ErrorBoundary>
                 <Router>
                     <>
-                        <Navigation/>
-                        <ErrorBoundary>
-                            <Switch>
-                                <Route exact path="/" component={Dashboard}></Route>
-                                <Route path="/profile" component={UserProfile}/>
-                                <Route path="/admin/" component={Admin} />
-                                <Route component={E404}/>
-                            </Switch>
-                        </ErrorBoundary>
-                        <Footer />
+			<div className="fill">
+                            <Navigation/>
+                            <ErrorBoundary>
+                            	<Switch>
+                                    <Route exact path="/" component={Dashboard}></Route>
+                                    <Route path="/profile" component={UserProfile}/>
+                                    <Route path="/admin/" component={Admin} />
+                                    <Route component={E404}/>
+                                </Switch>
+                            </ErrorBoundary>
+                	</div>
+		        <Footer />
                     </>
                 </Router>
             </ErrorBoundary>

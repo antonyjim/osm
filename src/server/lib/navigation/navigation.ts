@@ -30,7 +30,7 @@ export function getRoleAuthorizedNavigation(userId: string, userNonsig: string):
                 FROM thq.uiNavigation
                 WHERE rpId = (
                     SELECT nsaRole
-                    FROM nsAccess
+                    FROM sys_user_nsacl
                     WHERE nsaUserId = ${pool.escape(userId)}
                     AND nsaNonsig = ${pool.escape(userNonsig)}
                 )
@@ -44,7 +44,7 @@ export function getRoleAuthorizedNavigation(userId: string, userNonsig: string):
                     resultSet.navs = authorizedNavigationLinks
                     let getPrivs = `
                         SELECT DISTINCT rpPriv
-                        FROM rolePermissions
+                        FROM sys_role
                         WHERE rpId = ${pool.escape(authorizedNavigationLinks[0].rpId)}
                     `
                     console.log(getPrivs)

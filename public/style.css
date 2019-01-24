@@ -77,4 +77,19 @@ background-color: #fd0;
     min-height: 500px;
     border: none;
     outline: none;
+    width: 100%;
+}
+
+/* Footer styles and fixes */
+#root {
+    min-height: 100%;
+}
+
+.fill {
+    padding-bottom: 150px;
+}
+
+footer {
+    margin-top: -150px;
+    height: 150px;
 }

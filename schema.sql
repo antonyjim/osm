@@ -7,6 +7,12 @@ USE thq;
 -- +-----------------------------------------+
 -- |Start Schema for site navigation         |
 -- +-----------------------------------------+
+
+CREATE TABLE sys_priv (
+	PRIMARY KEY (priv),
+	priv VARCHAR(36)
+);
+
 -- Store navigation through the site
 CREATE TABLE sys_navigation (
     navInnerText VARCHAR(40) NOT NULL, -- Inner text of the <a> element
@@ -19,7 +25,12 @@ CREATE TABLE sys_navigation (
     navPriv VARCHAR(36), -- Priv associated with link
     navIsNotApi BOOLEAN NOT NULL, -- Whether or not the route is an api
 
-    PRIMARY KEY (navMethod, navPathName)
+    PRIMARY KEY (navMethod, navPathName),
+
+    FOREIGN KEY (navPriv)
+	REFERENCES sys_priv (priv)
+	ON DELETE RESTRICT
+	ON UPDATE CASCADE
 );
 
 CREATE TABLE sys_role (
@@ -29,7 +40,7 @@ CREATE TABLE sys_role (
     PRIMARY KEY (rpPriv, rpId),
 
     FOREIGN KEY (rpPriv)
-        REFERENCES sys_navigation(navPriv)
+        REFERENCES sys_priv(priv)
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
@@ -379,6 +390,55 @@ CREATE TABLE doc_prod_accept (
         ON DELETE RESTRICT
         ON UPDATE CASCADE
 );
+
+CREATE TABLE sys_db_object (
+	PRIMARY KEY(name),
+	name VARCHAR(40) NOT NULL, -- Name of the table
+	label VARCHAR(40) NOT NULL, -- Friendly name
+	description VARCHAR(80) -- Short Description
+);
+
+CREATE TABLE sys_db_dictionary (
+	PRIMARY KEY(column_name),
+	column_name VARCHAR(40),
+	label VARCHAR(40), -- Friendly name
+	hint VARCHAR(40), -- Popup hint
+	type VARCHAR(10), -- Type (boolean, varchar, char, etc...)
+	length INT, -- Length of field, applies to varchar, char
+	table_name VARCHAR(40),
+
+	FOREIGN KEY(table_name)
+		REFERENCES sys_db_object (name)
+		ON DELETE RESTRICT
+		ON UPDATE CASCADE
+);
+
+CREATE TABLE sys_db_acl (
+	PRIMARY KEY(dbpriv, dbtable),
+	dbpriv VARCHAR(36),
+	dbtable VARCHAR(40),
+	dbcreate BOOLEAN DEFAULT 0 NOT NULL, -- Whether the dbpriv can create
+	dbread BOOLEAN DEFAULT 0 NOT NULL, -- Whether the dbpriv can read
+	dbupdate BOOLEAN DEFAULT 0 NOT NULL, -- etc
+	dbdelete BOOLEAN DEFAULT 0 NOT NULL,
+	FOREIGN KEY (dbtable)
+		REFERENCES sys_db_object (name)
+		ON DELETE CASCADE
+		ON UPDATE CASCADE,
+	FOREIGN KEY (dbpriv)
+		REFERENCES sys_navigation (navPriv)
+		ON DELETE CASCADE
+		ON UPDATE CASCADE
+);
+
+CREATE TABLE sys_log (
+	PRIMARY KEY(log_time),
+	log_time DATETIME DEFAULT CURRENT_TIMESTAMP(),
+	log_message VARCHAR(100),
+	log_severity INT(1) DEFAULT 3
+);
+
+CREATE TABLE sys_log_user AS SELECT * FROM sys_log;
 
 -- Store custom views
 CREATE VIEW 

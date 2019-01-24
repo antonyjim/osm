@@ -5,6 +5,7 @@
 
 // Node Modules
 import { createReadStream } from 'fs';
+import { resolve } from 'path';
 
 // NPM Modules
 import { Router, Request, Response } from 'express'
@@ -150,7 +151,6 @@ uiRoutes.post('/login', function(req: Request, res: Response) {
                 }
             }
             res.cookie('token', token)
-            console.log('Login response body is ', JSON.stringify(responseBody))
             res.status(200).json(responseBody)
         }, (onUserNotAuthenticated: StatusMessage) => {
             responseBody = {
@@ -183,7 +183,7 @@ uiRoutes.post('/login', function(req: Request, res: Response) {
 uiRoutes.get('/logout', function(req, res) {
     res.cookie('token', null)
     res.writeHead(200, {'Content-Type': 'text/html; charset=UTF-8'})
-    let fileStream = createReadStream('./static/login.html')
+    let fileStream = createReadStream(resolve(__dirname, '../../../static/login.html'))
     fileStream.on('data', function(data) {
         res.write(data)
     })
@@ -196,7 +196,7 @@ uiRoutes.get('/logout', function(req, res) {
 uiRoutes.get('*', function(req, res) {
     if (req.auth.isAuthenticated && req.auth.userId) {
         res.writeHead(200, {'Content-Type': 'text/html; charset=UTF-8'})
-        let fileStream = createReadStream('./static/index.html')
+        let fileStream = createReadStream(resolve(__dirname, '../../../static/index.html'))
         fileStream.on('data', function(data) {
             res.write(data)
         })
@@ -206,7 +206,7 @@ uiRoutes.get('*', function(req, res) {
         })
     } else {
         res.writeHead(200, {'Content-Type': 'text/html; charset=UTF-8'})
-        let fileStream = createReadStream('./static/login.html')
+        let fileStream = createReadStream(resolve(__dirname, '../../../static/login.html'))
         fileStream.on('data', function(data) {
             res.write(data)
         })

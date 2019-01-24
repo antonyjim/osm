@@ -17,7 +17,7 @@ import { Pool, PoolConfig, createPool, PoolConnection } from 'mysql'
 const poolConfig: PoolConfig = {
     host    : 'localhost',
     user    : 'node',
-    password: '0735f1c3-c220-4bd7-9c28-53a8945dbe6f',
+    password: '7b2da842-0f9e-4ddb-b8eb-76e5ec102fde',
     database: 'thq',
     connectionLimit: 1
 }
@@ -150,7 +150,8 @@ class Querynator {
 
     protected all(limit?, offset?) {
         let query: string = 'SELECT * FROM ??',
-            params: Array<string> = [this.tableName]
+            params: Array<string> = [ this.tableName ]
+
 
         if (limit !== null && !isNaN(limit)) {
             query += ' LIMIT ' + limit

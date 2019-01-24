@@ -60,9 +60,7 @@ class User extends Querynator {
     }
 
     public async where(fields) {
-        console.log('Searching for ', JSON.stringify(fields))
         if (fields === undefined || Object.keys(fields).length === 0) return await this.all()
-
         return await this.byFields({fields})
     }
 
