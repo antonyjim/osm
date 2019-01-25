@@ -83,7 +83,6 @@ export function validateEndpoint(method, endpoint, role): Promise<StatusMessage>
             let sqlStatement = `SELECT endpointvalidation(${pool.escape([role, endpoint.split('?')[0], method])}) AS authed`
             pool.query(sqlStatement, function(err: Error, authorizedNavigationLinks: Array<RolePermissions>) {
                 if (err) {
-                    console.error(err)
                     throw err
                 }
                 if (authorizedNavigationLinks[0]['authed'] === 1) {

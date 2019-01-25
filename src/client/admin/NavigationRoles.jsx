@@ -560,7 +560,6 @@ class Roles extends Component {
     handleAdd(e) {
         let rpId = e.target.getAttribute('data-for')
         let rpPriv = this.state.newPriv
-        console.log(`/api/admin/roles/add?rpId=${rpId}&rpPriv=${rpPriv}`)
         if (rpId && rpPriv) {
             $.ajax(`/api/admin/roles/add?rpId=${rpId}&rpPriv=${rpPriv}&token=${window.THQ.token}`, {
                 method: 'POST',
@@ -620,6 +619,60 @@ class Roles extends Component {
     }
 }
 
+class SQL extends Component {
+    constructor(props) {
+        super(props)
+        this.state = {
+            q: '',
+            json: ''
+        }
+    }
+
+    query() {
+        $.ajax({
+            url: '/api/sql',
+            method: 'POST',
+            data: JSON.stringify({
+                q: this.state.q
+            }),
+            headers: {
+                'Content-Type': 'Application/JSON'
+            },
+            success: (data) => {
+                this.setState({json: JSON.stringify(data.message)})
+            },
+            error: (err) => {
+                this.setState({error: true})
+            }
+        })
+    }
+
+    handleChange(e) {
+        let obj = {...this.state}
+        obj[e.target.id] = e.target.value
+        this.setState(obj)
+    }
+
+    handleSubmit(e) {
+        if (e.keyCode === 13) {
+            this.query()
+            return 0
+        }
+    }
+
+
+    render () {
+        return (
+            <div className="p-5">
+                <input id="q" className="form-control" onChange={this.handleChange.bind(this)} onKeyUp={this.handleSubmit.bind(this)} value={this.state.q} />
+                <div id="results">
+                    {this.state.json !== null && this.state.json}
+                </div>
+            </div>
+        )
+    }
+}
+
 
 class AdminWireFrame extends Component {
     constructor(props) {
@@ -635,6 +688,10 @@ class AdminWireFrame extends Component {
             {
                 title: 'Roles',
                 component: Roles
+            },
+            {
+                title: 'SQL Playground',
+                component: SQL
             }
         ]
         return (

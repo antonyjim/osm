@@ -8,6 +8,7 @@
 
 // NPM Modules
 import { Pool, PoolConfig, createPool, PoolConnection } from 'mysql'
+import { Log } from './log';
 
 
 // Local Modules
@@ -15,23 +16,23 @@ import { Pool, PoolConfig, createPool, PoolConnection } from 'mysql'
 
 // Constants and global variables
 const poolConfig: PoolConfig = {
-    host    : 'localhost',
-    user    : 'node',
-    password: '7b2da842-0f9e-4ddb-b8eb-76e5ec102fde',
-    database: 'thq',
-    connectionLimit: 1
+    host    : process.env.DB_HOST || 'localhost',
+    user    : process.env.DB_USER || 'node',
+    password: process.env.DB_PASS || 'development',
+    database: process.env.DB_DB || 'thq',
+    connectionLimit: parseInt(process.env.DB_POOL_LIMIT) || 1
 }
 
 const transporterSettings = {
-    host: 'smtp.ethereal.email',
-    port: 587,
+    host: process.env.HOST || 'smtp.ethereal.email',
+    port: parseInt(process.env.SMTP_PORT) || 587,
     auth: {
-        user: 'tz7enfexgeicjpfo@ethereal.email',
-        pass: 'Qw6SnGJy33Gumm5BgY'
+        user: process.env.SMTP_USER || '',
+        pass: process.env.SMTP_PASS || ''
     }
 }
 
-const jwtSecret = '33adcbf2-f404-482a-9ca6-6c1f091a7416'
+const jwtSecret = process.env.JWT_KEY || 'secret'
 
 let pool: Pool
 function getPool(): Pool {
@@ -49,11 +50,13 @@ class Querynator {
         this.pool = getPool()
     }
 
-    public async createQ({query, params}: {query: string, params?: any}): Promise<any[] | any> {
+    public async createQ({query, params, action}: {query: string, params?: any, action?: string}): Promise<any[] | any> {
         return new Promise((resolve, reject) => {
             this.pool.getConnection((err: Error, conn: PoolConnection) => {
                 if (err) return reject(err)
-                console.log(conn.format(query, params))
+                if (process.env.STATEMENT_LOGGING === 'true' || process.env.STATEMENT_LOGGING) {
+                    new Log().message(conn.format(query, params))
+                }
                 conn.query(query, params, (err: Error, results: any[]) => {
                     if (err) {
                         conn.release()

@@ -4,7 +4,7 @@ DELIMITER //
 /*
 	Select all links that the user is authorized to see
 */
-DROP PROCEDURE IF EXISTS thq.getNavigation;
+DROP PROCEDURE IF EXISTS thq.getNavigation //
 CREATE PROCEDURE thq.getNavigation (IN role CHAR(36))
     BEGIN
         SELECT
@@ -25,7 +25,7 @@ CREATE PROCEDURE thq.getNavigation (IN role CHAR(36))
 /*
 	Create new navigation links
 */
-DROP PROCEDURE IF EXISTS thq.addNav;
+DROP PROCEDURE IF EXISTS thq.addNav //
 CREATE PROCEDURE thq.addNav(
         IN _navInnerText VARCHAR(40),
         IN _navPathName VARCHAR(120),
@@ -38,7 +38,7 @@ CREATE PROCEDURE thq.addNav(
         IN _navIsNotApi BOOLEAN
     )
     BEGIN
-	DECLARE _existingPriv BOOLEAN;
+	DECLARE _existingPriv VARCHAR(36);
 
 	SELECT DISTINCT
 		priv INTO _existingPriv
@@ -88,7 +88,7 @@ CREATE PROCEDURE thq.addNav(
 /*
 	Validate every endpoint on every request
 */
-    DROP FUNCTION IF EXISTS endpointValidation;
+    DROP FUNCTION IF EXISTS endpointValidation //
     CREATE FUNCTION endpointValidation (_role CHAR(7), _path VARCHAR(120), _method VARCHAR(6))
         RETURNS BOOLEAN
         BEGIN
@@ -120,7 +120,7 @@ CREATE PROCEDURE thq.addNav(
         END//
 
 /* Create new users */
-DROP PROCEDURE IF EXISTS newUser;
+DROP PROCEDURE IF EXISTS newUser //
 CREATE PROCEDURE newUser (
     IN _userId CHAR(36),
     IN _userName VARCHAR(36),
@@ -183,7 +183,7 @@ CREATE PROCEDURE newUser (
     END//
 
 /* Update user passwords */
-DROP FUNCTION IF EXISTS changePassword;
+DROP FUNCTION IF EXISTS changePassword //
 CREATE FUNCTION changePassword(_userId CHAR(36), _confirmation CHAR(36), _hashedPassword BINARY(60))
     RETURNS BOOLEAN
     BEGIN
@@ -217,7 +217,7 @@ CREATE FUNCTION changePassword(_userId CHAR(36), _confirmation CHAR(36), _hashed
     END //
 
 /* Confirm new users */
-DROP FUNCTION IF EXISTS confirmUser;
+DROP FUNCTION IF EXISTS confirmUser //
 CREATE FUNCTION confirmUser(_confirmation CHAR(36), _password BINARY(60))
     RETURNS BOOLEAN
     BEGIN
@@ -254,7 +254,7 @@ CREATE FUNCTION confirmUser(_confirmation CHAR(36), _password BINARY(60))
     END //
 
 /* Set the forgot password indicator */
-DROP FUNCTION IF EXISTS setForgotPassword;
+DROP FUNCTION IF EXISTS setForgotPassword //
 CREATE FUNCTION setForgotPassword(_userName VARCHAR(36), _userEmail VARCHAR(90), _passwordResetToken CHAR(36))
     RETURNS BOOLEAN
     BEGIN
@@ -295,7 +295,7 @@ CREATE FUNCTION setForgotPassword(_userName VARCHAR(36), _userEmail VARCHAR(90),
     END //
 
 /* Add new customers */
-DROP FUNCTION IF EXISTS AddCustomer;
+DROP FUNCTION IF EXISTS AddCustomer //
 CREATE FUNCTION AddCustomer(
         _nsNonsig CHAR(9),
         _nsTradeStyle VARCHAR(100),
@@ -358,4 +358,117 @@ CREATE FUNCTION AddCustomer(
 	END IF; 
        RETURN 0;
     END //
+
+DROP FUNCTION IF EXISTS tbl_validation //
+CREATE FUNCTION tbl_validation (
+    _role,
+    _table,
+    _action
+)
+RETURNS BOOLEAN
+BEGIN
+    DECLARE _authorized BOOLEAN;
+    DECLARE _priv VARCHAR(36);
+
+    IF _action = 'SELECT' THEN
+    +-
+        SELECT
+            auth_can_read
+        FROM
+            (
+                SELECT
+                    sys_authorization.auth_can_read,
+                    sys_role.*
+                FROM
+                    sys_authorization
+                INNER JOIN
+                    sys_role
+                ON
+                    sys_authorization.auth_priv
+                    = sys_role.rpPriv
+                WHERE
+                    rpId = _role
+                AND
+                    auth_table = _table
+            ) 
+            AS authed
+        INTO
+            _authorized;
+        RETURN _authorized;
+    ELSEIF _action = 'INSERT' THEN
+        SELECT
+            auth_can_create
+        FROM
+            (
+                SELECT
+                    sys_authorization.auth_can_create,
+                    sys_role.*
+                FROM
+                    sys_authorization
+                INNER JOIN
+                    sys_role
+                ON
+                    sys_authorization.auth_priv
+                    = sys_role.rpPriv
+                WHERE
+                    rpId = _role
+                AND
+                    auth_table = _table
+            ) 
+            AS authed
+        INTO
+            _authorized;
+        RETURN _authorized;
+    ELSEIF _action = 'UPDATE' THEN
+        SELECT
+            auth_can_edit
+        FROM
+            (
+                SELECT
+                    sys_authorization.auth_can_edit,
+                    sys_role.*
+                FROM
+                    sys_authorization
+                INNER JOIN
+                    sys_role
+                ON
+                    sys_authorization.auth_priv
+                    = sys_role.rpPriv
+                WHERE
+                    rpId = _role
+                AND
+                    auth_table = _table
+            ) 
+            AS authed
+        INTO
+            _authorized;
+        RETURN _authorized;
+    ELSEIF _action = 'DELETE' THEN
+        SELECT
+            auth_can_delete
+        FROM
+            (
+                SELECT
+                    sys_authorization.auth_can_delete,
+                    sys_role.*
+                FROM
+                    sys_authorization
+                INNER JOIN
+                    sys_role
+                ON
+                    sys_authorization.auth_priv
+                    = sys_role.rpPriv
+                WHERE
+                    rpId = _role
+                AND
+                    auth_table = _table
+            ) 
+            AS authed
+        INTO
+            _authorized;
+        RETURN _authorized;
+    ELSE RETURN 0;
+    END IF;
+    RETURN 0;
+END //
 DELIMITER ;

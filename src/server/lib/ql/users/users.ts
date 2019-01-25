@@ -13,7 +13,7 @@ import uuid = require('uuid');
 
 
 // Local Modules
-import { Querynator, jwtSecret } from './../../connection'
+import { Querynator } from './../../connection'
 import { Nonsig } from '../../users/maintenance';
 import { Validation } from '../../validation';
 import { sendConfirmation } from '../../email/emails';

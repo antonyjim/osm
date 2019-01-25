@@ -15,6 +15,7 @@ import { getPool, jwtSecret } from '../connection'
 import { UserTypes } from '../../types/users'
 import { StatusMessage } from '../../types/server'
 import { LoginException } from '../utils';
+import { Log, UserLog } from '../log';
 
 // Constants and global variables
 const pool = getPool()
@@ -31,10 +32,8 @@ export class Login {
 
     private validatePassword(hashed): Promise<boolean> {
         return new Promise((resolve) => {
-            console.log(hashed.toString(), ' ', this.credentials.password)
             compare(this.credentials.password, hashed.toString(), function(err: Error, same: boolean) {
                 if (err) {
-                    console.log(err)
                     throw new LoginException('Password error', err)
                 } else {
                     resolve(same)
@@ -117,6 +116,7 @@ export class Login {
                                     userRole: user.userRole
                                 }
                                 this.handleLogin(user.userId)
+                                new UserLog().message('Logged In', user.userId)
                                 resolve({
                                     error: false,
                                     message: 'Login Accepted',
@@ -124,6 +124,7 @@ export class Login {
                                 })
                             } else {
                                 this.incrementInvalidLogins(user.userId)
+                                new UserLog().error('Invalid login attempt', 4, user.userId)
                                 reject({
                                     error: true,
                                     message: 'Invalid username or password'
@@ -135,14 +136,13 @@ export class Login {
                         })
                     } else {
                         this.lockUser(user.userId)
+                        new UserLog().error('User has been locked', 3, user.userId)
                         reject({
                             error: true,
-                            message: 'Unknown conditions met'
+                            message: 'User account locked'
                         })
                     }
                 } else {
-                    console.log('More than one user ', users.length)
-                    console.log(JSON.stringify(users))
                     reject({
                         error: true,
                         message: 'Invalid username or password'

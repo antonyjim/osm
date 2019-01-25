@@ -439,6 +439,22 @@ CREATE TABLE sys_log (
 );
 
 CREATE TABLE sys_log_user AS SELECT * FROM sys_log;
+ALTER TABLE sys_log_user ADD COLUMN log_user CHAR(36) NOT NULL;
+
+CREATE TABLE sys_authorization (
+    PRIMARY KEY(auth_priv, auth_table),
+    auth_priv VARCHAR(36) NOT NULL,
+    auth_table VARCHAR(40),
+    auth_can_create BOOLEAN,
+    auth_can_read BOOLEAN,
+    auth_can_edit BOOLEAN,
+    auth_can_delete BOOLEAN,
+
+    FOREIGN KEY (auth_priv)
+        REFERENCES sys_priv(priv)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
 
 -- Store custom views
 CREATE VIEW 

@@ -15,6 +15,7 @@ import { StatusMessage, QueryResponse } from '../types/server';
 
 // Constants and global variables
 const pool: Pool = getPool()
+
 const tables = {
     rolePermissions: {
         rpId: {
