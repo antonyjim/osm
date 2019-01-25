@@ -361,9 +361,9 @@ CREATE FUNCTION AddCustomer(
 
 DROP FUNCTION IF EXISTS tbl_validation //
 CREATE FUNCTION tbl_validation (
-    _role,
-    _table,
-    _action
+    _role CHAR(7),
+    _table VARCHAR(40),
+    _action VARCHAR(10)
 )
 RETURNS BOOLEAN
 BEGIN
@@ -371,7 +371,6 @@ BEGIN
     DECLARE _priv VARCHAR(36);
 
     IF _action = 'SELECT' THEN
-    +-
         SELECT
             auth_can_read
         FROM

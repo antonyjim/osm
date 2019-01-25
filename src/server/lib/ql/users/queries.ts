@@ -37,7 +37,7 @@ export const userQueries = {
                 type: GraphQLString
             }
         },
-        resolve: ((_, fields) => new User().where(fields))
+        resolve: ((_, fields, context) => new User(context).where(fields))
     },
     user: {
         type: UserType,
@@ -46,6 +46,6 @@ export const userQueries = {
                 type: GraphQLID
             }
         },
-        resolve: ((_, {userId}, context) => new User().getById(userId, context))
+        resolve: ((_, {userId}, context) => new User(context).getById(userId))
     }
 }

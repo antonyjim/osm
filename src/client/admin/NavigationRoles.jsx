@@ -688,10 +688,6 @@ class AdminWireFrame extends Component {
             {
                 title: 'Roles',
                 component: Roles
-            },
-            {
-                title: 'SQL Playground',
-                component: SQL
             }
         ]
         return (

@@ -9,6 +9,8 @@
 // NPM Modules
 import { Pool, PoolConfig, createPool, PoolConnection } from 'mysql'
 import { Log } from './log';
+import { rejects } from 'assert';
+import { resolve } from 'path';
 
 
 // Local Modules
@@ -45,32 +47,70 @@ class Querynator {
     protected pool: Pool
     protected tableName: string
     protected primaryKey: string
+    protected context: any
 
-    constructor() {
+    constructor(context?) {
         this.pool = getPool()
+        this.context = context
     }
 
-    public async createQ({query, params, action}: {query: string, params?: any, action?: string}): Promise<any[] | any> {
+    private validate(conn: PoolConnection, query: string, actionOverride?: string) {
+        return new Promise(resolve => {
+            const validationFunction = 'tbl_validation'
+            const role = this.context.auth.userRole
+            const action = actionOverride || query.split(' ')[0]
+            let params = [validationFunction, [role, this.tableName, action]]
+            if (process.env.STATEMENT_LOGGING === 'true' || process.env.STATEMENT_LOGGING) {
+                console.log(conn.format('SELECT ?? (?) AS AUTHED', params))
+                new Log(conn.format('SELECT ?? (?) AS AUTHED', params)).info()
+            }
+            conn.query('SELECT ?? (?) AS AUTHED', params, (err, authed) => {
+                if (err) {
+                    new Log(err.message).error(1)
+                    throw err
+                }
+                if (authed[0]) {
+                    resolve(authed[0].AUTHED || false)
+                } else {
+                    resolve(authed[0])
+                }
+            })
+        })
+    }
+
+    public async createQ({query, params}: {query: string, params?: any}, action?: string): Promise<any[] | any> {
         return new Promise((resolve, reject) => {
             this.pool.getConnection((err: Error, conn: PoolConnection) => {
                 if (err) return reject(err)
-                if (process.env.STATEMENT_LOGGING === 'true' || process.env.STATEMENT_LOGGING) {
-                    new Log().message(conn.format(query, params))
-                }
-                conn.query(query, params, (err: Error, results: any[]) => {
-                    if (err) {
-                        conn.release()
-                        conn.rollback()
-                        return reject(err)
-                    }
-                    conn.commit((err) => {
-                        conn.release()
-                        if (err) {
-                            conn.rollback()
-                            return reject(err)
+                this.validate(conn, query, action !== null ? action: null)
+                .then((authorized) => {
+                    if (authorized === true || authorized === 1) {
+                        console.log('User is authorized with %s', authorized)
+                        if (process.env.STATEMENT_LOGGING === 'true' || process.env.STATEMENT_LOGGING) {
+                            new Log(conn.format(query, params)).info()
                         }
-                        return resolve(results)
-                    })
+                        conn.query(query, params, (err: Error, results: any[]) => {
+                            if (err) {
+                                conn.release()
+                                conn.rollback()
+                                return reject(err)
+                            }
+                            conn.commit((err) => {
+                                conn.release()
+                                if (err) {
+                                    conn.rollback()
+                                    return reject(err)
+                                }
+                                return resolve(results)
+                            })
+                        })
+                    } else {
+                        console.log('User is unauthorized with %s', authorized)
+                        reject('User unauthorized to perform that action.')
+                    }
+                })
+                .catch(err => {
+                    reject(err)
                 })
             })
         })
@@ -82,30 +122,55 @@ class Querynator {
      */
     private evaluateFieldOperator(field) {
         let op = field.split('|')
+        let fieldInfo = {
+            operator: '',
+            value: ''
+        }
         // Test for the existence of an operator
         if (op[1]) {
             switch(op[0]) {
                 case 'lt': {
-                    return '<'
+                    return ({
+                        operator: '<',
+                        value: op[1]
+                    })
                 }
                 case 'gt': {
-                    return '>'
+                    return ({
+                        operator: '>',
+                        value: op[1]
+                    })
                 }
                 case 'lte': {
-                    return '<='
+                    return ({
+                        operator: '<=',
+                        value: op[1]
+                    })
                 }
                 case 'gte': {
-                    return '>='
+                    return ({
+                        operator: '>=',
+                        value: op[1]
+                    })
                 }
                 case 'lk': {
-                    return 'LIKE'
+                    return ({
+                        operator: 'LIKE',
+                        value: op[1].replace('*', '%')
+                    })
                 }
                 default: {
-                    return '='
+                    return ({
+                        operator: '=',
+                        value: op[1]
+                    })
                 }
             }
         } else {
-            return '='
+            return ({
+                operator: '=',
+                value: op
+            })
         }
     }
 
@@ -124,11 +189,13 @@ class Querynator {
             Object.keys(fields).forEach((col, i) => {
                 let fieldValue = fields[col]
                 if (typeof fieldValue === 'string') {
-                    query += '?? ' + this.evaluateFieldOperator(fieldValue) + ' ?'
+                    let parsedField = this.evaluateFieldOperator(fieldValue)
+                    query += '?? ' + parsedField.operator + ' ?'
+                    params.push(col, parsedField.value)
                 } else {
                     query += '?? = ?'
+                    params.push(col, fieldValue)
                 }
-                params.push(col, fieldValue)
                 if (i + 1 !== Object.keys(fields).length) query += ' AND '
             })
         }

@@ -116,7 +116,7 @@ export class Login {
                                     userRole: user.userRole
                                 }
                                 this.handleLogin(user.userId)
-                                new UserLog().message('Logged In', user.userId)
+                                new UserLog('Logged In').info(user.userId)
                                 resolve({
                                     error: false,
                                     message: 'Login Accepted',
@@ -124,7 +124,7 @@ export class Login {
                                 })
                             } else {
                                 this.incrementInvalidLogins(user.userId)
-                                new UserLog().error('Invalid login attempt', 4, user.userId)
+                                new UserLog('Invalid login attempt').error(4, user.userId)
                                 reject({
                                     error: true,
                                     message: 'Invalid username or password'
@@ -136,7 +136,7 @@ export class Login {
                         })
                     } else {
                         this.lockUser(user.userId)
-                        new UserLog().error('User has been locked', 3, user.userId)
+                        new UserLog('User has been locked').error(3, user.userId)
                         reject({
                             error: true,
                             message: 'User account locked'

@@ -26,8 +26,8 @@ const saltRounds = 10
 
 
 class User extends Querynator {
-    constructor() {
-        super()
+    constructor(context) {
+        super(context)
         this.tableName = 'sys_user'
         this.primaryKey = 'userId'
     }
@@ -48,12 +48,11 @@ class User extends Querynator {
         }
     }
 
-    public async getById(userId, context) {
-        console.log(userId)
+    public async getById(userId) {
         if (userId.length === 36) {
             return await this.byId(userId)
-        } else if (userId.length !== 36 && context.auth && context.auth.userId) {
-            return await this.byId(context.auth.userId)
+        } else if (userId.length !== 36 && this.context.auth && this.context.auth.userId) {
+            return await this.byId(this.context.auth.userId)
         } else {
             throw new TypeError('Valid userId must be provided')
         }
@@ -151,7 +150,7 @@ class User extends Querynator {
                             fields.userPhone,
                             fields.userConfirmation
                         ]
-                        this.createQ({query, params})
+                        this.createQ({query, params}, 'INSERT')
                         .then(userCreated => {
                             sendConfirmation(
                                 {
@@ -178,7 +177,7 @@ class User extends Querynator {
         })
     } // Create
 
-    public async update(fields, context) {
+    public async update(fields) {
         if (!fields.userId) {
             throw new TypeError('Cannot update user without userId')
         } else {

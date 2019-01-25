@@ -432,7 +432,8 @@ CREATE TABLE sys_db_acl (
 );
 
 CREATE TABLE sys_log (
-	PRIMARY KEY(log_time),
+	PRIMARY KEY(log_key),
+    log_key INT AUTO_INCREMENT,
 	log_time DATETIME DEFAULT CURRENT_TIMESTAMP(),
 	log_message VARCHAR(100),
 	log_severity INT(1) DEFAULT 3

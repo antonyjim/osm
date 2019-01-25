@@ -59,8 +59,8 @@ apiRoutes.get('/getToken', function(req, res) {
 })
 
 apiRoutes.use(apiTokenValidation())
-apiRoutes.use(endpointAuthentication())
 apiRoutes.use('/q', q)
+apiRoutes.use(endpointAuthentication())
 apiRoutes.use(bodyParser.json())
 apiRoutes.use('/admin', adminRoutes)
 apiRoutes.use('/ordering', orderRoutes)

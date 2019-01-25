@@ -36,12 +36,12 @@ q.get('/:table', (req, res) => {
 })
 */
 
-q.get('/:table', grapqlHTTP({
+q.get('/', grapqlHTTP({
     schema: qlSchema,
     graphiql: true
 }))
 
-q.post('/:table', grapqlHTTP({
+q.post('/', grapqlHTTP({
     schema: qlSchema,
     graphiql: true
 }))

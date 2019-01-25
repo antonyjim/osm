@@ -146,10 +146,6 @@ function graphqlHTTP(options) {
         /**
          * Custom authentication schema to validate requests through the URL rather than the request body
          */
-        if (documentAST.definitions[0].selectionSet.selections[0].name.value.toLowerCase() !== request.params.table.toLowerCase() && documentAST.definitions[0].selectionSet.selections[0].name.value.toLowerCase() !== '__schema') {
-            response.statusCode = 400
-            return { errors: [{message: 'Authorization error: Table must match request'}] }
-        } // Authorization
       } catch (syntaxError) {
         // Return 400: Bad Request if any syntax errors errors exist.
         response.statusCode = 400;
