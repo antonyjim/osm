@@ -32,7 +32,8 @@ class Table extends Querynator {
             throw new TypeError('Missing required fields ' + JSON.stringify(invalidFields))
         } else {
             params.push(new Validation(fields).updateFields(['name', 'label', 'description']))
-            this.createQ({query, params})
+            console.log('Submitting to query')
+	    this.createQ({query, params})
             return this.byId(fields.name)
         }  
     }

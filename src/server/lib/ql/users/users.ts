@@ -18,12 +18,10 @@ import { Nonsig } from '../../users/maintenance';
 import { Validation } from '../../validation';
 import { sendConfirmation } from '../../email/emails';
 import { UserTypes } from '../../../types/users';
-
+import { Customer } from '../customers/customers';
 
 // Constants and global variables
 const saltRounds = 10
-
-
 
 class User extends Querynator {
     constructor(context) {
@@ -49,9 +47,9 @@ class User extends Querynator {
     }
 
     public async getById(userId) {
-        if (userId.length === 36) {
+        if (userId && userId.length === 36) {
             return await this.byId(userId)
-        } else if (userId.length !== 36 && this.context.auth && this.context.auth.userId) {
+        } else if (!userId && this.context.auth && this.context.auth.userId) {
             return await this.byId(this.context.auth.userId)
         } else {
             throw new TypeError('Valid userId must be provided')
@@ -233,6 +231,13 @@ class User extends Querynator {
         }
 
     }
+
+    public async defaultCustomer(userId) {
+      const customerQuery = 'SELECT userDefaultNonsig FROM ?? WHERE ?? = ?'
+      const customerParams = [this.tableName, this.primaryKey, userId]
+      const customer = await this.createQ({query: customerQuery, params: customerParams})
+      return new Customer(this.context).getById(customer)
+    }
 }
 
-export { User }
+export default User

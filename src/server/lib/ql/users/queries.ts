@@ -1,6 +1,8 @@
-import { GraphQLList, GraphQLString, GraphQLBoolean, GraphQLID } from "graphql";
+ import { GraphQLList, GraphQLString, GraphQLBoolean, GraphQLID } from "graphql";
 import { UserType } from './schema'
-import { User } from "./users";
+import CustomerType from '../customers/schema'
+import User from "./users";
+import { inspect } from 'util';
 
 export const userQueries = {
     user_list: {
@@ -21,9 +23,6 @@ export const userQueries = {
             userAwaitingPassword: {
                 type: GraphQLBoolean
             },
-            userDefaultNonsig: {
-                type: GraphQLString
-            },
             userFirstName: {
                 type: GraphQLString
             },
@@ -35,17 +34,20 @@ export const userQueries = {
             },
             userLastLogin: {
                 type: GraphQLString
+            },
+            userCustomer: {
+                type: CustomerType
             }
         },
-        resolve: ((_, fields, context) => new User(context).where(fields))
+        resolve: ((_, fields, context, info) => new User(context, info).where(fields))
     },
     user: {
         type: UserType,
         args: {
             userId: {
-                type: GraphQLID
+                type: GraphQLString
             }
         },
-        resolve: ((_, {userId}, context) => new User(context).getById(userId))
+        resolve: ((_, {userId}, context, info) => new User(context, info).getById(userId))
     }
 }

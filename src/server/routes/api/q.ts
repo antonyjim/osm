@@ -7,7 +7,7 @@
 
 // NPM Modules
 import { Router, Request, Response } from 'express'
-const grapqlHTTP = require('./../../lib/ql/express-graphql')
+const grapqlHTTP = require('express-graphql')
 
 // Local Modules
 import { queryTable } from '../../lib/query';
@@ -36,12 +36,12 @@ q.get('/:table', (req, res) => {
 })
 */
 
-q.get('/', grapqlHTTP({
+q.get('*', grapqlHTTP({
     schema: qlSchema,
     graphiql: true
 }))
 
-q.post('/', grapqlHTTP({
+q.post('*', grapqlHTTP({
     schema: qlSchema,
     graphiql: true
 }))

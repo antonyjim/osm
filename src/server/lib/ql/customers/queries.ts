@@ -1,5 +1,5 @@
 import { GraphQLList, GraphQLString, GraphQLBoolean, GraphQLID, GraphQLNonNull } from "graphql";
-import { CustomerType } from './schema'
+import CustomerType from './schema'
 import { Customer } from './customers'
 
 export const customerQueries = {
@@ -37,7 +37,7 @@ export const customerQueries = {
                 type: GraphQLString
             }
         },
-        resolve: ((_, {fields}) => new Customer().where({fields}))
+        resolve: ((_, fields, context) => new Customer(context).where(fields))
     },
     customer: {
         type: CustomerType,
@@ -46,9 +46,6 @@ export const customerQueries = {
                 type: GraphQLNonNull(GraphQLID)
             }
         },
-        resolve: ((_, {nsNonsig}, context) => {
-            console.log(JSON.stringify(context))
-            new Customer().getById({nsNonsig})
-        })
+        resolve: ((_, {nsNonsig}, context) => new Customer(context).getById(nsNonsig))
     }
 }

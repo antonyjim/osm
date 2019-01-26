@@ -62,4 +62,4 @@ const CustomerType: GraphQLObjectType = new GraphQLObjectType({
     }
 })
 
-export { CustomerType }
+export default CustomerType

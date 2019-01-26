@@ -13,6 +13,7 @@
 import { getPool } from './../connection'
 import { StatusMessage } from '../../types/server';
 import { RolePermissions } from '../../types/roles';
+import { Log } from '../log';
 
 // Constants and global variables
 const pool = getPool()
@@ -35,7 +36,9 @@ export function getRoleAuthorizedNavigation(userId: string, userNonsig: string):
                     AND nsaNonsig = ${pool.escape(userNonsig)}
                 )
             `
-            console.log(navigation)
+	    if (process.env.STATEMENT_LOGGING === 'true') {
+		new Log(navigation).info()
+	    }
             pool.query(navigation, (err: Error, authorizedNavigationLinks) => {
                 if (err) {
                     console.error(err)
