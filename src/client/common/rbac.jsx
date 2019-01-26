@@ -30,7 +30,6 @@ class Can extends Component {
                 </>
             )
         } else {
-            console.log('User missing required permissions to render ', this.props.children)
             return null
         }
     }

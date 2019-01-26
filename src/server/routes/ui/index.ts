@@ -17,6 +17,7 @@ import { Login, getToken } from '../../lib/users/login';
 import { tokenValidation } from './../middleware/authentication'
 import { User } from '../../lib/users/maintenance';
 import bodyParser = require('body-parser');
+import { Log } from '../../lib/log';
 
 
 // Constants and global variables
@@ -95,45 +96,10 @@ uiRoutes.post('/forgot', function(req: Request, res: Response) {
     }
 })
 
-/*
-uiRoutes.post('/newUser', function(req: Request, res: Response) {
-    if (req.body) {
-        if (req.body.userNonsig) {
-            req.body.userDefaultNonsig = req.body.userNonsig
-        }
-        console.log(JSON.stringify(req.body))
-        new User(req.body).createNew()
-        .then((onUserCreated) => {
-            res.status(200).json({
-                error: onUserCreated.error,
-                message: onUserCreated.message,
-                details: onUserCreated.details
-            })
-        }, (onUserNotCreated) => {
-            res.status(200).json(onUserNotCreated)
-        })
-        .catch(err => {
-            console.error(err)
-            res.status(500).json({
-                error: true,
-                message: 'Unexpected error occurred'
-            })
-        })
-    } else {
-        res.status(200).json({
-            error: true,
-            message: 'No user provided',
-            token: req.auth.token
-        })
-    }
-})
-*/
-
 uiRoutes.post('/login', function(req: Request, res: Response) {
     let responseBody: ResponseMessage
     let tokenPayload: UserTypes.AuthToken = null;
     if (req.body.user && req.body.user.username && req.body.user.password) {
-        console.log(JSON.stringify(req.body.user), ' Logging in')
         new Login(req.body.user).authenticate()
         .then((onUserAuthenticated: StatusMessage) => {
             tokenPayload = {
@@ -161,7 +127,7 @@ uiRoutes.post('/login', function(req: Request, res: Response) {
             res.status(200).json(responseBody)
         })
         .catch((err: StatusMessage) => {
-            console.error(err)
+            new Log(err).error()
             responseBody = {
                 error: true,
                 errorMessage: err.message

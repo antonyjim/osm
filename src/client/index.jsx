@@ -34,7 +34,7 @@ class App extends Component {
                 }
             }
         }
-        setInterval(this.refreshToken, 30000)
+        setInterval(this.refreshToken, 300000)
     }
 
     qs(key) {
@@ -55,7 +55,6 @@ class App extends Component {
             const details = JSON.parse(atob(token.split('.')[1]))
             const diff = (details.exp * 1000) - new Date().getTime()
             if (diff < 300000) {
-                console.log('Refreshing token.')
                 $.ajax('/api/refresh?token=' + token, {
                     success: function(response) {
                         if (response.token && !response.error) {
@@ -66,7 +65,7 @@ class App extends Component {
                         }
                     },
                     error: function(err) {
-                        console.log('Token not okay')
+                        window.location.href = '/logout'
                     }
                 })
             }

@@ -3,7 +3,7 @@ function fetchLogin(token) {
         let token = window.THQ.token
         let details = JSON.parse(atob(token.split('.')[1]))
         window.THQ.user = details
-        if (details.userId === window.localStorage.getItem('userId') 
+        if (details.userId === window.localStorage.getItem('userIdd') 
         && window.localStorage.getItem('navigation') 
         && (window.THQ.privs && window.THQ.user.privs.length > 0)) {
             console.log('New user userId = ', details.userId, ' Existing userId = ', localStorage.userId)

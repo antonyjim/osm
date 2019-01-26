@@ -122,7 +122,10 @@ export function apiTokenValidation() {
                     userNonsig: null
                 }
                 req.auth.token = token
-                next()
+                res.status(401).json({
+                    error: true,
+                    message: 'User unauthenticated or token expired'
+                })
             })
         }
         if (!tokenCookie) {
@@ -135,7 +138,10 @@ export function apiTokenValidation() {
                     userNonsig: null
                 }
                 req.auth.token = token
-                next()
+                res.status(401).json({
+                    error: true,
+                    message: 'User unauthenticated or token expired'
+                })
             })
         } else {
             verify(tokenCookie, jwtSecret, function(err: Error, decoded: UserTypes.AuthToken) {
@@ -147,7 +153,6 @@ export function apiTokenValidation() {
                         userRole: decoded.userRole,
                         userNonsig: decoded.userNonsig
                     }
-                    console.log("Decoded token is: ", JSON.stringify(authToken))
                     sign(authToken, jwtSecret, {expiresIn: '1h'}, function(err: Error, token: string) {
                         if (err) handleOnAuthError(err)
                         req.auth = {

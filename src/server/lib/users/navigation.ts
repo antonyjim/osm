@@ -65,7 +65,6 @@ export class Navigation {
                     FROM sys_navigation
                     WHERE ${searchPhrase}
                 `
-                console.log(sql)
                 pool.query(sql, (err: Error, results) => {
                     if (err) {
                         throw err
@@ -127,7 +126,6 @@ export class Navigation {
     protected verPriv(priv: string): Promise<StatusMessage> {
         return new Promise((resolve, reject) => {
             if (priv) {
-                console.log('Verifying privilege %s', priv)
                 let sql = `
                     SELECT *
                     FROM sys_role
@@ -137,7 +135,6 @@ export class Navigation {
                     if (err) {throw err} 
                     else {
                         if (roles.length > 0) {
-                            console.log('Privilege %s exists', priv)
                             resolve({
                                 error: false,
                                 message: 'Privilege exists',
@@ -151,7 +148,6 @@ export class Navigation {
                                     ${pool.escape(priv)}
                                 )
                             `
-                            console.log('Adding priv %s', priv)
                             pool.query(injectionSql, (err:Error, results) => {
                                 if (err) {throw err} 
                                 else {
@@ -166,7 +162,6 @@ export class Navigation {
                     }
                 })
             } else {
-                console.log('Privilege %s is missing from arguments', priv)
                 throw {
                     error: true,
                     message: 'Missing privilege',
@@ -257,7 +252,6 @@ export class Navigation {
                                 ])}
                             )
                         `
-                        console.log(sql)
                         pool.query(sql, (err: Error, results) => {
                             if (err) {console.error(err); throw {
                                 error: true,
@@ -300,10 +294,8 @@ export class Navigation {
                     }
                 })
                 this.links.forEach(link => {
-                    console.log(`Creating link ${JSON.stringify(link)}`)
                     this.createLink(link)
                     .then((onSuccessMessage: StatusMessage) => {
-                        console.log('Link %s successfully entered', JSON.stringify(link))
                         navLinksEntered.push(onSuccessMessage)
                         waitForAllNavs.emit('addedLink')
                     }, (onFailureMessage: StatusMessage) => {
@@ -311,7 +303,6 @@ export class Navigation {
                         waitForAllNavs.emit('addedLink')
                     })
                     .catch((error: StatusMessage) => {
-                        console.error(error)
                         navLinksIgnored.push(error)
                         waitForAllNavs.emit('addedLink')
                     })
@@ -367,7 +358,6 @@ export class Navigation {
                         sanitizedUpdate['navHeader'] = null
                         sanitizedUpdate['navMenu'] = null
                     }
-                    console.log(JSON.stringify(sanitizedUpdate))
                     pool.query(findNav, (err: Error, results: Array<NavigationSettings.Links>) => {
                         if (err) {
                             throw {

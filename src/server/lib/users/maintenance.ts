@@ -528,7 +528,6 @@ export class User {
                     WHERE 
                         userId = ${pool.escape(this.userOpt.userId)}
                 `
-                console.log(sql)
                 pool.query(sql, (err: Error, results) => {
                     if (err) {throw err}
                     resolve({

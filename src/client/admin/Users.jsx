@@ -54,7 +54,6 @@ class UserList extends Component {
                     query {
                         user_list {
                             userId
-			    count
                             userName
                             userEmail
                             userDefaultNonsig
@@ -68,7 +67,7 @@ class UserList extends Component {
                 `
             })
         }, (err, response) => {
-            if (err) {this.setState({error: err, loaded: true})}
+            if (err) {this.setState({error: err.message, loaded: true})}
             this.setState({users: response.data.user_list, loaded: true})
         })
     }

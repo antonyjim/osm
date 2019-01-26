@@ -54,6 +54,12 @@ class Querynator {
         this.context = context
     }
 
+    /**
+     * Validate that the user is authorized to perform the requested action
+     * @param conn Pool connection object
+     * @param query Entire query, or just the verb
+     * @param actionOverride Override the verb present in the query such as when calling a procedure
+     */
     private validate(conn: PoolConnection, query: string, actionOverride?: string) {
         return new Promise(resolve => {
             const validationFunction = 'tbl_validation'
@@ -61,7 +67,6 @@ class Querynator {
             const action = actionOverride || query.split(' ')[0]
             let params = [validationFunction, [role, this.tableName, action]]
             if (process.env.STATEMENT_LOGGING === 'true' || process.env.STATEMENT_LOGGING) {
-                console.log(conn.format('SELECT ?? (?) AS AUTHED', params))
                 new Log(conn.format('SELECT ?? (?) AS AUTHED', params)).info()
             }
             conn.query('SELECT ?? (?) AS AUTHED', params, (err, authed) => {
@@ -85,7 +90,6 @@ class Querynator {
                 this.validate(conn, query, action !== null ? action: null)
                 .then((authorized) => {
                     if (authorized === true || authorized === 1) {
-                        console.log('User is authorized with %s', authorized)
                         if (process.env.STATEMENT_LOGGING === 'true' || process.env.STATEMENT_LOGGING) {
                             new Log(conn.format(query, params)).info()
                         }
@@ -105,7 +109,6 @@ class Querynator {
                             })
                         })
                     } else {
-                        console.log('User is unauthorized with %s', authorized)
                         reject('User unauthorized to perform that action.')
                     }
                 })

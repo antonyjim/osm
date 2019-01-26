@@ -42,8 +42,6 @@ export class Login {
         })
     }
 
-    // insert into sys_user values ('37355b43-af04-476e-b034-e4e82214135c', 'admin', '$2y$12$b6vJhKf4heY4FYIqjdjN2.hVqE6/5nqRqXOeCshvZJTB/nfUWWpXm', 'antonyjund@gmail.com', '1930d1ad-ae23-44b1-bbcd-0600f88a6091', 0, 1, 1, null, 1, null, 0);
-
     private incrementInvalidLogins(userId) {
         pool.query(`UPDATE sys_user
         SET userInvalidLoginAttempts = userInvalidLoginAttempts + 1
@@ -52,9 +50,6 @@ export class Login {
 
     private handleLogin(userId) {
         const lastLogin: string = pool.escape(new Date().toISOString().replace('Z', ''))
-        console.log('Clearing invalid logins and setting last login to %s for user %s with %s', lastLogin, userId, `UPDATE sys_user
-        SET userInvalidLoginAttempts = 0, userLastLogin = ${lastLogin}
-        WHERE userId = ${pool.escape(userId)}`)
         pool.query(`UPDATE sys_user
         SET userInvalidLoginAttempts = 0, userLastLogin = ${lastLogin}
         WHERE userId = ${pool.escape(userId)}`)

@@ -34,7 +34,7 @@ apiRoutes.get('/getToken', function(req, res) {
                 userId: onSuccessfulAuthentication.details.userId,
                 userRole: onSuccessfulAuthentication.details.userRole
                 }
-            sign(payload, jwtSecret, {expiresIn: '1h'}, function(err: Error, token: string) {
+            sign(payload, jwtSecret, {expiresIn: '5h'}, function(err: Error, token: string) {
                 if (err) throw err
                 res.status(200).json({
                     token,
@@ -73,7 +73,7 @@ apiRoutes.get('/refresh', (req: Request, res: Response) => {
             userRole: req.auth.userRole,
             userNonsig: req.auth.userNonsig
             }
-        sign(payload, jwtSecret, {expiresIn: '10m'}, function(err: Error, token: string) {
+        sign(payload, jwtSecret, {expiresIn: '5h'}, function(err: Error, token: string) {
             if (err) res.status(500).end()
             res.status(200).json({
                 token,

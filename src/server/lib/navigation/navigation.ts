@@ -35,7 +35,6 @@ export function getRoleAuthorizedNavigation(userId: string, userNonsig: string):
                     AND nsaNonsig = ${pool.escape(userNonsig)}
                 )
             `
-            console.log(navigation)
             pool.query(navigation, (err: Error, authorizedNavigationLinks) => {
                 if (err) {
                     console.error(err)
@@ -47,7 +46,6 @@ export function getRoleAuthorizedNavigation(userId: string, userNonsig: string):
                         FROM sys_role
                         WHERE rpId = ${pool.escape(authorizedNavigationLinks[0].rpId)}
                     `
-                    console.log(getPrivs)
                     pool.query(getPrivs, (err: Error, authorizePrivs) => {
                         if (err) {
                             throw err
