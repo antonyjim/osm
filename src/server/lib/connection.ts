@@ -48,10 +48,12 @@ class Querynator {
     protected tableName: string
     protected primaryKey: string
     protected context: any
+    protected queryInfo: any
 
-    constructor(context?) {
+    constructor(context?: any, queryInfo?: any) {
         this.pool = getPool()
         this.context = context
+        this.queryInfo = queryInfo
     }
 
     /**

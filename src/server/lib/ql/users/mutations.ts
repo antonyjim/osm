@@ -39,7 +39,7 @@ export const userMutations = {
                 type: new GraphQLNonNull(GraphQLString)
             }
         },
-        resolve: ((_, fields, context) => new User(context).create(fields))
+        resolve: ((_, fields, context, info) => new User(context, info).create(fields))
     },
 
     update_user: {
@@ -70,6 +70,6 @@ export const userMutations = {
                 type: GraphQLString
             }
         },
-        resolve: ((_, fields, context) => new User(context).update(fields))
+        resolve: ((_, fields, context, info) => new User(context, info).update(fields))
     }
 }

@@ -4,6 +4,8 @@ import { Field, SelectField } from './../common/forms.jsx'
 import { submitForm } from '../lib/formSubmission.js';
 import Alert from '../common/alerts.jsx';
 import { E401 } from '../common/errors.jsx'
+import API from '../lib/API.js'
+import Table from '../common/Table.jsx'
 
 class ExistingRoute extends Component {
     constructor(props) {
@@ -619,33 +621,49 @@ class Roles extends Component {
     }
 }
 
-class SQL extends Component {
+class Tables extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            q: '',
-            json: ''
+            cols: {
+              'Table Name': {
+                boundTo: 'name',
+                type: 'string',
+                id: true
+              },
+              'Label': {
+                boundTo: 'label',
+                type: 'string'
+              },
+              'Description': {
+                boundTo: 'description',
+                type: 'string'
+              }
+            },
+            tables: []
         }
+        this.getTables()
     }
 
-    query() {
-        $.ajax({
-            url: '/api/sql',
-            method: 'POST',
-            data: JSON.stringify({
-                q: this.state.q
-            }),
-            headers: {
-                'Content-Type': 'Application/JSON'
-            },
-            success: (data) => {
-                this.setState({json: JSON.stringify(data.message)})
-            },
-            error: (err) => {
-                this.setState({error: true})
+    getTables() {
+      API.post({
+        path: '/api/q/tables',
+        body: JSON.stringify({
+          query: `
+            query {
+              table_list {
+                name
+                label
+                description
+              }
             }
+          `
         })
-    }
+        }, (err, response) => {
+          if (err) this.setState({error: err, loaded: true})
+          this.setState({tables: response.data.table_list, loaded: true})
+        })
+    }    
 
     handleChange(e) {
         let obj = {...this.state}
@@ -663,11 +681,9 @@ class SQL extends Component {
 
     render () {
         return (
-            <div className="p-5">
-                <input id="q" className="form-control" onChange={this.handleChange.bind(this)} onKeyUp={this.handleSubmit.bind(this)} value={this.state.q} />
-                <div id="results">
-                    {this.state.json !== null && this.state.json}
-                </div>
+            <div id="tables">
+              {this.state.loaded && <Alert message={this.state.error} alertType="danger" />}
+              {this.state.loaded && <Table count={this.state.tables.length} rows={this.state.tables} id="name" baseURL="/admin/tables" cols={this.state.cols} />}
             </div>
         )
     }
@@ -688,6 +704,10 @@ class AdminWireFrame extends Component {
             {
                 title: 'Roles',
                 component: Roles
+            },
+            {
+                title: 'Tables',
+                component: Tables
             }
         ]
         return (

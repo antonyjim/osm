@@ -7,7 +7,11 @@ class TableRow extends Component {
   }
   
   render() {
-    let cells = []
+    let cells = [
+      <td key={Math.floor(Math.random() * 1000)}>
+        <input className="position-static" type="checkbox" value={this.props.cells && this.props.cells[this.props.id]} />
+      </td>
+    ]
     Object.keys(this.props.cols).map(col => {
       if (this.props.cols[col].id) {
         cells.push(
@@ -46,7 +50,11 @@ class Table extends Component {
   }
   
   render() {
-    let headers = []
+    let headers = [
+      <th scope="col" key={Math.floor(Math.random() * 10000)}>            
+        <input className="position-static" type="checkbox"/>
+      </th>
+    ]
     if (this.state.cols) {
       let headerTitles = Object.keys(this.state.cols)
       for(let col of headerTitles) {
@@ -62,16 +70,42 @@ class Table extends Component {
     }
 
     return (
-      <table className="table table-striped table-hover">
-        <thead className="thead-dark">
-          <tr>
-            {headers}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.length > 0 && rows}
-        </tbody>
-      </table>
+        <>
+          <div className="row">
+            <div className="col">
+              <div className="table-responsive">
+                <table className="table table-striped table-hover">
+                  <thead className="thead-dark">
+                    <tr>
+                      {headers}
+                    </tr>
+                  </thead>
+                <tbody>
+                  {rows.length > 0 && rows}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div className="row">
+          <div className="col mx-3">
+            <select className="form-control">
+              <option value="">Action on selected rows</option>
+              {this.props.actions !== undefined && this.props.actions}
+            </select>
+          </div>
+          <div className="col"/>
+          <div className="col-lg-4 col-md-5 col-sm-6">
+            <button className="btn btn-secondary m-1">&lt;&lt;</button>
+            <button className="btn btn-secondary m-1">&lt;</button>
+            <span className="mx-1">
+              {'1 - ' + this.props.rows.length + ' of ' + this.props.count}
+            </span>
+            <button className="btn btn-secondary m-1">&gt;</button>
+            <button className="btn btn-secondary m-1">&gt;&gt;</button>
+          </div>
+        </div>
+      </>
     )
   }
 }

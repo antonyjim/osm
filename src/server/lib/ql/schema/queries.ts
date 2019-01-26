@@ -4,10 +4,11 @@ import { userQueries } from './../users/queries'
 import { customerQueries } from "../customers/queries";
 import { tableQueries } from "../tables/queries";
 
-const rootQ = new GraphQLObjectType({
-    name: 'RootQueryType',
+const rootQ: GraphQLObjectType = new GraphQLObjectType({
+    name: 'Query',
+    description: 'Root query type',
     fields: {
-        user_list: userQueries.user_list,
+//        user_list: userQueries.user_list,
         user: userQueries.user,
         customer_list: customerQueries.customer_list,
         customer: customerQueries.customer,

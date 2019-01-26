@@ -58,7 +58,7 @@ class UserProfile extends Component {
                     }
                 `,
                 variables: {
-                    userId: this.state.userId || null
+                    userId: this.state.userId || window.THQ.user.userId
                 }
             })
         })

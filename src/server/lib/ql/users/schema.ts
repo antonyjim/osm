@@ -6,7 +6,8 @@ import {
     GraphQLBoolean, 
     GraphQLInt 
 } from "graphql";
-
+import CustomerType from '../customers/schema'
+import User from './users'
 
 const UserType: GraphQLObjectType = new GraphQLObjectType({
     name: 'User',
@@ -31,7 +32,7 @@ const UserType: GraphQLObjectType = new GraphQLObjectType({
             type: GraphQLInt
         },
         userDefaultNonsig: {
-            type: GraphQLString
+            type: CustomerType
         },
         userAwaitingPassword: {
             type: GraphQLBoolean
