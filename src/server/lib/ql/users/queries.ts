@@ -1,6 +1,6 @@
 import { GraphQLList, GraphQLString, GraphQLBoolean, GraphQLID } from "graphql";
 import { UserType } from './schema'
-import { User } from "./users";
+import User from "./users";
 
 export const userQueries = {
     user_list: {

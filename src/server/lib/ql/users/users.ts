@@ -235,4 +235,4 @@ class User extends Querynator {
     }
 }
 
-export { User }
+export default User

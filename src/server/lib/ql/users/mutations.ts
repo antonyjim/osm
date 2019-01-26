@@ -11,7 +11,7 @@ import { GraphQLList, GraphQLString, GraphQLBoolean, GraphQLID, GraphQLNonNull }
 
 // Local Modules
 import { UserType } from './schema'
-import { User } from "./users";
+import User from "./users";
 
 // Constants and global variables
 
