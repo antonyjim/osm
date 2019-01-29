@@ -392,44 +392,54 @@ CREATE TABLE doc_prod_accept (
 );
 
 CREATE TABLE sys_db_object (
-	PRIMARY KEY(name),
+	PRIMARY KEY(sys_id),
+    sys_id CHAR(36),
 	name VARCHAR(40) NOT NULL, -- Name of the table
 	label VARCHAR(40) NOT NULL, -- Friendly name
 	description VARCHAR(80) -- Short Description
-);
+) CHARSET = utf8;
 
 CREATE TABLE sys_db_dictionary (
-	PRIMARY KEY(column_name),
+	PRIMARY KEY(sys_id),
+    sys_id CHAR(36), -- Primary key used for linking to other fields 
+    reference_id CHAR(36), -- Foreign key used to reference other fields
 	column_name VARCHAR(40),
+    visible BOOLEAN NOT NULL DEFAULT 1, -- Whether the field shows up on a form or not, overridden by admin_view flag
+    admin_view BOOLEAN NOT NULL DEFAULT 0, -- Whether the field can be exposed on the API or not
+    readonly BOOLEAN NOT NULL DEFAULT 0,
 	label VARCHAR(40), -- Friendly name
 	hint VARCHAR(40), -- Popup hint
 	type VARCHAR(10), -- Type (boolean, varchar, char, etc...)
 	length INT, -- Length of field, applies to varchar, char
-	table_name VARCHAR(40),
+	table_name CHAR(36),
 
 	FOREIGN KEY(table_name)
-		REFERENCES sys_db_object (name)
+		REFERENCES sys_db_object (sys_id)
 		ON DELETE RESTRICT
-		ON UPDATE CASCADE
-);
+		ON UPDATE CASCADE,
+    FOREIGN KEY (reference_id)
+        REFERENCES sys_db_dictionary (sys_id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+) CHARSET = utf8;
 
 CREATE TABLE sys_db_acl (
 	PRIMARY KEY(dbpriv, dbtable),
 	dbpriv VARCHAR(36),
-	dbtable VARCHAR(40),
+	dbtable CHAR(36),
 	dbcreate BOOLEAN DEFAULT 0 NOT NULL, -- Whether the dbpriv can create
 	dbread BOOLEAN DEFAULT 0 NOT NULL, -- Whether the dbpriv can read
 	dbupdate BOOLEAN DEFAULT 0 NOT NULL, -- etc
 	dbdelete BOOLEAN DEFAULT 0 NOT NULL,
 	FOREIGN KEY (dbtable)
-		REFERENCES sys_db_object (name)
+		REFERENCES sys_db_object (sys_id)
 		ON DELETE CASCADE
 		ON UPDATE CASCADE,
 	FOREIGN KEY (dbpriv)
 		REFERENCES sys_navigation (navPriv)
 		ON DELETE CASCADE
 		ON UPDATE CASCADE
-);
+) CHARSET = utf8;
 
 CREATE TABLE sys_log (
 	PRIMARY KEY(log_key),

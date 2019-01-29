@@ -11,7 +11,7 @@ import { compare } from 'bcrypt'
 import { sign } from 'jsonwebtoken'
 
 // Local Modules
-import { getPool, jwtSecret } from '../connection'
+import { getPool, jwtSecret, Querynator } from '../connection'
 import { UserTypes } from '../../types/users'
 import { StatusMessage } from '../../types/server'
 import { LoginException } from '../utils';
@@ -63,20 +63,10 @@ export class Login {
 
     public authenticate(): Promise<StatusMessage> {
         return new Promise((resolve, reject) => {
-            let sql = `
-                SELECT *
-                FROM userLogin
-                WHERE userName = ${pool.escape(this.credentials.username)}
-            `
-            pool.query(sql, (err: Error, users: Array<UserTypes.LoginInfo>) => {
-                if (err) {
-                    console.error(err)
-                    throw {
-                        error: true, 
-                        message: 'SQL Error', 
-                        details: err
-                    }
-                }
+            let query = 'SELECT * FROM userLogin WHERE userName = ?'
+            let params = [this.credentials.username]
+            new Querynator().createQ({query, params}, 'CALL')
+            .then((users: UserTypes.LoginInfo[]) => {
                 if (users.length === 1) {
                     let user = users[0]
                     if (!user.userIsConfirmed) {
@@ -143,6 +133,13 @@ export class Login {
                         message: 'Invalid username or password'
                     })
                 }
+            })
+            .catch(err => {
+                reject({
+                    error: true, 
+                    message: 'SQL Error', 
+                    details: err
+                })
             })
         })
     }

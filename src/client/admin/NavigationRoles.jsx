@@ -681,8 +681,8 @@ class Tables extends Component {
 
     render () {
         return (
-            <div id="tables">
-              {this.state.loaded && <Alert message={this.state.error} alertType="danger" />}
+            <div id="tables" className={this.props.className + " m-3"}>
+              {this.state.loaded && this.state.error && <Alert message={this.state.error} alertType="danger" />}
               {this.state.loaded && <Table count={this.state.tables.length} rows={this.state.tables} id="name" baseURL="/admin/tables" cols={this.state.cols} />}
             </div>
         )

@@ -145,9 +145,9 @@ CREATE PROCEDURE newUser (
                 userIsLocked,
                 userIsConfirmed,
                 userConfirmation,
-		userFirstName,
-		userLastName,
-		userPhone
+                userFirstName,
+                userLastName,
+                userPhone
             )
         VALUES
             (
@@ -159,9 +159,9 @@ CREATE PROCEDURE newUser (
                 _userIsLocked,
                 _userIsConfirmed,
                 _userConfirmation,
-		_userFirstName,
-		_userLastName,
-		_userPhone
+                _userFirstName,
+                _userLastName,
+                _userPhone
             );
 
         INSERT INTO sys_user_nsacl
@@ -256,42 +256,46 @@ CREATE FUNCTION confirmUser(_confirmation CHAR(36), _password BINARY(60))
 /* Set the forgot password indicator */
 DROP FUNCTION IF EXISTS setForgotPassword //
 CREATE FUNCTION setForgotPassword(_userName VARCHAR(36), _userEmail VARCHAR(90), _passwordResetToken CHAR(36))
-    RETURNS BOOLEAN
+    RETURNS VARCHAR(90)
     BEGIN
         DECLARE _userId CHAR(36);
-
+        DECLARE _resolvedEmail VARCHAR(90);
         IF NOT ISNULL(_userName) THEN
             SELECT
-                userId
+                userId,
+                userEmail
             INTO
-                _userId
+                _userId,
+                _resolvedEmail
             FROM
                 sys_user
             WHERE
                 userName = _userName;
         ELSEIF NOT ISNULL(_userEmail) THEN
             SELECT
-                userId
+                userId,
+                userEmail
             INTO
-                _userId
+                _userId,
+                _resolvedEmail
             FROM
                 sys_user
             WHERE
                 userEmail = _userEmail;
-        ELSE RETURN 1;
+        ELSE RETURN NULL;
 	END IF;
 
-        IF NOT ISNULL(_userId) THEN
-            UPDATE 
-                sys_user
-            SET
-                userConfirmation = _passwordResetToken,
-                userAwaitingPassword = 1
+    IF NOT ISNULL(_userId) THEN
+        UPDATE 
+            sys_user
+        SET
+            userConfirmation = _passwordResetToken,
+            userAwaitingPassword = 1
 	    WHERE
 		userId = _userId;
-        ELSE RETURN 1;
+    ELSE RETURN NULL;
 	END IF;
-        RETURN 0;
+        RETURN _resolvedEmail;
     END //
 
 /* Add new customers */

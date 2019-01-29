@@ -63,7 +63,7 @@ class Table extends Component {
     }
 
     let rows = []
-    if (this.state.rows && this.state.rows.length < 0) {
+    if (this.state.rows && this.state.rows.length > 0) {
       for(let row of this.state.rows) {
         rows.push(<TableRow key={Math.floor(Math.random() * 1000)} cells={row} cols={this.state.cols} onClick={this.state.handleClick} href={this.state.baseURL} id={this.state.id}/>)
       }

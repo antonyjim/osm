@@ -8,7 +8,6 @@
 
 // NPM Modules
 import * as express from 'express'
-import * as morgan from 'morgan'
 
 // Local Modules
 import { router } from './routes/index'

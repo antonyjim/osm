@@ -59,7 +59,7 @@
     "watch": "webpack-dev-server --open --display-error-details",
     "build": "webpack && tsc",
     "serve": "serve ./public",
-    "start": "node -r dotenv/config dist/app.js dotenv_config_path=./env_var.env"
+    "start": "tsc && node -r dotenv/config dist/app.js dotenv_config_path=./env_var.env"
   },
   "author": "",
   "license": "ISC"

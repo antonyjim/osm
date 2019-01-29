@@ -37,18 +37,19 @@ export function getRoleAuthorizedNavigation(userId: string, userNonsig: string):
                 )
             `
 	    if (process.env.STATEMENT_LOGGING === 'true') {
-		new Log(navigation).info()
+		    new Log(navigation).info()
 	    }
             pool.query(navigation, (err: Error, authorizedNavigationLinks) => {
                 if (err) {
                     console.error(err)
                     throw err
                  } else {
+                    let role = authorizedNavigationLinks[0] ? authorizedNavigationLinks[0].rpId : 'No-Conf'
                     resultSet.navs = authorizedNavigationLinks
                     let getPrivs = `
                         SELECT DISTINCT rpPriv
                         FROM sys_role
-                        WHERE rpId = ${pool.escape(authorizedNavigationLinks[0].rpId)}
+                        WHERE rpId = ${pool.escape(role)}
                     `
                     pool.query(getPrivs, (err: Error, authorizePrivs) => {
                         if (err) {

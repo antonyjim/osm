@@ -9,8 +9,7 @@
 // NPM Modules
 import { Pool, PoolConfig, createPool, PoolConnection } from 'mysql'
 import { Log } from './log';
-import { rejects } from 'assert';
-import { resolve } from 'path';
+import { inspect } from 'util';
 
 
 // Local Modules
@@ -50,10 +49,19 @@ class Querynator {
     protected context: any
     protected queryInfo: any
 
+    /**
+     * Create an interface for graphql to query from, with authorization included
+     * @param context Context from the GQL query
+     * @param queryInfo Info from the GQL query
+     */
     constructor(context?: any, queryInfo?: any) {
         this.pool = getPool()
         this.context = context
         this.queryInfo = queryInfo
+        console.log('Queryinfo')
+        inspect(queryInfo)
+        console.log(JSON.stringify(queryInfo))
+        console.log('End queryinfo')
     }
 
     /**
@@ -64,6 +72,9 @@ class Querynator {
      */
     private validate(conn: PoolConnection, query: string, actionOverride?: string) {
         return new Promise(resolve => {
+            if (actionOverride === 'CALL') {
+                resolve(true)
+            }
             const validationFunction = 'tbl_validation'
             const role = this.context.auth.userRole
             const action = actionOverride || query.split(' ')[0]
@@ -85,6 +96,11 @@ class Querynator {
         })
     }
 
+    /**
+     * Create a query and return a promise containing th results
+     * @param {object} queryParams Object containing the query and any params to be escaped 
+     * @param action Override the verb present in the query. CALL overrides all verbs
+     */
     public async createQ({query, params}: {query: string, params?: any}, action?: string): Promise<any[] | any> {
         return new Promise((resolve, reject) => {
             this.pool.getConnection((err: Error, conn: PoolConnection) => {
@@ -93,6 +109,7 @@ class Querynator {
                 .then((authorized) => {
                     if (authorized === true || authorized === 1) {
                         if (process.env.STATEMENT_LOGGING === 'true' || process.env.STATEMENT_LOGGING) {
+                            console.log(conn.format(query, params))
                             new Log(conn.format(query, params)).info()
                         }
                         conn.query(query, params, (err: Error, results: any[]) => {
@@ -180,9 +197,10 @@ class Querynator {
     }
 
     protected async byId(reqId: string): Promise<any> {
+        let old = 'SELECT * FROM ?? WHERE ?? = ? LIMIT 1'
         return (await this.createQ({
-            query: 'SELECT * FROM ?? WHERE ?? = ? LIMIT 1',
-            params: [this.tableName, this.primaryKey, reqId]
+            query: 'SELECT ??.*, sys_customer.* FROM ?? LEFT JOIN sys_customer ON sys_user.userDefaultNonsig = sys_customer.nsNonsig WHERE ?? = ? LIMIT 1',
+            params: [this.tableName, this.tableName, this.primaryKey, reqId]
         })).shift()
     }
 

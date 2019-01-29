@@ -45,14 +45,16 @@ class UserProfile extends Component {
             path: '/api/q/user',
             body: JSON.stringify({
                 query: `
-                    query SingleUser ($userId: ID!) {
+                    query SingleUser ($userId: String) {
                         user (userId: $userId) {
                             userId
                             userName
                             userEmail
                             userFirstName
                             userLastName
-                            userDefaultNonsig
+                            userDefaultNonsig {
+                                nsNonsig
+                            }
                             userPhone
                         }
                     }

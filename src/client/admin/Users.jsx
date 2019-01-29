@@ -67,8 +67,15 @@ class UserList extends Component {
                 `
             })
         }, (err, response) => {
-            if (err) {this.setState({error: err.message, loaded: true})}
-            this.setState({users: response.data.user_list, loaded: true})
+            if (err) {
+                this.setState({error: err.message, loaded: true})
+                return 1
+            }
+            if (response && response.data && response.data.user_list) {
+                this.setState({users: response.data.user_list, error: false, loaded: true})
+            } else {
+                this.setState({error: 'No data found', loaded: true})
+            }
         })
     }
 

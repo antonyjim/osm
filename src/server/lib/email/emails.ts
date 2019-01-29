@@ -27,7 +27,7 @@ function sendConfirmation({userEmail, confirmationToken, action}, cb?) {
       },
       jwtSecret,
       {
-          expiresIn: '48h'
+          expiresIn: '30d'
       })
       let message = {
           from: 'Tire-HQ Signer <tirehq.helpdesk@goodyear.com>',
@@ -39,8 +39,7 @@ function sendConfirmation({userEmail, confirmationToken, action}, cb?) {
           if (err) cb(err)
           let status: StatusMessage = {
               error: false,
-              message: 'Email sent',
-              details: userEmail
+              message: 'Email sent to ' + userEmail + ' with further instructions'
           }
           if (cb) {
             cb(null, status)

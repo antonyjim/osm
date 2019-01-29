@@ -2,8 +2,9 @@
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <!--Stylesheet-->
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
-        <link rel="stylesheet" href="/public/style.css">
+        <link rel="stylesheet" type="text/css" href="/public/bootstrap.css">
+        <link rel="stylesheet" type="text/css" href="/public/style.css">
+        <link rel="icon" href="/public/images/favicon.ico">
         <title>Tire-HQ</title>
     </head>
     <body>
@@ -12,7 +13,10 @@
             <style id="loadingStyle">
                 html {
                     height: 100%;
-                    background: radial-gradient(rgb(183, 214, 228) 55%, rgb(156, 197, 233) 100%);
+                }
+                body {
+                    height: 100%;
+                    background: radial-gradient(rgb(236, 236, 236) 55%, rgb(200, 210, 220) 100%)
                 }
                 #loading-container {
                     margin: 0 auto;
@@ -62,16 +66,15 @@
                         'that takes forever to load...',
                         'horrible...'
                     ]
-                    document.getElementById('loadingMessage').innerText = messages[Math.floor(Math.random() * 10)]
+                    document.getElementById('loadingMessage').innerText = messages[Math.ceil(Math.random() * 10)]
                 }
             </script>
         </div>
         <!--Container for React rendering-->
         <div id="root"></div>
         <!--Bundled file and JS-->
-        <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+        <script src="/public/scripts/jq.js"></script>
         <!-- <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script> -->
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
-        <script src="/public/bundle.js"></script>
+        <script src="/public/scripts/bootstrap.js"></script>
     </body>
 </html>

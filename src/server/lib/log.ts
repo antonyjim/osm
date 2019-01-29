@@ -46,7 +46,7 @@ class Log {
             params.push(this.primaryKey)
             params.push(objectId)
         } else {
-            query = 'INSERT INTO ?? (log_message) VALUES (?)'
+            query = 'INSERT INTO ?? (log_message, log_severity) VALUES (?, 5)'
         }
         if (typeof this.message !== 'string') {
             log = JSON.stringify(this.message).slice(0, 100)

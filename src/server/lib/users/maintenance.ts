@@ -37,15 +37,17 @@ export class Nonsig {
 
     private normalizeNonsig() {
         let nonsig = this.nonsig.nsNonsig
-        if (nonsig.length < 9) {
+        if (nonsig &&nonsig.length < 9) {
             while (nonsig.length < 9) nonsig = '0' + nonsig
             this.nonsig.nsNonsig = nonsig
             return 0
-        } else if (nonsig.length > 9) {
+        } else if (nonsig && nonsig.length > 9) {
             this.nonsig.nsNonsig = nonsig.slice(0, 9)
             return 0
+        } else if (nonsig && nonsig.length === 9) {
+            return 0  
         } else {
-            return 0
+            throw new TypeError('No customer number provided')
         }
     }
 
@@ -95,11 +97,7 @@ export class Nonsig {
                 ]
             )
             if (invalidFields) {
-                reject({
-                    error: true,
-                    message: 'Missing required fields',
-                    details: invalidFields
-                })
+                reject(invalidFields)
             } else {
                 this.checkForExistingNonsig(this.nonsig.nsNonsig)
                 .then((onSuccess: StatusMessage) => {
@@ -178,29 +176,15 @@ export class Nonsig {
             `
             pool.query(sql, (err: Error, results: Array<NonsigTypes.nsInfo>) => {
                 if (err) {
-                    err
+                    throw err
                 } else {
                     if (results.length === 1) {
                         const nonsig = results[0]
-                        if(nonsig.nsIsActive && nonsig.nsIsActiveTHQ) {
-                            resolve({
-                                error: false,
-                                isActiveTHQ: true,
-                                isActive: true
-                            })
-                        } else if (nonsig.nsIsActive && !nonsig.nsIsActiveTHQ) {
-                            resolve({
-                                error: false,
-                                isActiveTHQ: false,
-                                isActive: true
-                            })
-                        } else {
-                            resolve({
-                                error: false,
-                                isActiveTHQ: false,
-                                isActive: false
-                            })
-                        }
+                        resolve({
+                            error: false,
+                            isActiveTHQ: nonsig.nsIsActiveTHQ,
+                            isActive: nonsig.nsIsActive
+                        })
                     } else {
                         reject({
                             error: true,
@@ -398,49 +382,6 @@ export class User {
                     message: 'Missing User Id or Password or confirmation token'
                 })
             }
-        })
-    }
-
-    public forgotPassword() {
-        function setConfirmation(id: string, unique: string) {
-            let updateConf = `
-                UPDATE sys_user
-                SET 
-                    userConfirmation = ${pool.escape(unique)},
-                    userAwaitingPassword = 1
-                WHERE userId = ${pool.escape(id)}
-            `
-            pool.query(updateConf, (err: Error, results) => {
-                if (err) {
-                    console.error('Error setting password confirmation, ', err)
-                }
-            })
-        }
-        let sql = `
-            SELECT 
-                userEmail, 
-                userId
-            FROM sys_user
-            WHERE userEmail = ${pool.escape(this.userOpt.userEmail)}
-        `
-        pool.query(sql, (err: Error, results) => {
-            if (err) {
-                console.error(err)
-                sendFailedPasswordReset(this.userOpt.userEmail)
-             } else {
-                if(results.length === 1) {
-                    console.log('User exists')
-                    let uniqueReset = uuid.v4()
-                    setConfirmation(results[0].userId, uniqueReset)
-                    sign({t: uniqueReset, g: 'h'}, jwtSecret, (err: Error, token: string) => {
-                        if(err) console.error(err)
-                        sendPasswordReset(this.userOpt.userEmail, token)
-                    })
-                } else {
-                    console.log('user does not exist')
-                    sendFailedPasswordReset(this.userOpt.userEmail)
-                }
-             }
         })
     }
 
