@@ -5,16 +5,18 @@ export const API = {
 
     },
 
-    post: ({path, body}, cb) => {
-        let authPath = path + '?token=' + window.THQ.token
+    GET: ({path, query}, cb) => {
+        let queryStringArray = ['token=' + window.THQ.token]
+        Object.keys(query).map(queryKey => {
+            queryStringArray.push(`${queryKey}=${encodeURIComponent(query[queryKey])}`)
+        })
+        let authPath = path + '?' + queryStringArray.join('&')
         if (cb !== null && cb !== undefined) {
             $.ajax(authPath, {
                 headers: {
-                    'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
-                method: "POST",
-                data: body,
+                method: "GET",
                 success: (res => {
                     cb(null, res)
                 }),
@@ -26,11 +28,9 @@ export const API = {
             return new Promise((resolve, reject) => {
                 $.ajax(authPath, {
                     headers: {
-                        'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     },
-                    method: "POST",
-                    data: body,
+                    method: "GET",
                     success: (res => {
                         resolve(res)
                     }),

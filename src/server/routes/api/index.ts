@@ -7,7 +7,7 @@
 
 
 // NPM Modules
-import { Router } from 'express'
+import { Router, Request, Response } from 'express'
 import { sign } from 'jsonwebtoken'
 
 // Local Modules
@@ -16,16 +16,15 @@ import { orderRoutes } from './ordering';
 import { adminRoutes } from './admin'
 import { apiAccountRoutes } from './accounts'
 import { Login } from './../../lib/users/login'
-import { StatusMessage, Response } from '../../types/server';
+import { StatusMessage } from '../../types/server';
 import { jwtSecret } from '../../lib/connection';
-import { Request } from 'express-serve-static-core';
 import { q } from './q';
 import bodyParser = require('body-parser');
 
 // Constants and global variables
 const apiRoutes = Router()
 
-apiRoutes.get('/getToken', function(req, res) {
+apiRoutes.get('/getToken', function(req: Request, res: Response){
     if (req.query.username && req.query.password) {
         new Login({username: req.query.username, password: req.query.password}).authenticate()
         .then((onSuccessfulAuthentication: StatusMessage) => {

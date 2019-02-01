@@ -4,21 +4,43 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         {
             "type": "node",
             "request": "attach",
-            "name": "Attach",
-            "port": 9229
+            "name": "Attach to Docker",
+            "port": 9229,
+            "restart": true,
+            "localRoot": "${workspaceFolder}",
+            "preLaunchTask": "tsc-watch",
+            "remoteRoot": "/server",
+            "outFiles": [
+                "${workspaceFolder}/dist/**/*.js"
+            ],
+            "skipFiles": [
+                "<node_internals>/**/*.js"
+            ]
         },
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
-            "program": "${workspaceFolder}\\index.js",
-            "preLaunchTask": "tsc: build - tsconfig.json",
+            "name": "Launch in Docker",
+            "preLaunchTask": "tsc-watch",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [ "run", "docker-debug" ],
+            "port": 9222,
+            "restart": true,
+            "timeout": 60000,
+            "localRoot": "${workspaceFolder}",
+            "remoteRoot": "/server",
             "outFiles": [
-                "${workspaceFolder}/dist/**/*.js"
-            ]
-        }
+              "${workspaceFolder}/dist/**/*.js"
+            ],
+            "skipFiles": [
+              "<node_internals>/**/*.js",
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+          }
     ]
 }

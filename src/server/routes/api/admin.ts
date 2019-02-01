@@ -7,19 +7,19 @@
 
 
 // NPM Modules
-import { Router, Request } from 'express'
+import { Router, Request, Response } from 'express'
 
 // Local Modules
 import { NavigationSettings } from '../../types/roles';
 import { Navigation } from '../../lib/users/navigation';
-import { StatusMessage, Response } from '../../types/server';
+import { StatusMessage } from '../../types/server';
 import { Roles } from '../../lib/users/roles';
 
 
 // Constants and global variables
 const adminRoutes = Router()
 
-adminRoutes.get('/getRoles', function(req, res) {
+adminRoutes.get('/getRoles', function(req: Request, res: Response){
     new Roles().get()
     .then((roles) => {
         res.status(200).json(roles)
@@ -30,7 +30,7 @@ adminRoutes.get('/getRoles', function(req, res) {
     })
 })
 
-adminRoutes.get('/getPrivs', function(req, res) {
+adminRoutes.get('/getPrivs', function(req: Request, res: Response){
     new Roles().getPrivs(req.query.role)
     .then((privs) => {
         res.status(200).json(privs)
@@ -40,7 +40,7 @@ adminRoutes.get('/getPrivs', function(req, res) {
     })
 })
 
-adminRoutes.get('/getRoute', function(req, res) {
+adminRoutes.get('/getRoute', function(req: Request, res: Response){
     let route = req.query.route || req.body.route
     if (!route) {
         res.status(200).json({
@@ -60,7 +60,7 @@ adminRoutes.get('/getRoute', function(req, res) {
     }
 })
 
-adminRoutes.get('/getAllRoutes', function(req, res) {
+adminRoutes.get('/getAllRoutes', function(req: Request, res: Response){
         new Navigation({}).getAllLinks()
         .then((onSuccess) => {
             res.status(200).json(onSuccess)
@@ -73,7 +73,7 @@ adminRoutes.get('/getAllRoutes', function(req, res) {
         })
 })
 
-adminRoutes.post('/addRoute', function(req, res) {
+adminRoutes.post('/addRoute', function(req: Request, res: Response){
     if (<Array<NavigationSettings.Links>>req.body && req.body.length > 0) {
         new Navigation({linkInfo: req.body}).addLinks()
         .then((onLinksAdded: StatusMessage) => {
@@ -90,7 +90,7 @@ adminRoutes.post('/addRoute', function(req, res) {
     }
 }) 
 
-adminRoutes.post('/updateRoute', function(req, res) {
+adminRoutes.post('/updateRoute', function(req: Request, res: Response){
     if(req.body) {
         new Navigation({linkInfo: [req.body]}).updateLink()
         .then((onLinkUpdated: StatusMessage) => {

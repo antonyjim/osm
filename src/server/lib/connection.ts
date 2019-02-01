@@ -10,6 +10,7 @@
 import { Pool, PoolConfig, createPool, PoolConnection } from 'mysql'
 import { Log } from './log';
 import { inspect } from 'util';
+import { EventEmitter } from 'events';
 
 
 // Local Modules
@@ -42,26 +43,31 @@ function getPool(): Pool {
     return pool
 }
 
-class Querynator {
+class Querynator extends EventEmitter {
     protected pool: Pool
     protected tableName: string
     protected primaryKey: string
     protected context: any
-    protected queryInfo: any
+    protected baseParams: any[]
+    private queryFields: string
 
     /**
      * Create an interface for graphql to query from, with authorization included
      * @param context Context from the GQL query
-     * @param queryInfo Info from the GQL query
+     * @param queryFields Info from the GQL query
      */
-    constructor(context?: any, queryInfo?: any) {
+    constructor(context?: any, queryFields?: string[]) {
+        super()
         this.pool = getPool()
         this.context = context
-        this.queryInfo = queryInfo
-        console.log('Queryinfo')
-        inspect(queryInfo)
-        console.log(JSON.stringify(queryInfo))
-        console.log('End queryinfo')
+        if (queryFields) {
+            let fieldPlaceholders: string[]
+            queryFields.map(field => {
+                fieldPlaceholders.push('??.??')
+                this.baseParams.push(this.tableName, field)
+            })
+            this.queryFields = fieldPlaceholders.join(', ')
+        }
     }
 
     /**
@@ -197,16 +203,20 @@ class Querynator {
     }
 
     protected async byId(reqId: string): Promise<any> {
-        let old = 'SELECT * FROM ?? WHERE ?? = ? LIMIT 1'
+        let params: any[] = this.baseParams
+        let query: string = ''
+        query = 'SELECT ' + this.queryFields + ' FROM ?? WHERE ?? = ?'
+        params.push(this.tableName, this.primaryKey, reqId)
         return (await this.createQ({
-            query: 'SELECT ??.*, sys_customer.* FROM ?? LEFT JOIN sys_customer ON sys_user.userDefaultNonsig = sys_customer.nsNonsig WHERE ?? = ? LIMIT 1',
-            params: [this.tableName, this.tableName, this.primaryKey, reqId]
+            query,
+            params
         })).shift()
     }
 
-    protected byFields({fields, limit, offset, order}: {fields: any, limit?: number, offset?: number, order?: {by: string, direction: string}}) {
-        let query = 'SELECT * FROM ?? WHERE '
-        let params = [this.tableName]
+    protected byFields({fields}: {fields: any}, {order, offset, limit}: {order?: {by?: string, direction?: 'ASC' | 'DESC'}, offset?: number, limit?: number}) {
+        let query = 'SELECT ' + this.queryFields + ' FROM ?? WHERE '
+        let params = this.baseParams
+        params.push(this.tableName)
 
         if (fields) {
             Object.keys(fields).forEach((col, i) => {
@@ -224,7 +234,7 @@ class Querynator {
         }
 
 
-        if (order !== undefined && order.by !== null && order.direction !== null) {
+        if (order && order.by && order.direction) {
             query += 'ORDER BY ??'
             query += order.direction === 'DESC' ? ' DESC': ' ASC'
             params.push(order.by)
@@ -241,7 +251,7 @@ class Querynator {
         return this.createQ({query, params})
     }
 
-    protected all(limit?, offset?) {
+    protected all({limit, offset, order}: {limit?: number, offset?: number, order?: {by?: string, direction?: 'ASC' | 'DESC'}}) {
         let query: string = 'SELECT * FROM ??',
             params: Array<string> = [ this.tableName ]
 

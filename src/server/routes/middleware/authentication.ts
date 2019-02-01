@@ -27,7 +27,7 @@ export function tokenValidation() {
             userRole: null,
             userNonsig: null
         }
-        let tokenCookie = req.cookies.token
+        let tokenCookie = req.query.token || req.cookies.token
         if (tokenCookie) {
             tokenCookie = tokenCookie.split('Bearer ')[1] || tokenCookie
         }

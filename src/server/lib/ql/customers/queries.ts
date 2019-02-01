@@ -3,49 +3,8 @@ import CustomerType from './schema'
 import { Customer } from './customers'
 
 export const customerQueries = {
-    customer_list: {
-        type: new GraphQLList(CustomerType),
-        args: {
-            nsTradeStyle: {
-                type: GraphQLString
-            },
-            nsAddr1: {
-                type: GraphQLString
-            },
-            nsAddr2: {
-                type: GraphQLString
-            },
-            nsCity: {
-                type: GraphQLString
-            },
-            nsState: {
-                type: GraphQLString
-            },
-            nsPostalCode: {
-                type: GraphQLString
-            },
-            nsCountry: {
-                type: GraphQLString
-            },
-            nsIsActive: {
-                type: GraphQLBoolean
-            },
-            nsIsActiveTHQ: {
-                type: GraphQLBoolean
-            },
-            nsType: {
-                type: GraphQLString
-            }
-        },
-        resolve: ((_, fields, context) => new Customer(context).where(fields))
-    },
-    customer: {
-        type: CustomerType,
-        args: {
-            nsNonsig: {
-                type: GraphQLNonNull(GraphQLID)
-            }
-        },
-        resolve: ((_, {nsNonsig}, context) => new Customer(context).getById(nsNonsig))
-    }
+    customer_list: ((queryFields, fields, context, pagination) => new Customer(context, queryFields).where(fields, pagination)),
+    customer: ((queryFields, {nsNonsig}, context) => new Customer(context, queryFields).getById(nsNonsig))
 }
+
+export default customerQueries

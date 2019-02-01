@@ -2,7 +2,8 @@ const webpack = require('webpack')
 const path = require('path')
 
 let BUILD_DIR = path.resolve(__dirname, 'public')
-let APP_DIR = path.resolve(__dirname, 'src/client/')
+let APP_DIR = path.resolve(__dirname, 'src/client/view')
+let STYLE_DIR = path.resolve(__dirname, 'src/client/styles')
 
 let config = {
     entry: APP_DIR + '/index.jsx',
@@ -22,6 +23,15 @@ let config = {
                 test: /\.jsx?/,
                 include: APP_DIR,
                 loader: 'babel-loader'
+            }, 
+            {
+                test: /\.scss$/,
+                include: STYLE_DIR,
+                use: [
+                    'style-loader',
+                    'css-loader',
+                    'sass-loader'
+                ]
             }
         ]
     }

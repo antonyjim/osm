@@ -2,26 +2,9 @@ import { GraphQLList, GraphQLString, GraphQLBoolean, GraphQLID } from "graphql";
 import TableType from './schema'
 import Table from './tables'
 
-export const tableQueries = {
-    table_list: {
-        type: new GraphQLList(TableType),
-        args: {
-            name: {
-                type: GraphQLString
-            },
-            label: {
-                type: GraphQLString
-            }
-        },
-        resolve: ((_, fields, context) => new Table(context).where(fields))
-    },
-    table: {
-        type: TableType,
-        args: {
-            name: {
-                type: GraphQLID
-            }
-        },
-        resolve: ((_, {name}, context) => new Table(context).getById(name))
-    }
+const tableQueries = {
+    table_list: ((queryFields, fields, context, pagination) => new Table(context, queryFields).where(fields, pagination)),
+    table: ((queryFields, id, context) => new Table(context, queryFields).getById(id))
 }
+
+export default tableQueries

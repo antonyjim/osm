@@ -2,8 +2,8 @@ import { Querynator } from "../../connection";
 import { Validation } from "../../validation";
 
 class Table extends Querynator {
-    constructor(context) {
-        super(context)
+    constructor(context, fields) {
+        super(context, fields)
         this.tableName = 'sys_db_object'
         this.primaryKey = 'name'
     }
@@ -12,11 +12,11 @@ class Table extends Querynator {
         return await this.byId(id)
     }
 
-    public async where(fields) {
+    public async where(fields, pagination) {
         if (Object.keys(fields).length > 0) {
-            return await this.byFields({fields})
+            return await this.byFields({fields}, pagination)
         } else {
-            return await this.all()
+            return await this.all(pagination)
         }
     }
 

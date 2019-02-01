@@ -91,9 +91,9 @@ class User extends Querynator {
      * Search for users based upon certain criteria
      * @param fields Fields to query upon
      */
-    public async where(fields) {
-        if (fields === undefined || Object.keys(fields).length === 0) return await this.all()
-        return await this.byFields({fields})
+    public async where(fields, pagination) {
+        if (fields === undefined || Object.keys(fields).length === 0) return await this.all(pagination)
+        return await this.byFields({fields}, pagination)
     }
 
     /**
@@ -338,7 +338,7 @@ class User extends Querynator {
       const customerQuery = 'SELECT userDefaultNonsig FROM ?? WHERE ?? = ?'
       const customerParams = [this.tableName, this.primaryKey, userId]
       const customer = await this.createQ({query: customerQuery, params: customerParams})
-      return new Customer(this.context).getById(customer)
+      return new Customer(this.context, ['userDefaultNonsig']).getById(customer)
     }
 
     public async confirmAccount(jwt, password1, password2) {

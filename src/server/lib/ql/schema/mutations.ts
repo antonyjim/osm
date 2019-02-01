@@ -1,16 +1,32 @@
-import { GraphQLObjectType } from "graphql";
+/**
+ * lib/ql/schema/mutations.ts
+ * Provide resolvers for:
+ * 1. Creating
+ * 2. Updating
+ * 3. Deleting
+ * records in any table. 
+*/
 
-import { userMutations } from './../users/mutations'
-import { tableMutations } from "../tables/mutations";
+// Node Modules
 
-const rootM = new GraphQLObjectType({
-    name: 'RootMutationsType',
-    fields: {
-        update_user: userMutations.update_user,
-        add_user: userMutations.add_user,
-        update_table: tableMutations.update_table,
-        add_table: tableMutations.add_table
+
+// NPM Modules
+
+
+// Local Modules
+import { userMutations } from '../mutations/userMutations'
+import { tableMutations } from "../tables/mutations"
+
+// Constants and global variables
+const cudResolvers = {
+    create: {
+        user: userMutations.add_user,
+        sys_db_object: tableMutations.add_table
+    },
+    update: {
+        user: userMutations.update_user,
+        sys_db_object: tableMutations.update_table
     }
-})
+}
 
-export default rootM
+export default cudResolvers

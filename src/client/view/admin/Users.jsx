@@ -47,25 +47,11 @@ class UserList extends Component {
     }
 
     getUsers() {
-        API.post({
+        API.GET({
             path: '/api/q/user_list',
-            body: JSON.stringify({
-                query: `
-                    query {
-                        user_list {
-                            userId
-                            userName
-                            userEmail
-                            userDefaultNonsig
-                            userLastLogin
-                            userDefaultNonsig
-                            userFirstName
-                            userLastName
-                            userIsLocked
-                        }
-                    }
-                `
-            })
+            query: {
+                fields: 'userId,userName,userEmail,userDefaultNonsig,userLastLogin,userDefaultNonsig,userFirstName,userLastName,userIsLocked'
+            }
         }, (err, response) => {
             if (err) {
                 this.setState({error: err.message, loaded: true})

@@ -1,0 +1,11 @@
+version: "3.7"
+
+services:
+  web:
+    build: .
+    command: npm run debug
+    volumes:
+      - ./dist:/server/dist
+    ports:
+      - "8020:80"
+      - "9222:9222"

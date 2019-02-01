@@ -26,10 +26,6 @@ export interface ResponseMessage {
     details?: any;
 }
 
-export interface Response extends express.Response {
-    body?: ResponseMessage    
-}
-
 declare global {
     namespace Express {
         interface Request {

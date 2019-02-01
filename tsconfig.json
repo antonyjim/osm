@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
         "outDir": "dist/",
+        "sourceMap": true,
         "rootDir" : "src/server",
         "removeComments": true,
         "allowJs": true,

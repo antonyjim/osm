@@ -24,6 +24,8 @@ function passLogin() {
             } else {
                 $('#passwordError').text(authenticationResults.message)
                 $('#passwordError').show()
+                $('#loginLoading').hide()
+                $('#loginDisplay').show()
             }
         },
         error: function(err) {
@@ -38,7 +40,7 @@ function forgotPass(e) {
     let email = document.getElementById('email').value
     if(/\S+@\S+\.\S+/.test(email)) {
         $.ajax({
-            url: '/forgot',
+            url: '/login/forgot',
             data: JSON.stringify({
                 email
             }),
@@ -65,7 +67,7 @@ function submitRegistration(e) {
     formFields.forEach(field => {
         registration[field.id] = field.value
     })
-    $.ajax('/newUser', {
+    $.ajax('/login/newUser', {
         method: 'POST',
         data: JSON.stringify(registration),
         headers: {

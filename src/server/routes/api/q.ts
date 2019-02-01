@@ -12,7 +12,7 @@ const grapqlHTTP = require('express-graphql')
 // Local Modules
 import { queryTable } from '../../lib/query';
 import { StatusMessage } from '../../types/server';
-import { qlSchema } from '../../lib/ql/q';
+import API from '../../lib/ql/schema';
 
 
 // Constants and global variables
@@ -36,6 +36,23 @@ q.get('/:table', (req, res) => {
 })
 */
 
+q.get('/:table', API())
+q.get('/:table/:id', API())
+q.post('/:table/:id', API())
+q.put('/:table', API())
+q.delete('/:table/:id', API())
+q.all('*', (req: Request, res: Response) => {
+    res.status(404).json({
+        errors: [
+            {
+                message: 'No data associated with location ' + req.originalUrl
+            }
+        ],
+        data: null
+    })
+})
+
+/*
 q.get('*', grapqlHTTP({
     schema: qlSchema,
     graphiql: true
@@ -45,5 +62,6 @@ q.post('*', grapqlHTTP({
     schema: qlSchema,
     graphiql: true
 }))
+*/
 
 export { q }
