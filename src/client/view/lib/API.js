@@ -1,16 +1,22 @@
 
 
-export const API = {
-    get: ({path}) => {
-
+const API = {
+    POST: ({path, body}, cb) => {
+        
     },
 
     GET: ({path, query}, cb) => {
         let queryStringArray = ['token=' + window.THQ.token]
-        Object.keys(query).map(queryKey => {
-            queryStringArray.push(`${queryKey}=${encodeURIComponent(query[queryKey])}`)
-        })
+        if (query && typeof query === 'object') {
+            Object.keys(query).map(queryKey => {
+                queryStringArray.push(`${queryKey}=${encodeURIComponent(query[queryKey])}`)
+            })
+        } else if (query) {
+            queryStringArray.push(query)
+        }
+
         let authPath = path + '?' + queryStringArray.join('&')
+        console.log('Making GET request to ' + authPath)
         if (cb !== null && cb !== undefined) {
             $.ajax(authPath, {
                 headers: {
@@ -45,18 +51,3 @@ export const API = {
 }
 
 export default API
-
-/*
-
-query for users:
-
-query=userIsActive|eq|true^userEmail|eq|"antonyjund@gmail.com"&fields=userId,userEmail
-
-OR
-
-query (userIsActive: true, userEmail: "lk|antony*") {
-    userIsActive
-    userEmail
-}
-
-*/

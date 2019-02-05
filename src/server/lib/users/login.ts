@@ -19,18 +19,12 @@ import { Log, UserLog } from '../log';
 
 // Constants and global variables
 const pool = getPool()
+const tokenExpiration = process.env.TOKEN_EXPIRATION || '1h'
 
-export class Login {
-    credentials: UserTypes.Credentials
+export async function Login(credentials: UserTypes.Credentials) {
+    this.credentials = credentials
 
-    /**
-     * @param creds User's credentials
-     */
-    constructor(creds: UserTypes.Credentials) {
-        this.credentials = creds
-    }
-
-    private validatePassword(hashed): Promise<boolean> {
+    this.validatePassword = async (hashed): Promise<boolean> => {
         return new Promise((resolve) => {
             compare(this.credentials.password, hashed.toString(), function(err: Error, same: boolean) {
                 if (err) {
@@ -42,107 +36,110 @@ export class Login {
         })
     }
 
-    private incrementInvalidLogins(userId) {
+    this.incrementInvalidLogins = (sys_id) => {
         pool.query(`UPDATE sys_user
         SET userInvalidLoginAttempts = userInvalidLoginAttempts + 1
-        WHERE userId = ${userId}`)
+        WHERE sys_id = ${sys_id}`)
     }
 
-    private handleLogin(userId) {
+    this.handleLogin = (sys_id) => {
         const lastLogin: string = pool.escape(new Date().toISOString().replace('Z', ''))
         pool.query(`UPDATE sys_user
         SET userInvalidLoginAttempts = 0, userLastLogin = ${lastLogin}
-        WHERE userId = ${pool.escape(userId)}`)
+        WHERE sys_id = ${pool.escape(sys_id)}`)
     }
 
-    private lockUser(userId) {
+    this.lockUser = (sys_id) => {
         pool.query(`UPDATE sys_user
         SET userIsLocked = 1
-        WHERE userId = ${userId}`)
+        WHERE sys_id = ${sys_id}`)
     }
 
-    public authenticate(): Promise<StatusMessage> {
+    return this.authenticate = (async () => {
         return new Promise((resolve, reject) => {
-            let query = 'SELECT * FROM userLogin WHERE userName = ?'
+            let query = 'SELECT * FROM user_login WHERE username = ?'
             let params = [this.credentials.username]
             new Querynator().createQ({query, params}, 'CALL')
             .then((users: UserTypes.LoginInfo[]) => {
                 if (users.length === 1) {
                     let user = users[0]
+                    // Check if user has confirmed their email
                     if (!user.userIsConfirmed) {
-                        reject({
+                        return reject({
                             error: true,
                             message: 'Please confirm email'
                         })
+                    // Check if the user has been locked
                     } else if (user.userIsLocked) {
-                        reject({
+                        return reject({
                             error: true,
                             message: 'User account locked. Please click on forgot password'
                         })
+                    // Check if the default nonsig has been inactivated
                     } else if (!user.nsIsActive) {
-                        reject({
+                        return reject({
                             error: true,
                             message: 'Nonsig inactive'
                         })
+                    // Check everything else
                     } else if (
                         user.userIsConfirmed 
                         && !user.userIsLocked 
                         && user.userInvalidLoginAttempts < 5
                         && user.nsIsActive 
                     ) {
-                        this.validatePassword(user.userPass)
-                        .then((same: boolean) => {
+                        (async () => {
+                            const same = await this.validatePassword(user.userPass)
+                            .catch((err: Error) => {return reject({error: true, message: err.message})})
                             if (same) {
                                 let authenticatedUser = {
-                                    userId: user.userId,
-                                    userEmail: user.userEmail,
+                                    sys_id: user.sys_id,
+                                    email: user.email,
                                     userIsAdmin: user.userIsAdmin,
                                     userNonsig: user.userNonsig,
                                     userRole: user.userRole
                                 }
-                                this.handleLogin(user.userId)
-                                new UserLog('Logged In').info(user.userId)
-                                resolve({
+                                this.handleLogin(user.sys_id)
+                                new UserLog('Logged In').info(user.sys_id)
+                                return resolve({
                                     error: false,
                                     message: 'Login Accepted',
                                     details: authenticatedUser
                                 })
                             } else {
-                                this.incrementInvalidLogins(user.userId)
-                                new UserLog('Invalid login attempt').error(4, user.userId)
-                                reject({
+                                this.incrementInvalidLogins(user.sys_id)
+                                new UserLog('Invalid login attempt').error(4, user.sys_id)
+                                return reject({
                                     error: true,
                                     message: 'Invalid username or password'
                                 })
                             }
-                        })
-                        .catch((err) => {
-                            reject(err)
-                        })
+                        })()
                     } else {
-                        this.lockUser(user.userId)
-                        new UserLog('User has been locked').error(3, user.userId)
-                        reject({
+                        this.lockUser(user.sys_id)
+                        new UserLog('User has been locked').error(3, user.sys_id)
+                        return reject({
                             error: true,
                             message: 'User account locked'
                         })
                     }
                 } else {
-                    reject({
+                    return reject({
                         error: true,
                         message: 'Invalid username or password'
                     })
                 }
             })
             .catch(err => {
-                reject({
+                new Log(err.message).error(1)
+                return reject({
                     error: true, 
                     message: 'SQL Error', 
                     details: err
                 })
             })
         })
-    }
+    })()
 }
 
 /**
@@ -152,11 +149,11 @@ export class Login {
 export function getToken(payload?: UserTypes.AuthToken) {
     if (!payload) {
         payload = {
-            userIsAuthenticated: false,
-            userId: null,
-            userNonsig: null,
-            userRole: 'No-Conf'
+            iA: false,
+            u: null,
+            c: null,
+            r: 'No-Conf'
         }
     }
-    return sign(payload, jwtSecret, {expiresIn: '1h'})
+    return sign(payload, jwtSecret, {expiresIn: tokenExpiration})
 }

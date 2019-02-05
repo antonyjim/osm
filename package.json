@@ -59,12 +59,12 @@
   },
   "scripts": {
     "postinstall": "tsc -p .",
-    "build": "webpack && tsc",
+    "build": "webpack",
     "watch": "tsc -w -p .",
-    "debug": "nodemon --legacy-watch --watch ./dist --inspect=0.0.0.0:9222 --nolazy ./dist/app.js",
+    "debug": "nodemon --legacy-watch --watch ./dist --inspect=0.0.0.0:9222 --nolazy ./dist/",
     "docker-debug": "docker-compose up",
-    "serve": "serve ./public",
-    "start": "tsc && node -r dotenv/config dist/app.js dotenv_config_path=./env_var.env"
+    "client-watch": "webpack --watch",
+    "start": "tsc && node dist/app.js"
   },
   "author": "",
   "license": "ISC"

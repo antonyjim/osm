@@ -6,6 +6,7 @@ let APP_DIR = path.resolve(__dirname, 'src/client/view')
 let STYLE_DIR = path.resolve(__dirname, 'src/client/styles')
 
 let config = {
+    watch: true,
     entry: APP_DIR + '/index.jsx',
     mode: 'development',
     devtool: 'inline-source-map',

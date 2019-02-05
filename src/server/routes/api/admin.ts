@@ -14,6 +14,7 @@ import { NavigationSettings } from '../../types/roles';
 import { Navigation } from '../../lib/users/navigation';
 import { StatusMessage } from '../../types/server';
 import { Roles } from '../../lib/users/roles';
+import { Querynator } from '../../lib/connection';
 
 
 // Constants and global variables
@@ -133,5 +134,17 @@ adminRoutes.post('/roles/:action', function(req: Request, res: Response) {
         })
     }
 })
+
+adminRoutes.post('/sql', (req: Request, res: Response) => {
+    new Querynator({req, res}).createQ({
+        query: req.body.query
+    }, 'CALL')
+    .then(results => {
+        res.status(200).json(results)
+    })
+    .catch(e => {
+        res.status(500).json({message: e.message})
+    })
+}) 
 
 export { adminRoutes }

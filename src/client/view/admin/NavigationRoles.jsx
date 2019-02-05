@@ -223,7 +223,7 @@ class Routes extends Component {
                     message: response.error
                 }})
             } else {
-                if (response.details.navLinksEntered === 1) {
+                if (response.details.navLinksEntered.length === 1) {
                     this.setState({message: {
                         type: 'success',
                         message: response.message
@@ -646,18 +646,10 @@ class Tables extends Component {
     }
 
     getTables() {
-      API.post({
-        path: '/api/q/tables',
+      API.POST({
+        path: '/api/q/sys_db_object',
         body: JSON.stringify({
-          query: `
-            query {
-              table_list {
-                name
-                label
-                description
-              }
-            }
-          `
+
         })
         }, (err, response) => {
           if (err) this.setState({error: err, loaded: true})

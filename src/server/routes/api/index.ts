@@ -15,24 +15,34 @@ import { endpointAuthentication, apiTokenValidation } from '../middleware/authen
 import { orderRoutes } from './ordering';
 import { adminRoutes } from './admin'
 import { apiAccountRoutes } from './accounts'
-import { Login } from './../../lib/users/login'
+import { Login, getToken } from './../../lib/users/login'
 import { StatusMessage } from '../../types/server';
 import { jwtSecret } from '../../lib/connection';
 import { q } from './q';
 import bodyParser = require('body-parser');
+import { UserTypes } from '../../types/users';
+import useradminRoutes from './users';
 
 // Constants and global variables
 const apiRoutes = Router()
 
 apiRoutes.get('/getToken', function(req: Request, res: Response){
     if (req.query.username && req.query.password) {
-        new Login({username: req.query.username, password: req.query.password}).authenticate()
+        Login({username: req.query.username, password: req.query.password})
         .then((onSuccessfulAuthentication: StatusMessage) => {
-            let payload = {
-                userIsAuthenticated: true,
-                userId: onSuccessfulAuthentication.details.userId,
-                userRole: onSuccessfulAuthentication.details.userRole
+            let payload: UserTypes.AuthToken = {
+                iA: true,
+                u: onSuccessfulAuthentication.details.sys_id,
+                r: onSuccessfulAuthentication.details.userRole,
+                c: onSuccessfulAuthentication.details.userNonsig
                 }
+            let token = getToken(payload)
+            res.status(200).json({
+                token,
+                error: false,
+                message: 'Success'
+            })
+            /*
             sign(payload, jwtSecret, {expiresIn: '5h'}, function(err: Error, token: string) {
                 if (err) throw err
                 res.status(200).json({
@@ -41,6 +51,7 @@ apiRoutes.get('/getToken', function(req: Request, res: Response){
                     message: 'Success'
                 })
             })
+            */
         }, (onUnSuccessfulAuthentication: StatusMessage) => {
             res.status(200).json({
                 error: true,
@@ -58,19 +69,20 @@ apiRoutes.get('/getToken', function(req: Request, res: Response){
 })
 
 apiRoutes.use(apiTokenValidation())
-apiRoutes.use('/q', q)
+apiRoutes.use('/q', q) // q is for general api queries
 apiRoutes.use(endpointAuthentication())
 apiRoutes.use(bodyParser.json())
-apiRoutes.use('/admin', adminRoutes)
+apiRoutes.use('/admin', adminRoutes) // admin is for site-administration duties
 apiRoutes.use('/ordering', orderRoutes)
 apiRoutes.use('/accounts', apiAccountRoutes)
+apiRoutes.use('/users', useradminRoutes) // users is for user administration
 apiRoutes.get('/refresh', (req: Request, res: Response) => {
-    if (req.auth.isAuthenticated && req.auth.userNonsig) {
+    if (req.auth.iA && req.auth.c) {
         let payload = {
-            userIsAuthenticated: true,
-            userId: req.auth.userId,
-            userRole: req.auth.userRole,
-            userNonsig: req.auth.userNonsig
+            iA: true,
+            u: req.auth.u,
+            r: req.auth.r,
+            c: req.auth.c
             }
         sign(payload, jwtSecret, {expiresIn: '5h'}, function(err: Error, token: string) {
             if (err) res.status(500).end()

@@ -25,7 +25,7 @@ import User, { forgotPassword } from '../../lib/ql/users/users';
 const loginRoutes = Router()
 
 loginRoutes.get('/navigation', function(req: Request, res: Response) {
-    getRoleAuthorizedNavigation(req.auth.userId, req.auth.userNonsig)
+    getRoleAuthorizedNavigation(req.auth.u, req.auth.c)
     .then((onResolved: StatusMessage) => {
         res.status(200).json(onResolved)
     }, (onFailure: StatusMessage) => {
@@ -39,14 +39,14 @@ loginRoutes.get('/navigation', function(req: Request, res: Response) {
 loginRoutes.post('/', function(req: Request, res: Response) {
     let responseBody: ResponseMessage
     let tokenPayload: UserTypes.AuthToken = null;
-    if (req.body.user && req.body.user.username && req.body.user.password) {
-        new Login(req.body.user).authenticate()
+    if (!req.auth.u && req.body.user && req.body.user.username && req.body.user.password) {
+        Login(req.body.user)
         .then((onUserAuthenticated: StatusMessage) => {
             tokenPayload = {
-                userIsAuthenticated: true,
-                userId: onUserAuthenticated.details.userId,
-                userRole: onUserAuthenticated.details.userRole,
-                userNonsig: onUserAuthenticated.details.userNonsig
+                iA: true,
+                u: onUserAuthenticated.details.sys_id,
+                r: onUserAuthenticated.details.userRole,
+                c: onUserAuthenticated.details.userNonsig
             }
             let token = getToken(tokenPayload)
             responseBody = {
@@ -64,18 +64,19 @@ loginRoutes.post('/', function(req: Request, res: Response) {
             }
             res.status(200).json(responseBody)
         })
-        .catch((err: StatusMessage) => {
-            new Log(err).error(2)
+        .catch((err: Error) => {
+            new Log(err.message).error(2)
             responseBody = {
                 error: true,
                 errorMessage: err.message
             }
-            res.status(200).json(responseBody)
+            if (!res.headersSent) {
+                res.status(200).json(responseBody)
+            }
         })
     } else {
         responseBody = {
             error: true,
-            errorMessage: 'Invalid username or password',
             message: 'Invalid username or password'
         }
         res.status(200).json(responseBody)

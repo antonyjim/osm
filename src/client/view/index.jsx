@@ -7,6 +7,9 @@ import { Dashboard } from './home/dashboard.jsx'
 import { Admin } from './admin/Admin.jsx'
 import { E404, ErrorBoundary } from './common/errors.jsx';
 import UserProfile from './home/UserProfile.jsx';
+import Customers from './admin/Customers.jsx'
+import Customer from './admin/Customer.jsx'
+import Users from './admin/Users.jsx'
 
 class App extends Component {
     constructor(props) {
@@ -88,6 +91,9 @@ class App extends Component {
                                     <Route exact path="/" component={Dashboard}></Route>
                                     <Route path="/profile" component={UserProfile}/>
                                     <Route path="/admin/" component={Admin} />
+                                    <Route path="/customer/:customer" component={Customer} />
+                                    <Route path="/changeCustomer" component={Customers} />
+                                    <Route path="/userAdministration" component={Users} />
                                     <Route component={E404}/>
                                 </Switch>
                             </ErrorBoundary>

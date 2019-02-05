@@ -22,10 +22,10 @@ import { jwtSecret } from '../../lib/connection';
 export function tokenValidation() {
     return function tokenValidation(req: Request, res: Response, next: NextFunction) {
         let anonToken: UserTypes.AuthToken = {
-            userIsAuthenticated: false,
-            userId: null,
-            userRole: null,
-            userNonsig: null
+            iA: false,
+            u: null,
+            r: null,
+            c: null
         }
         let tokenCookie = req.query.token || req.cookies.token
         if (tokenCookie) {
@@ -34,56 +34,56 @@ export function tokenValidation() {
         req.auth = {}
         function handleOnAuthError(error: Error) {
             req.auth = {
-                isAuthenticated: false,
-                isAuthorized: false,
-                userId: null,
-                userNonsig: null
+                iA: false,
+                iZ: false,
+                u: null,
+                c: null
             }
             sign(anonToken, jwtSecret, {expiresIn: '1h'}, function(err: Error, token: string) {
                 if (err) handleOnAuthError(err)
                 req.auth = {
-                    isAuthenticated: false,
-                    isAuthorized: false,
-                    userId: null,
-                    userNonsig: null
+                    iA: false,
+                    iZ: false,
+                    u: null,
+                    c: null
                 }
                 res.cookie('token', token)
-                next()
+                return next()
             })
         }
         if (!tokenCookie) {
             sign(anonToken, jwtSecret, {expiresIn: '1h'}, function(err: Error, token: string) {
                 if (err) handleOnAuthError(err)
                 req.auth = {
-                    isAuthenticated: false,
-                    isAuthorized: false,
-                    userId: null,
-                    userNonsig: null
+                    iA: false,
+                    iZ: false,
+                    u: null,
+                    c: null
                 }
                 res.cookie('token', token)
-                next()
+                return next()
             })
         } else {
             verify(tokenCookie, jwtSecret, function(err: Error, decoded: UserTypes.AuthToken) {
                 if (err) handleOnAuthError(err)
                 if (decoded) {
                     let authToken: UserTypes.AuthToken = {
-                        userIsAuthenticated: true,
-                        userId: decoded.userId,
-                        userRole: decoded.userRole,
-                        userNonsig: decoded.userNonsig
+                        iA: true,
+                        u: decoded.u,
+                        r: decoded.r,
+                        c: decoded.c
                     }
                     sign(authToken, jwtSecret, {expiresIn: '1h'}, function(err: Error, token: string) {
                         if (err) handleOnAuthError(err)
                         req.auth = {
-                            isAuthenticated: true,
-                            isAuthorized: false,
-                            userId: decoded.userId,
-                            userRole: decoded.userRole,
-                            userNonsig: decoded.userNonsig
+                            iA: true,
+                            iZ: false,
+                            u: decoded.u,
+                            r: decoded.r,
+                            c: decoded.c
                         }
                         res.cookie('token', token)
-                        next()
+                        return next()
                     })
                 } else {
                     handleOnAuthError(new Error('Expired token'))
@@ -96,10 +96,10 @@ export function tokenValidation() {
 export function apiTokenValidation() {
     return function tokenValidation(req: Request, res: Response, next: NextFunction) {
         let anonToken: UserTypes.AuthToken = {
-            userIsAuthenticated: false,
-            userId: null,
-            userRole: null,
-            userNonsig: null
+            iA: false,
+            u: null,
+            r: null,
+            c: null
         }
         let tokenCookie = req.query.token
         if (tokenCookie) {
@@ -108,20 +108,20 @@ export function apiTokenValidation() {
         req.auth = {}
         function handleOnAuthError(error: Error) {
             req.auth = {
-                isAuthenticated: false,
-                isAuthorized: false,
-                userId: null,
-                userNonsig: null
+                iA: false,
+                iZ: false,
+                u: null,
+                c: null
             }
             sign(anonToken, jwtSecret, {expiresIn: '1h'}, function(err: Error, token: string) {
                 if (err) res.status(500).end()
                 req.auth = {
-                    isAuthenticated: false,
-                    isAuthorized: false,
-                    userId: null,
-                    userNonsig: null
+                    iA: false,
+                    iZ: false,
+                    u: null,
+                    c: null
                 }
-                req.auth.token = token
+                req.auth.t = token
                 res.status(401).json({
                     error: true,
                     message: 'User unauthenticated or token expired'
@@ -132,12 +132,12 @@ export function apiTokenValidation() {
             sign(anonToken, jwtSecret, {expiresIn: '1h'}, function(err: Error, token: string) {
                 if (err) handleOnAuthError(err)
                 req.auth = {
-                    isAuthenticated: false,
-                    isAuthorized: false,
-                    userId: null,
-                    userNonsig: null
+                    iA: false,
+                    iZ: false,
+                    u: null,
+                    c: null
                 }
-                req.auth.token = token
+                req.auth.t = token
                 res.status(401).json({
                     error: true,
                     message: 'User unauthenticated or token expired'
@@ -148,21 +148,21 @@ export function apiTokenValidation() {
                 if (err) handleOnAuthError(err)
                 if (decoded) {
                     let authToken: UserTypes.AuthToken = {
-                        userIsAuthenticated: true,
-                        userId: decoded.userId,
-                        userRole: decoded.userRole,
-                        userNonsig: decoded.userNonsig
+                        iA: true,
+                        u: decoded.u,
+                        r: decoded.r,
+                        c: decoded.c
                     }
                     sign(authToken, jwtSecret, {expiresIn: '1h'}, function(err: Error, token: string) {
                         if (err) handleOnAuthError(err)
                         req.auth = {
-                            isAuthenticated: true,
-                            isAuthorized: false,
-                            userId: decoded.userId,
-                            userRole: decoded.userRole,
-                            userNonsig: decoded.userNonsig
+                            iA: true,
+                            iZ: false,
+                            u: decoded.u,
+                            r: decoded.r,
+                            c: decoded.c
                         }
-                        req.auth.token = token
+                        req.auth.t = token
                         next()
                     })
                 } else {
@@ -175,20 +175,20 @@ export function apiTokenValidation() {
 
 export function endpointAuthentication() {
     return function endpointAuthentication(req: Request, res: Response, next: NextFunction) {
-        if (!req.auth || !req.auth.isAuthenticated || !req.auth.userId) {
-            req.auth.isAuthorized = false
+        if (!req.auth || !req.auth.iA || !req.auth.u) {
+            req.auth.iZ = false
             console.log(JSON.stringify(req.auth))
             return res.status(401).json({
                 error: true,
                 message: 'User unauthenticated or token expired'
             })
         } else {
-            validateEndpoint(req.method, req.originalUrl, req.auth.userRole)
+            validateEndpoint(req.method, req.originalUrl, req.auth.r)
             .then((onUserAuthorized: StatusMessage) => {
-                req.auth.isAuthorized = onUserAuthorized.details.authorized
+                req.auth.iZ = onUserAuthorized.details.authorized
                 next()
             }, (onUserUnAuthorized: StatusMessage) => {
-                req.auth.isAuthorized = onUserUnAuthorized.details.authorized
+                req.auth.iZ = onUserUnAuthorized.details.authorized
                 console.log('User is not authorized')
                 return res.status(401).json({
                     error: true,
@@ -197,7 +197,7 @@ export function endpointAuthentication() {
             })
             .catch((error: StatusMessage) => {
                 console.error(error)
-                req.auth.isAuthorized = false
+                req.auth.iZ = false
                 return res.status(401).json({
                     error: true,
                     message: 'User authorization failed'

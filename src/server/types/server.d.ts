@@ -30,12 +30,12 @@ declare global {
     namespace Express {
         interface Request {
             auth?: {
-                isAuthenticated?: boolean,
-                isAuthorized?: boolean,
-                userId?: string,
-                userNonsig?: string,
-                userRole?: string,
-                token?: string
+                iA?: boolean,
+                iZ?: boolean,
+                u?: string,
+                c?: string,
+                r?: string,
+                t?: string
             }
         }
     }

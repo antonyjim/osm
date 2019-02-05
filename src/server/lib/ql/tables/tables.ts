@@ -1,10 +1,33 @@
 import { Querynator } from "../../connection";
 import { Validation } from "../../validation";
 
+enum FOREIGN_KEY_ACTIONS {
+    'CASCADE',
+    'RESTRICT'
+}
+
+const ALTER_TABLE = 'ALTER TABLE'
+const MODIFY_COLUMN = 'MODIFY COLUMN'
+const CHANGE_COLUMN = 'CHANGE'
+const VARCHAR = (len: number) => {
+    if (typeof len !== 'number') throw new TypeError('VARCHAR length must be a number')
+    return 'VARCHAR(' + len + ')'
+}
+const CHAR = (len: number) => {
+    if (typeof len !== 'number') throw new TypeError('CHAR length must be a number')
+    return  'CHAR(' + len + ')'
+}
+const TEXT = 'TEXT'
+const NOT_NULL = 'NOT NULL'
+const AUTO_INCREMENT = 'AUTO_INCREMENT'
+const UNIQUE = 'UNIQUE'
+const FOREIGN_KEY = async (table: string, column: string, onDelete: FOREIGN_KEY_ACTIONS = FOREIGN_KEY_ACTIONS.CASCADE, onUpdate: FOREIGN_KEY_ACTIONS = FOREIGN_KEY_ACTIONS.CASCADE) => {
+    
+}
+
 class Table extends Querynator {
     constructor(context, fields) {
-        super(context, fields)
-        this.tableName = 'sys_db_object'
+        super(context, fields, 'sys_db_object')
         this.primaryKey = 'name'
     }
 
@@ -13,7 +36,7 @@ class Table extends Querynator {
     }
 
     public async where(fields, pagination) {
-        if (Object.keys(fields).length > 0) {
+        if (fields && Object.keys(fields).length > 0) {
             return await this.byFields({fields}, pagination)
         } else {
             return await this.all(pagination)
@@ -53,6 +76,18 @@ class Table extends Querynator {
             params.push(fields.name)
             return this.createQ({query, params})
         }  
+    }
+
+    public async updateFields(fields) {
+        
+    }
+
+    public async createFields(fields) {
+
+    }
+
+    public getFields(fields) {
+
     }
 }
 

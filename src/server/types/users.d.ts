@@ -2,10 +2,10 @@ import { Interface } from "readline";
 
 export namespace UserTypes {
     interface LoginInfo {
-        userId?: string;
-        userName?: string;
+        sys_id?: string;
+        username?: string;
         userPass?: string;
-        userEmail?: string;
+        email?: string;
         userNonsig?: string;
         userIsLocked?: string;
         userIsAdmin?: string;
@@ -20,37 +20,37 @@ export namespace UserTypes {
     }
 
     interface Information {
-        userId?: string;
+        sys_id?: string;
         userLastLogin?: Date;
         userLastPasswordChange?: Date;
         userFirstName?: string;
         userLastName?: string;
         userType?: number;
-        userPhone: string;
+        phone: string;
     }
 
     interface All {
-        userId?: string;
-        userName?: string;
+        sys_id?: string;
+        username?: string;
         userPass?: string;
-        userEmail?: string;
+        email?: string;
         userDefaultNonsig?: string;
         userIsLocked?: any;
         userLastLogin?: Date;
         userLastPasswordChange?: Date;
         userFirstName?: string;
         userLastName?: string;
-        userPhone?: string;
+        phone?: string;
         userIsConfirmed?: any;
         userConfirmation?: string;
     }
 
     interface AuthToken {
-        userId?: string;
-        userIsAuthenticated?: boolean;
-        userRole?: string;
-        token?: string;
-        userNonsig: string;
+        u?: string;
+        iA?: boolean;
+        r?: string;
+        t?: string;
+        c: string;
     }
 
     interface Credentials {

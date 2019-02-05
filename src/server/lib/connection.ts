@@ -9,7 +9,6 @@
 // NPM Modules
 import { Pool, PoolConfig, createPool, PoolConnection } from 'mysql'
 import { Log } from './log';
-import { inspect } from 'util';
 import { EventEmitter } from 'events';
 
 
@@ -49,25 +48,29 @@ class Querynator extends EventEmitter {
     protected primaryKey: string
     protected context: any
     protected baseParams: any[]
-    private queryFields: string
+    protected queryFields: string
 
     /**
      * Create an interface for graphql to query from, with authorization included
      * @param context Context from the GQL query
      * @param queryFields Info from the GQL query
      */
-    constructor(context?: any, queryFields?: string[]) {
+    constructor(context?: any, queryFields?: string[], table?: string) {
         super()
         this.pool = getPool()
+        this.baseParams = []
         this.context = context
-        if (queryFields) {
-            let fieldPlaceholders: string[]
-            queryFields.map(field => {
-                fieldPlaceholders.push('??.??')
-                this.baseParams.push(this.tableName, field)
-            })
-            this.queryFields = fieldPlaceholders.join(', ')
-        }
+        this.tableName = table || ''
+        this.once('init', () => {
+            if (queryFields && Array.isArray(queryFields)) {
+                let fieldPlaceholders: string[] = []
+                queryFields.map(field => {
+                    fieldPlaceholders.push('??.??')
+                    this.baseParams.push(this.tableName, field)
+                })
+                this.queryFields = fieldPlaceholders.join(', ')
+            }
+        })
     }
 
     /**
@@ -76,13 +79,13 @@ class Querynator extends EventEmitter {
      * @param query Entire query, or just the verb
      * @param actionOverride Override the verb present in the query such as when calling a procedure
      */
-    private validate(conn: PoolConnection, query: string, actionOverride?: string) {
+    private async validate(conn: PoolConnection, query: string, actionOverride?: string) {
         return new Promise(resolve => {
             if (actionOverride === 'CALL') {
-                resolve(true)
+                return resolve(true)
             }
             const validationFunction = 'tbl_validation'
-            const role = this.context.auth.userRole
+            const role = this.context.req.auth.r || 'No-Conf'
             const action = actionOverride || query.split(' ')[0]
             let params = [validationFunction, [role, this.tableName, action]]
             if (process.env.STATEMENT_LOGGING === 'true' || process.env.STATEMENT_LOGGING) {
@@ -94,9 +97,9 @@ class Querynator extends EventEmitter {
                     throw err
                 }
                 if (authed[0]) {
-                    resolve(authed[0].AUTHED || false)
+                    return resolve(authed[0].AUTHED || false)
                 } else {
-                    resolve(authed[0])
+                    return resolve(authed[0])
                 }
             })
         })
@@ -116,12 +119,12 @@ class Querynator extends EventEmitter {
                     if (authorized === true || authorized === 1) {
                         if (process.env.STATEMENT_LOGGING === 'true' || process.env.STATEMENT_LOGGING) {
                             console.log(conn.format(query, params))
-                            new Log(conn.format(query, params)).info()
+                            // new Log(conn.format(query, params)).info()
                         }
                         conn.query(query, params, (err: Error, results: any[]) => {
                             if (err) {
-                                conn.release()
                                 conn.rollback()
+                                conn.release()
                                 return reject(err)
                             }
                             conn.commit((err) => {
@@ -134,11 +137,11 @@ class Querynator extends EventEmitter {
                             })
                         })
                     } else {
-                        reject('User unauthorized to perform that action.')
+                        return reject('User unauthorized to perform that action.')
                     }
                 })
                 .catch(err => {
-                    reject(err)
+                    return reject(err.message)
                 })
             })
         })
@@ -205,18 +208,19 @@ class Querynator extends EventEmitter {
     protected async byId(reqId: string): Promise<any> {
         let params: any[] = this.baseParams
         let query: string = ''
+        let id = this.evaluateFieldOperator(reqId).value
         query = 'SELECT ' + this.queryFields + ' FROM ?? WHERE ?? = ?'
-        params.push(this.tableName, this.primaryKey, reqId)
+        params.push(this.tableName, this.primaryKey, id)
         return (await this.createQ({
             query,
             params
         })).shift()
     }
 
-    protected byFields({fields}: {fields: any}, {order, offset, limit}: {order?: {by?: string, direction?: 'ASC' | 'DESC'}, offset?: number, limit?: number}) {
+    protected async byFields({fields}: {fields: any}, {order, offset, limit}: {order?: {by?: string, direction?: 'ASC' | 'DESC'}, offset?: number, limit?: number}) {
         let query = 'SELECT ' + this.queryFields + ' FROM ?? WHERE '
         let params = this.baseParams
-        params.push(this.tableName)
+        params.push(this.tableName + '_list')
 
         if (fields) {
             Object.keys(fields).forEach((col, i) => {
@@ -245,30 +249,26 @@ class Querynator extends EventEmitter {
         }
 
         if (offset !== null && !isNaN(offset)) {
-            query += ' OFFSET ??'
-            params.push(offset.toString())
+            query += ' OFFSET ' + offset
         }
-        return this.createQ({query, params})
+        return await this.createQ({query, params})
     }
 
-    protected all({limit, offset, order}: {limit?: number, offset?: number, order?: {by?: string, direction?: 'ASC' | 'DESC'}}) {
+    protected async all({limit, offset, order}: {limit?: number, offset?: number, order?: {by?: string, direction?: 'ASC' | 'DESC'}}) {
         let query: string = 'SELECT * FROM ??',
-            params: Array<string> = [ this.tableName ]
+            params: Array<string> = [ this.tableName + '_list' ]
 
-
-        if (limit !== null && !isNaN(limit)) {
+        if (limit && limit !== null && !isNaN(limit)) {
             query += ' LIMIT ' + limit
         } else {
-            limit = 20
-            query += ' LIMIT ' + limit
+            query += ' LIMIT 20'
         }
 
         if (offset !== null && !isNaN(offset)) {
-            query += ' OFFSET ??'
-            params.push(offset.toString())
+            query += ' OFFSET ' + offset
         }
 
-        return this.createQ({query, params})
+        return await this.createQ({query, params})
     }
 
     protected async insert({query, params}) {

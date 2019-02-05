@@ -7,7 +7,7 @@ function passLogin() {
     let password = document.querySelector('#password').value
     $('#loginLoading').show()
     $('#loginDisplay').hide()
-    $.ajax('/login', {
+    $.ajax('/login/', {
         method: 'POST',
         data: JSON.stringify({
             user: {
@@ -16,7 +16,8 @@ function passLogin() {
             }
         }),
         headers: {
-            "Content-Type": "Application/JSON"
+            "Content-Type": "Application/JSON",
+            "Accept": "Application/JSON"
         },
         success: function(authenticationResults) {
             if (authenticationResults.message === 'Success' && authenticationResults.details && authenticationResults.details.token) {

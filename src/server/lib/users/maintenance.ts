@@ -208,13 +208,13 @@ export class User {
     }
 
     private clearPasswordResets() {
-        if(!this.userOpt.userId) {
+        if(!this.userOpt.sys_id) {
             return 1
         } else {
             let sql = `
                 UPDATE sys_user
                 SET userConfirmation = NULL
-                WHERE userId = ${pool.escape(this.userOpt.userId)}
+                WHERE sys_id = ${pool.escape(this.userOpt.sys_id)}
             `
             pool.query(sql, (err: Error, results) => {
                 return 1
@@ -228,9 +228,9 @@ export class User {
             pool.query(
                 `SELECT * 
                 FROM sys_user
-                WHERE userName = ${pool.escape(accountOpts.userName)}
-                    OR userId = ${pool.escape(accountOpts.userId)}
-                    OR userEmail = ${pool.escape(accountOpts.userEmail)}`,
+                WHERE username = ${pool.escape(accountOpts.username)}
+                    OR sys_id = ${pool.escape(accountOpts.sys_id)}
+                    OR email = ${pool.escape(accountOpts.email)}`,
                 function(err: Error, results: Array<UserTypes.LoginInfo>) {
                     if (err) {throw err}
                     if (results.length > 0) {
@@ -246,10 +246,10 @@ export class User {
                                 pool.query(
                                     `CALL newUser (
                                         ${pool.escape([
-                                            accountOpts.userId,
-                                            accountOpts.userName.toLowerCase(),
+                                            accountOpts.sys_id,
+                                            accountOpts.username.toLowerCase(),
                                             null,
-                                            accountOpts.userEmail.toLowerCase(),
+                                            accountOpts.email.toLowerCase(),
                                             accountOpts.userDefaultNonsig,
                                             (accountOpts.userIsLocked === true ? 1 : 0),
                                             0,
@@ -274,7 +274,7 @@ export class User {
                                         })
                                         sendConfirmation(
                                             {
-                                                userEmail: accountOpts.userEmail, 
+                                                email: accountOpts.email, 
                                                 confirmationToken
                                             }
                                         )
@@ -387,20 +387,20 @@ export class User {
 
     public verifyUsername() {
         return new Promise((resolve, reject) => {
-            if (!this.userOpt.userName || !this.userOpt.userEmail) {
+            if (!this.userOpt.username || !this.userOpt.email) {
                 throw new TypeError('No username or email provided to verify user against')
             } else {
                 let conditions = []
                 let sql = `
-                    SELECT userName, userEmail
+                    SELECT username, email
                     FROM sys_user
                     WHERE
                 `
-                if (this.userOpt.userName) {
-                    conditions.push(`userName = ${pool.escape(this.userOpt.userName.toLowerCase())}`)
+                if (this.userOpt.username) {
+                    conditions.push(`username = ${pool.escape(this.userOpt.username.toLowerCase())}`)
                 }
-                if (this.userOpt.userEmail) {
-                    conditions.push(`userEmail = ${pool.escape(this.userOpt.userEmail.toLowerCase())}`)
+                if (this.userOpt.email) {
+                    conditions.push(`email = ${pool.escape(this.userOpt.email.toLowerCase())}`)
                 }
                 sql += conditions.join(' OR ')
                 pool.query(sql, (err: Error, results: Array<any>) => {
@@ -415,9 +415,9 @@ export class User {
                         } else {
                             let message: Array<string> = []
                             for(let user of results) {
-                                if (user.userEmail === this.userOpt.userEmail) {
+                                if (user.email === this.userOpt.email) {
                                     message.push('Email already in use. Please click on forgot password') 
-                                } else if (user.userName === this.userOpt.userName) {
+                                } else if (user.username === this.userOpt.username) {
                                     message.push('Username already in use')
                                 } else {
                                     message.push('User already exists')
@@ -452,7 +452,7 @@ export class User {
 
     public setPassword(password1, password2) {
         return new Promise((resolve, reject) => {
-            if (this.userOpt.userId) {
+            if (this.userOpt.sys_id) {
                 let hashed: string = ''
                 try {
                     hashed = this.verifyAndHashPassword(password1, password2)
@@ -467,7 +467,7 @@ export class User {
                     SET 
                         userPass = ${pool.escape(hashed)}
                     WHERE 
-                        userId = ${pool.escape(this.userOpt.userId)}
+                        sys_id = ${pool.escape(this.userOpt.sys_id)}
                 `
                 pool.query(sql, (err: Error, results) => {
                     if (err) {throw err}
@@ -479,7 +479,7 @@ export class User {
             } else {
                 reject({
                     error: true,
-                    message: 'Missing userId'
+                    message: 'Missing sys_id'
                 })
             }
         })
@@ -488,10 +488,10 @@ export class User {
     /*
     public createNew(): Promise<StatusMessage> {
         return new Promise((resolve, reject) => {
-            this.userOpt.userId = uuid.v4()
+            this.userOpt.sys_id = uuid.v4()
             let requiredFields = [
-                'userName',
-                'userEmail',
+                'username',
+                'email',
                 'userNonsig',
                 'userPhone',
                 'userFirstName',
@@ -509,11 +509,11 @@ export class User {
                 let defaultedFields = validator.truncate(
                     [
                         {
-                            field: 'userName',
+                            field: 'username',
                             length: 36
                         },
                         {
-                            field: 'userEmail',
+                            field: 'email',
                             length: 90
                         },
                         {
@@ -531,7 +531,7 @@ export class User {
                     ]
                 ).defaults(
                     {
-                        userId: uuid.v4(),
+                        sys_id: uuid.v4(),
                         userConfirmation: uuid.v4()
                     }
                 )

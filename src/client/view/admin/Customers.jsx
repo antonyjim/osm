@@ -1,24 +1,70 @@
 import React, { Component } from 'react';
 import Table from './../common/Table.jsx'
+import API from '../lib/API.js';
+import Alert from '../common/alerts.jsx';
 
 class Customers extends Component {
     constructor(props) {
         super(props)
+        this.state = {
+            loaded: false,
+            error: false,
+            message: '',
+            id: 'nsNonsig',
+            cols: {
+                'Nonsig': {
+                    boundTo: 'nsNonsig',
+                    type: 'string',
+                    id: true
+                },
+                'Tradestyle': {
+                    boundTo: 'nsTradeStyle',
+                    type: 'string'
+                },
+                'Address': {
+                    boundTo: 'nsAddr1',
+                    type: 'string'
+                },
+                'City': {
+                    boundTo: 'nsCity',
+                    type: 'string'
+                },
+                'State': {
+                    boundTo: 'nsState',
+                    type: 'string'
+                }
+            },
+            customers: []
+        }
+        this.getCustomers()
+    }
+
+    getCustomers() {
+        API.GET({path: '/api/q/sys_customer_list'})
+        .then(response => {
+            if (response.errors.length !== 0) {
+                this.setState({error: true, message: response.errors[0].message})
+            }
+            let state = {...this.state}
+            state['customers'] = response.data.sys_customer_list
+            state['loaded'] = true
+            this.setState(state)
+        })
+        .catch(err => {
+            this.setState({error: true, message: err.message})
+        })
+    }
+
+    handleClick(e) {
+        e.preventDefault()
     }
 
     render() { 
         return (
-            <Table 
-                columns={
-                    {
-                        'Username': {
-                            labels: 'userName',
-                            as: 'text'
-                        },
-                        'Email': 'userEmail'
-                    }
-                }
-            />
+            <>
+                {this.state.error && <Alert message={this.state.message} alertType="danger" />}
+                {this.state.loaded && <Table cols={this.state.cols} rows={this.state.customers} id={this.state.id} onClick={this.handleClick.bind(this)} baseURL="/customer/" /> }
+            </>
         )
     }
 }
@@ -39,4 +85,4 @@ class Customers extends Component {
  * }
  */
 
-export { Customers };
+export default Customers

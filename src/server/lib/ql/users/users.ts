@@ -20,15 +20,19 @@ import { sendConfirmation, sendFailedPasswordReset, sendPasswordReset } from '..
 import { UserTypes } from '../../../types/users';
 import { Customer } from '../customers/customers';
 import { resolve } from 'path';
-import { Log } from '../../log';
+import { Log, UserLog } from '../../log';
 
 // Constants and global variables
 const saltRounds = 10
 
 class User extends Querynator {
+    /**
+     * Provide functions for modifying user accounts
+     * @param context Context from original request, usually {req, res}
+     * @param info The requested fields
+     */
     constructor(context?, info?) {
-        super(context, info)
-        this.tableName = 'sys_user'
+        super(context, info, 'sys_user')
         this.primaryKey = 'userId'
     }
 
@@ -70,7 +74,48 @@ class User extends Querynator {
                 }
             })
         })
+    }
 
+    public async profile(sys_id?: string) {
+        return new Promise((resolve, reject) => {
+            let user = sys_id || this.context.req.auth.u
+            let info: any
+            , logs: any
+            , customers: any
+            , detailsRetrieved: number = 0
+            this.on('info', () => {
+                detailsRetrieved++
+                if (detailsRetrieved === 3) {
+                    resolve ({
+                        user: info[0],
+                        logs,
+                        customers
+                    })
+                }
+            })
+            this.createQ({
+                query: 'SELECT * FROM sys_user_list WHERE sys_id = ?',
+                params: [user]
+            }, 'CALL')
+            .then(details => {
+                info = details
+                this.emit('info')
+                return (async () => new UserLog(this.context).get([], user))()
+            })
+            .then(logDetails => {
+                logs = logDetails
+                this.emit('info')
+                return (async () => new Customer(this.context, null).getMyCustomers())()
+            })
+            .then(customerDetails => {
+                customers = customerDetails
+                this.emit('info')
+            })
+            .catch(e => {
+                new Log(e.message).error()
+                this.emit('info')
+            })
+        })
     }
 
     /**
@@ -80,8 +125,8 @@ class User extends Querynator {
     public async getById(userId) {
         if (userId && userId.length === 36) {
             return await this.byId(userId)
-        } else if (!userId && this.context.auth && this.context.auth.userId) {
-            return await this.byId(this.context.auth.userId)
+        } else if (!userId && this.context.req.auth && this.context.req.auth.u) {
+            return await this.byId(this.context.req.auth.u)
         } else {
             throw new TypeError('Valid userId must be provided')
         }

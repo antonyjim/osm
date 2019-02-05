@@ -91,7 +91,7 @@ CREATE TABLE sys_user_nsacl (
 
 -- Keep this table to a minimum, only to be used for login, password reset
 CREATE TABLE sys_user (
-    userId CHAR(36) NOT NULL,
+    sys_id CHAR(36) NOT NULL,
     userName VARCHAR(36) NOT NULL UNIQUE,
     userPass BINARY(60),
     userEmail VARCHAR(90) NOT NULL,
@@ -102,7 +102,7 @@ CREATE TABLE sys_user (
     userInvalidLoginAttempts INT(1),
     userDefaultNonsig CHAR(9) NOT NULL,
 
-    PRIMARY KEY (userId),
+    PRIMARY KEY (sys_id),
 
     INDEX(userName),
 
@@ -115,7 +115,7 @@ CREATE TABLE sys_user (
 -- Add final foreign key after creating sys_user
 ALTER TABLE sys_user_nsacl ADD 
     FOREIGN KEY (nsaUserId)
-        REFERENCES sys_user(userId)
+        REFERENCES sys_user(sys_id)
         ON DELETE CASCADE
         ON UPDATE CASCADE;
 
@@ -468,6 +468,72 @@ CREATE TABLE sys_authorization (
 );
 
 -- Store custom views
+
+/* Provide the list of users with their default nonsig information */
+CREATE VIEW 
+    thq.sys_user_list
+AS
+    SELECT 
+        sys_id,
+        username,
+        email,
+        phone,
+        CONCAT(userFirstName, ' ', userLastName) AS userFullName,
+        userFirstName,
+        userLastName,
+        userDefaultNonsig,
+        userIsLocked,
+        userLastLogin
+    FROM sys_user;
+
+CREATE VIEW
+    thq.sys_user_nsacl_list
+AS
+    SELECT
+        sys_user.sys_id,
+        sys_user.username,
+        CONCAT(sys_user.userFirstName, ' ', userLastName) AS userFullName,
+        sys_user.userFirstName,
+        sys_user.userLastName,
+        sys_user_nsacl.nsaUserId,
+        sys_user_nsacl.nsaNonsig,
+        sys_user_nsacl.nsaRole,
+        sys_user_nsacl.nsaIsAdmin,
+        sys_user_nsacl.nsaConfirmedByAdmin,
+        sys_customer.nsNonsig,
+        sys_customer.nsTradeStyle
+    FROM
+        sys_user
+    INNER JOIN
+        sys_user_nsacl
+    ON
+        sys_user.sys_id = sys_user_nsacl.nsaUserId
+    INNER JOIN
+        sys_customer
+    ON
+        sys_user_nsacl.nsaNonsig = sys_customer.nsNonsig
+    ORDER BY
+        sys_user_nsacl.nsaIsAdmin,
+        sys_user.username ASC;
+
+CREATE VIEW 
+    thq.sys_customer_list
+AS
+    SELECT 
+        sys_customer.nsNonsig,
+        sys_customer.nsTradeStyle,
+        sys_customer.nsAddr1,
+        sys_customer.nsAddr2,
+        sys_customer.nsCity,
+        sys_customer.nsState,
+        sys_customer.nsPostalCode,
+        sys_customer.nsCountry,
+        sys_customer.nsIsActive,
+        sys_customer.nsType
+    FROM
+        sys_customer;
+
+
 CREATE VIEW 
     thq.uiNavigation
 AS
@@ -492,13 +558,13 @@ AS
         navMenu, navInnerText;
 
 CREATE VIEW
-    thq.userLogin
+    thq.user_login
 AS
     SELECT
-        sys_user.userId,
-        sys_user.userName, 
+        sys_user.sys_id,
+        sys_user.username, 
         sys_user.userPass,
-        sys_user.userEmail,
+        sys_user.email,
         sys_user.userIsConfirmed,
         sys_user.userIsLocked,
         sys_user.userInvalidLoginAttempts,
@@ -518,26 +584,4 @@ AS
     ON
         sys_user_nsacl.nsaNonsig = sys_user.userDefaultNonsig
     AND
-        sys_user_nsacl.nsaUserId = sys_user.userId;
-
-
-CREATE VIEW users
-AS
-    SELECT
-        sys_user.userId,
-        sys_user.userName,
-        sys_user.userEmail,
-        sys_user.userIsLocked,
-        sys_user.userIsConfirmed,
-        sys_user.userDefaultNonsig,
-        userInformation.userId AS userInfo,
-        userInformation.userLastLogin,
-        userInformation.userFirstName,
-        userInformation.userLastName,
-        userInformation.userPhone
-    FROM
-        sys_user
-    INNER JOIN
-        userInformation
-    ON
-        sys_user.userId = userInformation.userId;
+        sys_user_nsacl.nsaUserId = sys_user.sys_id;

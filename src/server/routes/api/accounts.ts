@@ -19,7 +19,7 @@ import { getRoleAuthorizedNavigation } from '../../lib/navigation/navigation';
 const apiAccountRoutes = Router()
 
 apiAccountRoutes.get('/navigation', function(req: Request, res: Response) {
-    getRoleAuthorizedNavigation(req.auth.userId, req.auth.userNonsig)
+    getRoleAuthorizedNavigation(req.auth.u, req.auth.c)
     .then((onResolved: StatusMessage) => {
         res.status(200).json(onResolved)
     }, (onFailure: StatusMessage) => {

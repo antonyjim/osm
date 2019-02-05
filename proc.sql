@@ -137,7 +137,7 @@ CREATE PROCEDURE newUser (
     BEGIN
         INSERT INTO sys_user
             (
-                userId,
+                sys_id,
                 userName,
                 userPass,
                 userEmail,
@@ -199,7 +199,7 @@ CREATE FUNCTION changePassword(_userId CHAR(36), _confirmation CHAR(36), _hashed
         FROM
             sys_user
         WHERE
-            userId = _userId;
+            sys_id = _userId;
 
         IF _userPendingPassword = 0 THEN RETURN 1;
         ELSE
@@ -226,7 +226,7 @@ CREATE FUNCTION confirmUser(_confirmation CHAR(36), _password BINARY(60))
 
         SELECT
             userConfirmation,
-            userId
+            sys_id
         INTO
             _storedConfirmation,
             _userId
@@ -247,7 +247,7 @@ CREATE FUNCTION confirmUser(_confirmation CHAR(36), _password BINARY(60))
                 userPass = _password,
                 userAwaitingPassword = 0
             WHERE
-                userId = _userId;
+                sys_id = _userId;
         ELSE RETURN 1;
         END IF;
         RETURN 0;
@@ -262,7 +262,7 @@ CREATE FUNCTION setForgotPassword(_userName VARCHAR(36), _userEmail VARCHAR(90),
         DECLARE _resolvedEmail VARCHAR(90);
         IF NOT ISNULL(_userName) THEN
             SELECT
-                userId,
+                sys_id,
                 userEmail
             INTO
                 _userId,
@@ -273,7 +273,7 @@ CREATE FUNCTION setForgotPassword(_userName VARCHAR(36), _userEmail VARCHAR(90),
                 userName = _userName;
         ELSEIF NOT ISNULL(_userEmail) THEN
             SELECT
-                userId,
+                sys_id,
                 userEmail
             INTO
                 _userId,
@@ -292,7 +292,7 @@ CREATE FUNCTION setForgotPassword(_userName VARCHAR(36), _userEmail VARCHAR(90),
             userConfirmation = _passwordResetToken,
             userAwaitingPassword = 1
 	    WHERE
-		userId = _userId;
+		sys_id = _userId;
     ELSE RETURN NULL;
 	END IF;
         RETURN _resolvedEmail;

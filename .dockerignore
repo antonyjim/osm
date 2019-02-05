@@ -1,0 +1,2 @@
+# Force container to install dependencies
+node_modules

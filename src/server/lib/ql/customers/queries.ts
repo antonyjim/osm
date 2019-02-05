@@ -1,5 +1,3 @@
-import { GraphQLList, GraphQLString, GraphQLBoolean, GraphQLID, GraphQLNonNull } from "graphql";
-import CustomerType from './schema'
 import { Customer } from './customers'
 
 export const customerQueries = {

@@ -1,5 +1,3 @@
-import { GraphQLList, GraphQLString, GraphQLBoolean, GraphQLID } from "graphql";
-import TableType from './schema'
 import Table from './tables'
 
 const tableQueries = {

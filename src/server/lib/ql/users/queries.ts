@@ -1,6 +1,4 @@
- import { GraphQLList, GraphQLString, GraphQLBoolean, GraphQLID } from "graphql";
-import { UserType } from './schema'
-import CustomerType from '../customers/schema'
+
 import User from "./users";
 
 const userQueries = {

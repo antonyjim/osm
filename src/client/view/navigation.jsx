@@ -115,8 +115,8 @@ class Navigation extends Component {
                                 <li className="nav-item dropdown">
                                     <a className="dropdown-toggle pl-3 nav-item ml-auto" data-toggle="dropdown" id="account" aria-haspopup="true" aria-expanded="false"><img className="rounded-circle img" src="/public/images/account.png"/></a>
                                         <div className="dropdown-menu dropdown-menu-right" aria-labelledby="account">
-                                            <Link className="dropdown-item" to="/customer/change">Change Customer</Link>
-                                            <Link className="dropdown-item" to="/profile/administration">User Administration</Link>
+                                            <Link className="dropdown-item" to="/changeCustomer">Change Customer</Link>
+                                            <Link className="dropdown-item" to="/userAdministration">User Administration</Link>
                                             <Link className="dropdown-item" to="/profile">Profile</Link>
                                             <a className="dropdown-item" href="#">French</a>
                                             <a className="dropdown-item" href="/logout">Logout</a>

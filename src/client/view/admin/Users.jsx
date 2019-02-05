@@ -3,14 +3,14 @@ import Table from '../common/Table.jsx';
 import API from '../lib/API.js';
 import Alert from '../common/alerts.jsx';
 
-class UserList extends Component {
+class Users extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            id: 'userId',
+            id: 'sys_id',
             cols: {
                 'Username': {
-                  boundTo: 'userName',
+                  boundTo: 'username',
                   type: 'string',
                   id: true
                 },
@@ -27,7 +27,7 @@ class UserList extends Component {
                   type: 'string'
                 },
                 'Email': {
-                  boundTo: 'userEmail',
+                  boundTo: 'email',
                   type: 'string'
                 },
                 'Last Login': {
@@ -43,26 +43,69 @@ class UserList extends Component {
             error: false,
             loaded: false
         }
-        this.getUsers()
+        this.getUsers(props.customer)
     }
 
-    getUsers() {
-        API.GET({
-            path: '/api/q/user_list',
-            query: {
-                fields: 'userId,userName,userEmail,userDefaultNonsig,userLastLogin,userDefaultNonsig,userFirstName,userLastName,userIsLocked'
+    getUsers(customer) {
+        if (customer) {
+            const altCols = {
+                'Username': {
+                    boundTo: 'username',
+                    type: 'string',
+                    id: true
+                },
+                'First Name': {
+                    boundTo: 'userFirstName',
+                    type: 'string'
+                },
+                'Last Name': {
+                    boundTo: 'userLastName',
+                    type: 'string'
+                },
+                'Customer': {
+                    boundTo: 'nsNonsig',
+                    type: 'string'
+                },
+                'Admin': {
+                    boundTo: 'nsaIsAdmin',
+                    type: 'boolean'
+                }
             }
-        }, (err, response) => {
-            if (err) {
-                this.setState({error: err.message, loaded: true})
-                return 1
-            }
-            if (response && response.data && response.data.user_list) {
-                this.setState({users: response.data.user_list, error: false, loaded: true})
-            } else {
-                this.setState({error: 'No data found', loaded: true})
-            }
-        })
+            API.GET({
+                path: '/api/q/sys_user_nsacl_list',
+                query: {
+                    fields: 'sys_id,username,nsNonsig,userFirstName,userLastName,nsaIsAdmin',
+                    args: 'nsNonsig=eq|' + customer
+                }
+            }, (err, response) => {
+                if (err) {
+                    this.setState({error: err.message, loaded: true, cols: altCols})
+                    return 1
+                }
+                if (response && response.data && response.data.sys_user_nsacl_list) {
+                    this.setState({users: response.data.sys_user_nsacl_list, error: false, loaded: true, cols: altCols})
+                } else {
+                    this.setState({error: 'No data found', loaded: true, cols: altCols})
+                }
+            })
+        } else {
+            API.GET({
+                path: '/api/q/sys_user_list',
+                query: {
+                    fields: 'userId,username,email,userDefaultNonsig,userLastLogin,userDefaultNonsig,userFirstName,userLastName,userIsLocked'
+                }
+            }, (err, response) => {
+                if (err) {
+                    this.setState({error: err.message, loaded: true})
+                    return 1
+                }
+                if (response && response.data && response.data.sys_user_list) {
+                    this.setState({users: response.data.sys_user_list, error: false, loaded: true})
+                } else {
+                    this.setState({error: 'No data found', loaded: true})
+                }
+            })
+        }
     }
 
     handleClick(e) {
@@ -80,4 +123,4 @@ class UserList extends Component {
     }
 }
 
-export default UserList
+export default Users

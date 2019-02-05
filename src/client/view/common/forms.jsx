@@ -58,7 +58,7 @@ class SelectField extends Component {
             options.push(<option value="otherSelection" key={Math.floor(Math.random() * 1000000)}>Other</option>)
         }
         return !this.props.isHidden && (
-            <div className="form-group">
+            <div className={'form-group ' + this.props.className}>
                 <label htmlFor={this.props.id}>
                     {this.props.label}
                 </label>

@@ -15,6 +15,7 @@ import { tokenValidation } from './../middleware/authentication'
 import bodyParser = require('body-parser');
 import loginRoutes from './login'
 import verifyRoutes from './verification';
+import { getServerStatus } from '../../lib/utils';
 
 // Constants and global variables
 const uiRoutes = Router()
@@ -38,8 +39,15 @@ uiRoutes.get('/logout', function(req, res) {
     })
 })
 
+uiRoutes.get('/stats', function(req: Request, res: Response) {
+    getServerStatus()
+    .then(stats => {
+        res.status(200).json(stats)
+    })
+})
+
 uiRoutes.get('*', function(req, res) {
-    if (req.auth.isAuthenticated && req.auth.userId) {
+    if (req.auth.iA && req.auth.u) {
         res.writeHead(200, {'Content-Type': 'text/html; charset=UTF-8'})
         let fileStream = createReadStream(resolve(__dirname, '../../../static/index.html'))
         fileStream.on('data', function(data) {
