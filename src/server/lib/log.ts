@@ -124,7 +124,7 @@ class Log {
             }
         } else {
             if (reqId && this.requiresContext) {
-                query = 'SELECT * FROM ?? WHERE ?? = ? ORDER BY log_time DESC'
+                query = 'SELECT * FROM ?? WHERE ?? = ? ORDER BY log_time DESC LIMIT 20'
                 params = [
                     this.tableName,
                     this.primaryKey,

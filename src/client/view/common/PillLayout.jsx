@@ -13,7 +13,7 @@ export default class Pills extends Component {
         let pillBodies = []
         Object.keys(pills).map((pill, key) => {
             if (key === 0) { // First pill is active by default
-                pillAs.push(<a key={key * Date.now() + (~~Math.random() * 1000)} className="nav-link active" id={pills[pill].id + '-tab'} data-toggle="pill" href={'#' + pills[pill].id} role="tab" aria-controls={pills[pill].id} aria-selected="true">{pills[pill].label}</a>)
+                pillAs.push(<a key={key * Date.now() + (~~Math.random() * 10000)} className="nav-link active" id={pills[pill].id + '-tab'} data-toggle="pill" href={'#' + pills[pill].id} role="tab" aria-controls={pills[pill].id} aria-selected="true">{pills[pill].label}</a>)
                 pillBodies.push(
                     <div key={key * Date.now()} className="tab-pane fade show active" id={pills[pill].id} role="tabpanel" aria-labelledby={pills[pill].id + '-tab'}>
                         <div className="row">
@@ -46,7 +46,7 @@ export default class Pills extends Component {
                     <div className="col-md-3 col-sm-12">
                         <div className="nav flex-column nav-pills" id="v-pills" role="tablist" aria-orientation="vertical">
                             {pillAs}
-                        </div>
+                        </div> 
                     </div>
                     <div className="col-md-9 col-sm-12 mb-5">
                         <div className="tab-content" id="v-pill-tabContent">

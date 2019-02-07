@@ -412,6 +412,9 @@ CREATE TABLE sys_db_dictionary (
 	type VARCHAR(10), -- Type (boolean, varchar, char, etc...)
 	length INT, -- Length of field, applies to varchar, char
 	table_name CHAR(36),
+    selectable BOOLEAN NOT NULL DEFAULT 0,
+    update_key BOOLEAN NOT NULL DEFAULT 0,
+    base_url VARCHAR(40),
 
 	FOREIGN KEY(table_name)
 		REFERENCES sys_db_object (sys_id)
@@ -422,6 +425,18 @@ CREATE TABLE sys_db_dictionary (
         ON DELETE RESTRICT
         ON UPDATE CASCADE
 ) CHARSET = utf8;
+
+CREATE TABLE sys_view (
+    PRIMARY KEY(view_field, view_name),
+    view_name VARCHAR(40),
+    view_label VARCHAR(40),
+    view_field CHAR(36),
+    INDEX(view_name),
+    FOREIGN KEY (view_field)
+        REFERENCES sys_db_dictionary (sys_id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+) CHARSET=utf8;
 
 CREATE TABLE sys_db_acl (
 	PRIMARY KEY(dbpriv, dbtable),
@@ -460,6 +475,10 @@ CREATE TABLE sys_authorization (
     auth_can_read BOOLEAN,
     auth_can_edit BOOLEAN,
     auth_can_delete BOOLEAN,
+    auth_can_create_own BOOLEAN,
+    auth_can_read_own BOOLEAN,
+    auth_can_edit_own BOOLEAN,
+    auth_can_delete_own BOOLEAN,
 
     FOREIGN KEY (auth_priv)
         REFERENCES sys_priv(priv)
@@ -486,6 +505,40 @@ AS
         userLastLogin
     FROM sys_user;
 
+CREATE VIEW
+    thq.sys_db_dictionary_list
+AS
+    SELECT
+        sys_db_dictionary.sys_id,
+        sys_db_dictionary.reference_id,
+        sys_db_dictionary.column_name,
+        sys_db_dictionary.visible,
+        sys_db_dictionary.readonly,
+        sys_db_dictionary.nullable,
+        sys_db_dictionary.label,
+        sys_db_dictionary.hint,
+        sys_db_dictionary.type,
+        sys_db_dictionary.length,
+        sys_db_dictionary.update_key,
+        sys_db_dictionary.base_url,
+        sys_db_dictionary.selectable,
+        sys_db_dictionary.col_order,
+        sys_db_object.name AS table_name
+    FROM
+        sys_db_dictionary
+    INNER JOIN
+        sys_db_object
+    ON
+        sys_db_dictionary.table_name = sys_db_object.sys_id
+    LEFT JOIN
+        sys_db_dictionary AS reference_dictionary
+    ON
+        reference_dictionary.reference_id = sys_db_dictionary.sys_id
+    ORDER BY
+        sys_db_dictionary.col_order ASC;
+    
+CREATE VIEW
+    thq.sys_view_list
 CREATE VIEW
     thq.sys_user_nsacl_list
 AS

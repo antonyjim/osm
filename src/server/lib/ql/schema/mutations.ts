@@ -18,15 +18,18 @@ import { userMutations } from '../mutations/userMutations'
 import { tableMutations } from "../tables/mutations"
 
 // Constants and global variables
-const cudResolvers = {
+const rootMutations = {
     create: {
-        user: userMutations.add_user,
+        sys_user: userMutations.add_user,
         sys_db_object: tableMutations.add_table
     },
     update: {
-        user: userMutations.update_user,
+        sys_user: userMutations.update_user,
         sys_db_object: tableMutations.update_table
+    },
+    delete: {
+        
     }
 }
 
-export default cudResolvers
+export default rootMutations

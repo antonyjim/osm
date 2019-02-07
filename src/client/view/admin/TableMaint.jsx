@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
+import PillLayout from './../common/PillLayout.jsx'
 
-class DB extends Component {
+class Column extends Component {
     constructor(props) {
         super(props)
         this.state = {
@@ -9,6 +10,11 @@ class DB extends Component {
     }
 
     render() {
-        
+        const pills = {
+            
+        }
+        return (
+            <Pills />
+        )
     }
 }

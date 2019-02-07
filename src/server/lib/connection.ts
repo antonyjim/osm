@@ -49,24 +49,30 @@ class Querynator extends EventEmitter {
     protected context: any
     protected baseParams: any[]
     protected queryFields: string
+    private queryFieldsArr: string[]
 
     /**
      * Create an interface for graphql to query from, with authorization included
      * @param context Context from the GQL query
      * @param queryFields Info from the GQL query
      */
-    constructor(context?: any, queryFields?: string[], table?: string) {
+    constructor(context?: any, queryFields?: string[]) {
         super()
         this.pool = getPool()
+        this.queryFieldsArr = queryFields
         this.baseParams = []
         this.context = context
-        this.tableName = table || ''
+        this.tableName =  ''
         this.once('init', () => {
-            if (queryFields && Array.isArray(queryFields)) {
+            if (this.queryFieldsArr && Array.isArray(this.queryFieldsArr)) {
                 let fieldPlaceholders: string[] = []
-                queryFields.map(field => {
-                    fieldPlaceholders.push('??.??')
-                    this.baseParams.push(this.tableName, field)
+                this.queryFieldsArr.map(field => {
+                    if (field === '*') {
+                        fieldPlaceholders.push('*')    
+                    } else {
+                        fieldPlaceholders.push('??.??')
+                        this.baseParams.push(this.tableName, field)
+                    }
                 })
                 this.queryFields = fieldPlaceholders.join(', ')
             }
@@ -147,11 +153,16 @@ class Querynator extends EventEmitter {
         })
     }
 
+    protected updateById(id) {
+        
+    }
+
     /**
      * Allow operators to be used with graphql queries in the format {field: "operator|value"}
      * @param fields Object containing field operators
      */
     private evaluateFieldOperator(field) {
+        if (!field || typeof field !== 'string') return field
         let op = field.split('|')
         let fieldInfo = {
             operator: '',
@@ -206,15 +217,16 @@ class Querynator extends EventEmitter {
     }
 
     protected async byId(reqId: string): Promise<any> {
+        if (typeof reqId !== 'string') throw new TypeError(this.primaryKey + ' must be in string format')
         let params: any[] = this.baseParams
         let query: string = ''
-        let id = this.evaluateFieldOperator(reqId).value
+        let id = reqId
         query = 'SELECT ' + this.queryFields + ' FROM ?? WHERE ?? = ?'
         params.push(this.tableName, this.primaryKey, id)
-        return (await this.createQ({
+        return this.createQ({
             query,
             params
-        })).shift()
+        })
     }
 
     protected async byFields({fields}: {fields: any}, {order, offset, limit}: {order?: {by?: string, direction?: 'ASC' | 'DESC'}, offset?: number, limit?: number}) {

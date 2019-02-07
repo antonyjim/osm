@@ -6,6 +6,8 @@ import Alert from '../common/alerts.jsx';
 import { E401 } from '../common/errors.jsx'
 import API from '../lib/API.js'
 import Table from '../common/Table.jsx'
+import TableViews from './TableViews.jsx';
+import Pills from '../common/PillLayout.jsx'
 
 class ExistingRoute extends Component {
     constructor(props) {
@@ -642,42 +644,10 @@ class Tables extends Component {
             },
             tables: []
         }
-        this.getTables()
     }
-
-    getTables() {
-      API.POST({
-        path: '/api/q/sys_db_object',
-        body: JSON.stringify({
-
-        })
-        }, (err, response) => {
-          if (err) this.setState({error: err, loaded: true})
-          this.setState({tables: response.data.table_list, loaded: true})
-        })
-    }    
-
-    handleChange(e) {
-        let obj = {...this.state}
-        obj[e.target.id] = e.target.value
-        this.setState(obj)
-    }
-
-    handleSubmit(e) {
-        if (e.keyCode === 13) {
-            this.query()
-            return 0
-        }
-    }
-
 
     render () {
-        return (
-            <div id="tables" className={this.props.className + " m-3"}>
-              {this.state.loaded && this.state.error && <Alert message={this.state.error} alertType="danger" />}
-              {this.state.loaded && <Table count={this.state.tables.length} rows={this.state.tables} id="name" baseURL="/admin/tables" cols={this.state.cols} />}
-            </div>
-        )
+        return <Table table="sys_db_object_list" hideActions={true} />
     }
 }
 
@@ -685,25 +655,48 @@ class Tables extends Component {
 class AdminWireFrame extends Component {
     constructor(props) {
         super(props)
+        this.state = {
+            fields: this.props.fields
+        }
+    }
+
+    handleChange(e) {
+        let fields = {...this.state.fields}
+        let modifiedFields = this.state.modifiedFields
+        fields[e.target.id] = e.target.value
+        if (modifiedFields.indexOf(e.target.id) === -1) {
+            modifiedFields.push(e.target.id)
+        }
+        this.setState({fields, modifiedFields})
     }
 
     render() {
-        let comps = [
-            {
-                title: 'Routes',
-                component: Routes
+        let comps = {
+            routes: {
+                id: 'routes',
+                label: 'Routes',
+                body: <Routes/>
             },
-            {
-                title: 'Roles',
-                component: Roles
+            roles: {
+                id: 'roles',
+                label: 'Roles',
+                body: <Roles/>
             },
-            {
-                title: 'Tables',
-                component: Tables
+            tables: {
+                id: 'tables',
+                label: 'Tables',
+                body: <Tables/>
+            },
+            views: {
+                id: 'views',
+                label: 'Columns',
+                body: <TableViews/>
             }
-        ]
+        }
         return (
-            <Tabs tabs={comps}/>
+            <>
+                <Pills pills={comps} handleChange={this.handleChange.bind(this)} {...this.state} />
+            </>
         )
     }
 }

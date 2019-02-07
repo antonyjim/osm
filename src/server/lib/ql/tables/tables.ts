@@ -27,8 +27,10 @@ const FOREIGN_KEY = async (table: string, column: string, onDelete: FOREIGN_KEY_
 
 class Table extends Querynator {
     constructor(context, fields) {
-        super(context, fields, 'sys_db_object')
+        super(context, fields)
+        this.tableName = 'sys_db_object'
         this.primaryKey = 'name'
+        this.emit('init')
     }
 
     public async getById(id) {
@@ -83,10 +85,6 @@ class Table extends Querynator {
     }
 
     public async createFields(fields) {
-
-    }
-
-    public getFields(fields) {
 
     }
 }

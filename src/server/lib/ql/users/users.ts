@@ -32,8 +32,10 @@ class User extends Querynator {
      * @param info The requested fields
      */
     constructor(context?, info?) {
-        super(context, info, 'sys_user')
+        super(context, info)
         this.primaryKey = 'userId'
+        this.tableName = 'sys_user'
+        this.emit('init')
     }
 
     /**

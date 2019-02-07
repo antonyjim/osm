@@ -7,6 +7,7 @@ import Wetty from './Wetty.jsx';
 import Users from './Users.jsx';
 import UserProfile from '../home/UserProfile.jsx';
 import Stats from './Stats.jsx';
+import Column from './Column.jsx';
 
 class Admin extends Component {
     constructor(props) {
@@ -22,6 +23,7 @@ class Admin extends Component {
                 <Route path="/admin/navroles" component={AdminWireFrame} />
                 <Route path="/admin/wetty" component={Wetty} />
                 <Route path="/admin/stats" component={Stats} />
+                <Route path="/admin/column/:sys_id" component={Column} />
                 <Route component={E404} />
             </Switch>
         )

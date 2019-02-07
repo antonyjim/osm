@@ -14,6 +14,7 @@
 import { Querynator } from "../../connection";
 import { Log } from "../../log";
 import { rootQueries } from "./queries";
+import rootMutations from "./mutations";
 
 
 // Constants and global variables
@@ -93,32 +94,107 @@ export default class APICall extends Querynator {
 
     }
 
+    /**
+     * Create new users from a POST request
+     */
     public create() {
+        // rootQueries[queryTable](fields, this.context.req.params.id, this.context)
+        const queryTable = this.context.req.params.table
+        if(rootMutations.create[queryTable]) {
+            rootMutations.create[queryTable](this.context.req.query.fields, null, this.context)
+            .then(rows => {
+                this.response.body.data[queryTable] = rows[0]
+                this.response.status = 200
+                return this.sendResponse()
+            })
+            .catch(err => {
+                return this.handleError(err, true)
+            })
+        } else {
+            return this.handleError(new Error(`Table ${this.context.req.params.table} does not exist.`), true)
+        }
+    }
 
+    /**
+     * Update data received from PUT requests
+     */
+    public update() {
+        const queryTable = this.context.req.params.table
+        const id = this.context.req.params.id
+        if(rootMutations.update[queryTable] && id) {
+            rootMutations.update[queryTable](this.context.req.query.fields, this.context.req.body, this.context)
+            .then(rows => {
+                if (rows.errors) this.response.body.errors.push(rows.errors) // Allow non-terminating errors to be passed in the response
+                if (rows.data) {
+                    this.response.body.data[queryTable] = rows.data[0]
+                } else {
+                    this.response.body.data[queryTable] = rows[0]
+                }
+                this.response.status = 200
+                return this.sendResponse()
+            })
+            .catch(err => {
+                return this.handleError(err, true)
+            })
+        } else {
+            return this.handleError(new Error(`Table ${this.context.req.params.table} does not exist.`), true)
+        }
+    }
+
+    public delete() {
+        const queryTable = this.context.req.params.table
+        const id = this.context.req.params.id
+        if(rootMutations.delete[queryTable] && id) {
+            rootMutations.delete[queryTable](this.context.req.query.fields, this.context.req.body, this.context)
+            .then(rows => {
+                if (rows.errors) this.response.body.errors.push(rows.errors) // Allow non-terminating errors to be passed in the response
+                if (rows.data) {
+                    this.response.body.data[queryTable] = rows.data[0]
+                } else {
+                    this.response.body.data[queryTable] = rows[0]
+                }
+                this.response.status = 200
+                return this.sendResponse()
+            })
+            .catch(err => {
+                return this.handleError(err, true)
+            })
+        } else {
+            return this.handleError(new Error(`Table ${this.context.req.params.table} does not exist.`), true)
+        }
     }
 
     /**
      * Sample query: /api/q/user_list?fields=userId,userName,userFirstName,userLastName&args=userId=eq|29b7b057-9438-4d01-9bc5-b94387e3f51e
      */
     public query() {
+        let fields = this.context.req.query.fields
+        const queryTable = this.context.req.params.table
+        const handler = rootQueries[queryTable]
+
         this.on('validatedFields', (e) => {
             let rawArgs = this.context.req.query.args
-            let args: any = {}
-            let queryTable = this.context.req.params.table
+            let args: any = null
+
             if (rawArgs && rawArgs.length > 0) {
+                args = {}
                 rawArgs.split(',').map(arg => {
                     let keyVal = arg.split('=')
                     args[keyVal[0]] = keyVal[1]
                 })
             }
             // If both the ID and table is provided, query the single record
-            console.log('%s, %s, %s, %s', queryTable, this.context.req.params.id, rootQueries[queryTable], fields)
             if (this.context.req.params.table
             && this.context.req.params.id
             && rootQueries[queryTable]) {
-                rootQueries[queryTable](fields, args, this.context)
+                rootQueries[queryTable](fields, this.context.req.params.id, this.context)
                 .then(rows => {
-                    this.response.body.data = rows
+                    if (rows.errors) this.response.body.errors.push(rows.errors) // Allow non-terminating errors to be passed in the response
+                    if (rows.data) {
+                        this.response.body.data[queryTable] = rows.data[0]
+                    } else {
+                        this.response.body.data[queryTable] = rows[0]
+                    }
                     this.response.status = 200
                     this.sendResponse()
                 }, failure => {
@@ -126,13 +202,19 @@ export default class APICall extends Querynator {
                 })
                 .catch(err => this.handleError(err, true))
             } else if (queryTable) {
-                let pagination = {
+                const pagination = {
                     limit: this.context.req.query.limit || 20,
                     offset: this.context.req.query.offset || 0
                 }
-                rootQueries[queryTable](fields, args, this.context, pagination)
+                
+                handler(fields, args, this.context, pagination)
                 .then(rows => {
-                    this.response.body.data[queryTable] = rows
+                    if (rows.errors) this.response.body.errors.push(rows.errors) // Allow non-terminating errors to be passed in the response
+                    if (rows.data) {
+                        this.response.body.data[queryTable] = rows.data
+                    } else {
+                        this.response.body.data[queryTable] = rows
+                    }
                     this.response.status = 200
                     this.sendResponse()
                 }, failure => {
@@ -143,13 +225,16 @@ export default class APICall extends Querynator {
                 this.handleError(new Error(`No data associated with request`), true)
             }
         })
-        let fields = this.context.req.query.fields
-        if (fields && fields.length > 0) {
-            fields = fields.split(',')
-            if (rootQueries[this.context.req.params.table]) {
+//        if (fields && fields.length > 0) {
+            if (fields) {
+                fields = fields.split(',')
+            } else {
+                fields = ['*']
+            }
+            if (handler && handler !== undefined) {
                 this.emit('validatedFields')
             } else {
-                return this.handleError(new Error(`Table ${this.context.req.params.table} does not exist.`), true)
+                return this.handleError(new Error(`Table ${this.context.req.params.table} does not exist`), true)
             }
             /*
             this.verifyFields(fields.split(','))
@@ -162,16 +247,16 @@ export default class APICall extends Querynator {
                 this.handleError(new Error(`Table ${this.context.req.params.table} does not exist.`), true)
             })
             */
-        } else {
-            this.verifyFields([])
-            .then(defaultFields => {
-                fields = defaultFields
-                this.emit('validatedFields')
-            })
-            .catch(err => {
-                new Log(err.message).error(3)
-                this.handleError(new Error(`Table ${this.context.req.params.table} does not exist.`), true)
-            })
-        }
+//        } else {
+//            this.verifyFields([])
+//            .then(defaultFields => {
+//                fields = defaultFields
+//                this.emit('validatedFields')
+//            })
+//            .catch(err => {
+//                new Log(err.message).error(3)
+//                this.handleError(new Error(`Table ${this.context.req.params.table} does not exist.`), true)
+//            })
+//        }
     }
 }

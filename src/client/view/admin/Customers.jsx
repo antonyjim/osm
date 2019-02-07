@@ -15,6 +15,7 @@ class Customers extends Component {
                 'Nonsig': {
                     boundTo: 'nsNonsig',
                     type: 'string',
+                    baseURL: '/customer/',
                     id: true
                 },
                 'Tradestyle': {

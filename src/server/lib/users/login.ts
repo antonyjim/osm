@@ -24,14 +24,11 @@ const tokenExpiration = process.env.TOKEN_EXPIRATION || '1h'
 export async function Login(credentials: UserTypes.Credentials) {
     this.credentials = credentials
 
-    this.validatePassword = async (hashed): Promise<boolean> => {
-        return new Promise((resolve) => {
+    this.validatePassword = async (hashed) => {
+        return new Promise(resolve => {
             compare(this.credentials.password, hashed.toString(), function(err: Error, same: boolean) {
-                if (err) {
-                    throw new LoginException('Password error', err)
-                } else {
-                    resolve(same)
-                }
+                if (err) throw new LoginException('Password error', err)
+                return resolve(same)
             })
         })
     }
@@ -39,7 +36,7 @@ export async function Login(credentials: UserTypes.Credentials) {
     this.incrementInvalidLogins = (sys_id) => {
         pool.query(`UPDATE sys_user
         SET userInvalidLoginAttempts = userInvalidLoginAttempts + 1
-        WHERE sys_id = ${sys_id}`)
+        WHERE sys_id = '${sys_id}'`)
     }
 
     this.handleLogin = (sys_id) => {
@@ -52,7 +49,7 @@ export async function Login(credentials: UserTypes.Credentials) {
     this.lockUser = (sys_id) => {
         pool.query(`UPDATE sys_user
         SET userIsLocked = 1
-        WHERE sys_id = ${sys_id}`)
+        WHERE sys_id = '${sys_id}'`)
     }
 
     return this.authenticate = (async () => {

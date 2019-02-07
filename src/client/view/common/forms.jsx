@@ -10,7 +10,7 @@ class Field extends Component {
                 <label htmlFor={this.props.id}>
                     {this.props.label}
                 </label>
-                <input {...this.props.attributes} type={this.props.type} className="form-control" id={this.props.id} value={this.props.value} onChange={this.props.onChange} />
+                <input {...this.props.attributes} type={this.props.type} className="form-control" id={this.props.id} value={this.props.value || ''} onChange={this.props.onChange} />
             </div>
         )
     }

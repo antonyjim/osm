@@ -20,10 +20,19 @@ export default function API() {
     return function API(req: Request, res: Response) {
         switch(req.method) {
             case 'PUT' : {
-                new APICall({req, res}).create()
+                new APICall({req, res}).update()
+                break
             }
             case 'GET' : {
                 new APICall({req, res}).query()
+                break
+            }
+            case 'POST': {
+                new APICall({req, res}).create()
+                break
+            }
+            case 'DELETE': {
+                new APICall({req, res}).delete()
             }
         }
 
