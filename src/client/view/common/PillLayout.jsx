@@ -4,6 +4,9 @@ export default class Pills extends Component {
     constructor(props) {
         super(props)
         this.state = {...props}
+        if (!props.pills) {
+            throw new Error('Pills must be provided as a prop to the <Pills /> Component.')
+        }
         props.handleLoad ? props.handleLoad() : void 0
     }
 
@@ -13,9 +16,9 @@ export default class Pills extends Component {
         let pillBodies = []
         Object.keys(pills).map((pill, key) => {
             if (key === 0) { // First pill is active by default
-                pillAs.push(<a key={key * Date.now() + (~~Math.random() * 10000)} className="nav-link active" id={pills[pill].id + '-tab'} data-toggle="pill" href={'#' + pills[pill].id} role="tab" aria-controls={pills[pill].id} aria-selected="true">{pills[pill].label}</a>)
+            pillAs.push(<a key={/* key * Date.now() + (~~Math.random() * 10000)*/pills[pill].id + '-tab'} className="nav-link active" id={pills[pill].id + '-tab'} data-toggle="pill" href={'#' + pills[pill].id} role="tab" aria-controls={pills[pill].id} aria-selected="true">{pills[pill].label}</a>)
                 pillBodies.push(
-                    <div key={key * Date.now()} className="tab-pane fade show active" id={pills[pill].id} role="tabpanel" aria-labelledby={pills[pill].id + '-tab'}>
+                    <div key={pills[pill].id} className="tab-pane fade show active" id={pills[pill].id} role="tabpanel" aria-labelledby={pills[pill].id + '-tab'}>
                         <div className="row">
                             <div className="col"/>
                                 <div className="col-lg-10 col-md-11 col-sm-12 pt-4">
@@ -26,9 +29,9 @@ export default class Pills extends Component {
                     </div>
                 )
             } else {
-                pillAs.push(<a key={key * Date.now() + (~~Math.random() * 1000)} className="nav-link" id={pills[pill].id + '-tab'} data-toggle="pill" href={'#' + pills[pill].id} role="tab" aria-controls={pills[pill].id} aria-selected="false">{pills[pill].label}</a>)
+                pillAs.push(<a key={/* key * Date.now() + (~~Math.random() * 1000)*/pills[pill].id + '-tab'} className="nav-link" id={pills[pill].id + '-tab'} data-toggle="pill" href={'#' + pills[pill].id} role="tab" aria-controls={pills[pill].id} aria-selected="false">{pills[pill].label}</a>)
                 pillBodies.push(
-                    <div key={key * Date.now()} className="tab-pane fade" id={pills[pill].id} role="tabpanel" aria-labelledby={pills[pill].id + '-tab'}>
+                    <div key={pills[pill].id} className="tab-pane fade" id={pills[pill].id} role="tabpanel" aria-labelledby={pills[pill].id + '-tab'}>
                         <div className="row">
                             <div className="col"/>
                                 <div className="col-lg-10 col-md-11 col-sm-12 pt-4">

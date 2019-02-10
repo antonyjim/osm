@@ -33,7 +33,7 @@ class User extends Querynator {
      */
     constructor(context?, info?) {
         super(context, info)
-        this.primaryKey = 'userId'
+        this.primaryKey = 'sys_id'
         this.tableName = 'sys_user'
         this.emit('init')
     }
@@ -321,8 +321,10 @@ class User extends Querynator {
      * @param {object} fields Fields to update an existing user
      */
     public async update(fields) {
-        if (!fields.userId) {
+        if (!this.context.req.params.id) {
             throw new TypeError('Cannot update user without userId')
+        } else if (!fields) {
+            throw new TypeError('Update body is empty! Nothing to update.')
         } else {
             try {
                 let fieldsToUpdate: UserTypes.All = {}
@@ -348,8 +350,8 @@ class User extends Querynator {
                         {
                             userFirstName: fields.userFirstName, 
                             userLastName: fields.userLastName, 
-                            userPhone: fields.userPhone,
-                            userNewEmail: fields.userEmail
+                            phone: fields.phone,
+                            userNewEmail: fields.email
                         },
                         3
                     )
@@ -358,7 +360,7 @@ class User extends Querynator {
                     })
                 }
 
-                if (fields.userEmail) {
+                if (fields.email) {
                     fieldsToUpdate.userConfirmation = uuid.v4()
                     sendConfirmation(
                         {
@@ -368,8 +370,8 @@ class User extends Querynator {
                         }
                     )
                 }
-                this.createUpdate(fieldsToUpdate, fields.userId)
-                return this.byId(fields.userId)
+                this.createUpdate(fieldsToUpdate, this.context.req.params.id)
+                return this.byId(this.context.req.params.id)
             } catch(e) {
                 throw e
             }

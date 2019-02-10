@@ -15,15 +15,15 @@ export default class Customer extends Component {
                 nsNonsig: '',
                 nsTradestyle: ''
             },
-            modifiedFields: []
+            modifiedFields: [],
+            customer: props.match.params.customer
         }
         this.getCustomer()
     }
 
     getCustomer() {
-        API.GET({path: '/api/q/sys_customer', query: {
-            fields: 'nsNonsig,nsTradeStyle,nsAddr1,nsAddr2,nsState,nsCity,nsPostalCode,nsCountry',
-            args: 'nsNonsig=eq|' + this.props.match.params.customer
+        API.GET({path: '/api/q/sys_customer/' + this.state.customer, query: {
+            fields: 'nsNonsig,nsTradeStyle,nsAddr1,nsAddr2,nsState,nsCity,nsPostalCode,nsCountry'
         }})
         .then(response => {
             if (response.errors.length > 0) {

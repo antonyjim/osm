@@ -29,7 +29,7 @@ class Table extends Querynator {
     constructor(context, fields) {
         super(context, fields)
         this.tableName = 'sys_db_object'
-        this.primaryKey = 'name'
+        this.primaryKey = 'sys_id'
         this.emit('init')
     }
 

@@ -40,7 +40,7 @@ export function tokenValidation() {
                 c: null
             }
             sign(anonToken, jwtSecret, {expiresIn: '1h'}, function(err: Error, token: string) {
-                if (err) handleOnAuthError(err)
+                if (err) console.error(err)
                 req.auth = {
                     iA: false,
                     iZ: false,

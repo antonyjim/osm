@@ -28,7 +28,7 @@ q.get('/describe/:table', (req: Request, res: Response) => {
 q.get('/:table', API())
 q.get('/:table/:id', API())
 q.post('/:table/:id', API())
-q.put('/:table', API())
+q.put('/:table/:id', API())
 q.delete('/:table/:id', API())
 q.all('*', (req: Request, res: Response) => {
     res.status(404).json({

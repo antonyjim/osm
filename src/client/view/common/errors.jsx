@@ -54,7 +54,7 @@ class ErrorBoundary extends Component {
                 <div className="fof-cont">
                     <center>
                         <div className="fof-title">
-                            <h1 className="error-code">Oops</h1>
+                            <h1 className="error-code">Fuck</h1>
                         </div>
                         <br />
                         <div className="fof-desc">

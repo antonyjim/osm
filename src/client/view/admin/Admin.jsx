@@ -8,6 +8,7 @@ import Users from './Users.jsx';
 import UserProfile from '../home/UserProfile.jsx';
 import Stats from './Stats.jsx';
 import Column from './Column.jsx';
+import { TableModifier } from './TableMaint.jsx';
 
 class Admin extends Component {
     constructor(props) {
@@ -24,6 +25,7 @@ class Admin extends Component {
                 <Route path="/admin/wetty" component={Wetty} />
                 <Route path="/admin/stats" component={Stats} />
                 <Route path="/admin/column/:sys_id" component={Column} />
+                <Route path="/admin/table/:sys_id" component={TableModifier} />
                 <Route component={E404} />
             </Switch>
         )

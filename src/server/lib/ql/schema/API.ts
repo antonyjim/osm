@@ -25,6 +25,7 @@ interface APIResponse {
         errors?: [{
             message: string
         }?],
+        meta?: any
         data?: any
     }
 }
@@ -176,7 +177,7 @@ export default class APICall extends Querynator {
             let rawArgs = this.context.req.query.args
             let args: any = null
 
-            if (rawArgs && rawArgs.length > 0) {
+            if (rawArgs && rawArgs.length > 0 && rawArgs !== "undefined") {
                 args = {}
                 rawArgs.split(',').map(arg => {
                     let keyVal = arg.split('=')
@@ -203,13 +204,14 @@ export default class APICall extends Querynator {
                 .catch(err => this.handleError(err, true))
             } else if (queryTable) {
                 const pagination = {
-                    limit: this.context.req.query.limit || 20,
-                    offset: this.context.req.query.offset || 0
+                    limit: parseInt(this.context.req.query.limit) || 20,
+                    offset: parseInt(this.context.req.query.offset) || 0
                 }
                 
                 handler(fields, args, this.context, pagination)
                 .then(rows => {
                     if (rows.errors) this.response.body.errors.push(rows.errors) // Allow non-terminating errors to be passed in the response
+                    if (rows.meta) this.response.body.meta = rows.meta
                     if (rows.data) {
                         this.response.body.data[queryTable] = rows.data
                     } else {

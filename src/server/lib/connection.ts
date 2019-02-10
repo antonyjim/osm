@@ -75,6 +75,8 @@ class Querynator extends EventEmitter {
                     }
                 })
                 this.queryFields = fieldPlaceholders.join(', ')
+            } else {
+                this.queryFields = '*'
             }
         })
     }
@@ -248,7 +250,10 @@ class Querynator extends EventEmitter {
                 if (i + 1 !== Object.keys(fields).length) query += ' AND '
             })
         }
-
+        // Query for count as soon
+        params.unshift(this.primaryKey) // Add the primary key to the beginning of the array for the next query
+        let count = await this.createQ({query: 'SELECT COUNT(??) AS COUNT FROM (' + query + ') AS COUNTING', params})
+        params.shift() // Remove the primary key for the main query
 
         if (order && order.by && order.direction) {
             query += 'ORDER BY ??'
@@ -263,24 +268,39 @@ class Querynator extends EventEmitter {
         if (offset !== null && !isNaN(offset)) {
             query += ' OFFSET ' + offset
         }
-        return await this.createQ({query, params})
+
+        return ({
+            meta: {
+                count: count[0].COUNT,
+                from: offset < 1 ? 1 : offset,
+                to: limit + offset > count[0].COUNT ? count[0].COUNT : limit + offset
+            },
+            data: await this.createQ({query, params})
+        })
     }
 
     protected async all({limit, offset, order}: {limit?: number, offset?: number, order?: {by?: string, direction?: 'ASC' | 'DESC'}}) {
         let query: string = 'SELECT * FROM ??',
-            params: Array<string> = [ this.tableName + '_list' ]
-
+            params: Array<string> = [ this.tableName + '_list' ],
+            countParams: Array<string> = [ this.primaryKey, this.tableName + '_list' ],
+            count = await this.createQ({query: 'SELECT COUNT(??) AS COUNT FROM (' + query + ') AS COUNTING', params: countParams})
         if (limit && limit !== null && !isNaN(limit)) {
             query += ' LIMIT ' + limit
         } else {
             query += ' LIMIT 20'
         }
+        if (offset + limit > count[0].COUNT) offset = count[0].COUNT - limit < 0 ? 0 : count[0].COUNT - limit // Limit the offset to the max number of results
+        else if (offset === null || isNaN(offset)) offset = 0 // Fallback to an offset of 0 if an invalid offset is provided
+        query += ' OFFSET ' + offset
 
-        if (offset !== null && !isNaN(offset)) {
-            query += ' OFFSET ' + offset
-        }
-
-        return await this.createQ({query, params})
+        return ({
+            meta: {
+                count: count[0].COUNT,
+                from: offset < 1 ? 1 : offset,
+                to: limit + offset > count[0].COUNT ? count[0].COUNT : limit + offset
+            },
+            data: await this.createQ({query, params})
+        })
     }
 
     protected async insert({query, params}) {

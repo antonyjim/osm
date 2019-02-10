@@ -623,33 +623,6 @@ class Roles extends Component {
     }
 }
 
-class Tables extends Component {
-    constructor(props) {
-        super(props)
-        this.state = {
-            cols: {
-              'Table Name': {
-                boundTo: 'name',
-                type: 'string',
-                id: true
-              },
-              'Label': {
-                boundTo: 'label',
-                type: 'string'
-              },
-              'Description': {
-                boundTo: 'description',
-                type: 'string'
-              }
-            },
-            tables: []
-        }
-    }
-
-    render () {
-        return <Table table="sys_db_object_list" hideActions={true} />
-    }
-}
 
 
 class AdminWireFrame extends Component {
@@ -685,12 +658,12 @@ class AdminWireFrame extends Component {
             tables: {
                 id: 'tables',
                 label: 'Tables',
-                body: <Tables/>
+                body: <Table table="sys_db_object_list" hideActions={true} />
             },
             views: {
                 id: 'views',
                 label: 'Columns',
-                body: <TableViews/>
+                body: <Table table="sys_db_dictionary_list" perPage={15} cols={['column_name','label','table_name', 'hint', 'col_order']} />
             }
         }
         return (

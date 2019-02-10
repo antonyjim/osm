@@ -21,7 +21,6 @@ import { getServerStatus } from '../../lib/utils';
 const uiRoutes = Router()
 
 // Body parser must be included in api and ui separately due to GraphQL request errors
-uiRoutes.use(bodyParser.json())
 uiRoutes.use(tokenValidation())
 uiRoutes.use('/login', loginRoutes)
 uiRoutes.use('/verify', verifyRoutes)

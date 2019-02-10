@@ -11,8 +11,8 @@ function passLogin() {
         method: 'POST',
         data: JSON.stringify({
             user: {
-                username,
-                password
+                username: username,
+                password: password
             }
         }),
         headers: {
@@ -43,7 +43,7 @@ function forgotPass(e) {
         $.ajax({
             url: '/login/forgot',
             data: JSON.stringify({
-                email
+                email: email
             }),
             method: 'POST',
             headers: {
@@ -65,7 +65,7 @@ function forgotPass(e) {
 function submitRegistration(e) {
     let formFields = document.querySelectorAll('#register input')
     let registration = {}
-    formFields.forEach(field => {
+    formFields.forEach(function(field) {
         registration[field.id] = field.value
     })
     $.ajax('/login/newUser', {
@@ -90,7 +90,7 @@ function submitRegistration(e) {
 
 function handleOnLoad() {
     $('#loginBtn').on('click', passLogin)
-    $('form[name=login] input').on('keyup', (e) => {
+    $('form[name=login] input').on('keyup', function(e) {
         if (e.keyCode === 13) {
             passLogin()
         }

@@ -9,8 +9,7 @@
 // NPM Modules
 import { Router } from 'express'
 import * as cookieParser from 'cookie-parser'
-
-
+import * as bodyParser from 'body-parser'
 
 // Local Modules
 import { apiRoutes } from './api/index'
@@ -27,6 +26,11 @@ router.use((req, res, next) => {
     new Log(req.method + ' ' + req.originalUrl).info()
     return next()
 })
+router.use((req, res, next) => {
+    console.log('Debugging is set to ' + process.env.DEBUG)
+    next() 
+})
+router.use(bodyParser.json())
 router.use('/api', apiRoutes)
 router.use(cookieParser())
 router.use('/', uiRoutes)

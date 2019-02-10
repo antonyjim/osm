@@ -523,6 +523,7 @@ AS
         sys_db_dictionary.base_url,
         sys_db_dictionary.selectable,
         sys_db_dictionary.col_order,
+        sys_db_dictionary.table_name AS table_sys_id,
         sys_db_object.name AS table_name
     FROM
         sys_db_dictionary

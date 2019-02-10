@@ -15,6 +15,6 @@ import User from "../users/users";
 
 
 export const userMutations = {
-    add_user:((_, fields, context, info) => new User(context, info).create(fields)),
-    update_user: ((_, fields, context, info) => new User(context, info).update(fields))
+    add_user:((fields, body, context) => new User(context, fields).create(body)),
+    update_user: ((fields, body, context) => new User(context, fields).update(body))
 }

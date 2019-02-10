@@ -1,5 +1,5 @@
-# THQ Reboot
+# Code Name THQ
 
-===========
+This repo is a venture into full stack web development using Typescript and React to create a feature-rich application.
 
-A venture into the world of React, Typescript and GraphQL
+This is not affiliated with the Goodyear brand in any way and all use of the Goodyear logo are 

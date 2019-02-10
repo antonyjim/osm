@@ -18,6 +18,7 @@ class TableRow extends Component {
     }
     Object.keys(this.props.cols).map(col => {
       let val = this.props.cells[this.props.cols[col].boundTo]
+      let type = this.props.cols[col].type
       if (this.props.cols[col].id || this.props.cols[col].linkable) {
         cells.push(
           <td key={Math.floor(Math.random() * 10000)}>
@@ -26,9 +27,9 @@ class TableRow extends Component {
             </Link>
           </td>
         )
-      } else if (this.props.cols[col].type.toLowerCase() === 'date') {
+      } else if (type && type.toLowerCase() === 'date') {
         cells.push(<td key={'row' + Math.floor(Math.random() * 10000)}>{new Date(val).toDateString() || ''}</td>)        
-      } else if (this.props.cols[col].type.toLowerCase() === 'boolean') {
+      } else if (type && type.toLowerCase() === 'boolean') {
         cells.push(<td key={Math.floor(Math.random() * 10000)} style={{textAlign: 'center', fontSize: '20px'}}>{val === true || val === 1  && '×' || ''}</td>)        
       } else {
         cells.push(<td key={Math.floor(Math.random() * 10000)}>{val || ''}</td>)
@@ -66,28 +67,120 @@ export default class Table extends Component {
       baseURL: props.baseURL,
       hideActions: props.hideActions || false,
       table: props.table,
+      offset: 0,
+      nextOffset: props.perPage || 20,
+      from: 0,
+      perPage: props.perPage || 20,
       loaded: false
     }
-    if (!props.cols && props.table) this.getCols() // Retrieve the column information from /api/q/describe
+    if (this.props.args) {
+      let flatArgs = ''
+      Object.keys(this.props.args).map(arg => {
+        flatArgs += `${arg}=${this.props.args[arg]}`
+      })
+      this.state.args = flatArgs
+    }
+    if (!props.cols && !props.rows && props.table) this.getCols() // Retrieve the column information from /api/q/describe
+    else if (props.cols && !props.rows && props.table) this.getCols(props.cols)
     else this.state.loaded = true // Show data with the provided rows and column headers
   }
   
   getCols() {
     API.GET({path: '/api/q/describe/' + this.state.table})
     .then(response => {
-      if (response.cols) this.setState({cols: response.cols, id: response.id})
-      let flatArgs = ''
-      if (this.props.args) {
-        Object.keys(this.props.args).map(arg => {
-          flatArgs += `${arg}=${this.props.args[arg]}`
+      if (response.cols && this.props.cols) {
+        let allowedCols = {}
+        Object.keys(response.cols).map(col => {
+          if (this.props.cols.includes(response.cols[col].boundTo) || response.id === response.cols[col].boundTo) {
+            allowedCols[col] = response.cols[col]
+          }
         })
+        this.setState({cols: allowedCols, id: response.id})
+      } else if (response.cols) {
+        this.setState({cols: response.cols, id: response.id})
       }
       return API.GET({path: '/api/q/' + this.state.table, query: {
-        args: flatArgs
+        args: this.state.args,
+        limit: this.state.perPage
       }})
     })
     .then(response => {
-      if (response && response.data && response.data[this.state.table]) this.setState({rows: response.data[this.state.table], loaded: true})
+      if (response && response.data && response.data[this.state.table] && response.meta) {
+        this.setState(
+          {
+            rows: response.data[this.state.table], 
+            loaded: true, 
+            count: response.meta.count,
+            offset: response.meta.to,
+            from: response.meta.from,
+            nextOffset: response.meta.to
+          }
+        )
+      }
+      else if (response && response.data && response.data[this.state.table]) {
+        this.setState(
+          {
+            rows: response.data[this.state.table], 
+            loaded: true,
+            count: response.data[this.state.table].length
+          }
+        )
+      }
+      else this.setState({error: 'No data received'})
+    })
+    .catch(err => {
+      console.error(err)
+    })
+  }
+
+  handlePage(e) {
+    let dir = parseInt(e.target.getAttribute('data-page')) // Get the pagination value from the element
+    let offset = this.state.offset
+    console.log(dir)
+    if (dir === -2) { // First page
+      offset = 0
+    } else if (dir === -1) { // Previous page
+      offset = this.state.prevOffset
+    } else if (dir === 2) { // Last page
+      offset = this.state.count - this.state.perPage
+    } else { // Next page
+      offset = offset + this.state.perPage
+    }
+
+    console.log({
+      args: this.state.args,
+      offset: offset,
+      limit: this.state.perPage
+    })
+
+    API.GET({path: '/api/q/' + this.state.table, query: {
+      args: this.state.args,
+      offset: offset,
+      limit: this.state.perPage
+    }})
+    .then(response => {
+      if (response && response.data && response.data[this.state.table] && response.meta.count) {
+        this.setState(
+          {
+            rows: response.data[this.state.table], 
+            loaded: true, 
+            count: response.meta.count,
+            offset: response.meta.to,
+            from: response.meta.from,
+            nextOffset: response.meta.to
+          }
+        )
+      }
+      else if (response && response.data && response.data[this.state.table]) {
+        this.setState(
+          {
+            rows: response.data[this.state.table], 
+            loaded: true,
+            count: response.data[this.state.table].length
+          }
+        )
+      }
+      else this.setState({error: 'No data received'})
     })
     .catch(err => {
       console.error(err)
@@ -96,6 +189,9 @@ export default class Table extends Component {
 
   render() {
     let headers = []
+    let nextPage = this.state.nextOffset >= this.state.count ? ' disabled' : ''
+    let prevPage = this.state.offset - this.state.perPage <= 0 ? ' disabled': ''
+
     if (!this.state.hideActions) {
       headers.push(      
         <th scope="col" key={Math.floor(Math.random() * 10000)}>            
@@ -149,14 +245,14 @@ export default class Table extends Component {
                 }
                 <div className="col"/>
                 {!this.state.hidePagination && 
-                  <div className="col-lg-4 col-md-5 col-sm-6">
-                    <button className="btn btn-secondary m-1">&lt;&lt;</button>
-                    <button className="btn btn-secondary m-1">&lt;</button>
+                  <div className="col-lg-6 col-md-10 col-sm-12">
+                    <button className={"btn btn-secondary m-1" + prevPage} data-page="-2" onClick={this.handlePage.bind(this)}>&laquo;</button>
+                    <button className={"btn btn-secondary m-1" + prevPage} data-page="-1" onClick={this.handlePage.bind(this)}>&lsaquo;</button>
                     <span className="mx-1">
-                      {'1 - ' + this.state.rows.length + ' of ' + this.props.count}
+                      {this.state.from + ' - ' + this.state.nextOffset + ' of ' + this.state.count}
                     </span>
-                    <button className="btn btn-secondary m-1">&gt;</button>
-                    <button className="btn btn-secondary m-1">&gt;&gt;</button>
+                    <button className={"btn btn-secondary m-1" + nextPage} data-page="1" onClick={this.handlePage.bind(this)}>&rsaquo;</button>
+                    <button className={"btn btn-secondary m-1" + nextPage} data-page="2" onClick={this.handlePage.bind(this)}>&raquo;</button>
                   </div>
                 }
               </div>
