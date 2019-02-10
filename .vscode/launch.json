@@ -13,10 +13,12 @@
                 "run",
                 "debug"
             ],
+            "preLaunchTask": "tsc-watch",
             "port": 9229,
             "console": "integratedTerminal" ,
             "internalConsoleOptions": "neverOpen",
-            "autoAttachChildProcesses": false
+            "timeout": 10000,
+            "autoAttachChildProcesses": true
         },
         {
             "type": "node",
