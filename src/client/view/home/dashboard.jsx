@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Can from './../common/rbac.jsx'
 
-class Dashboard extends Component {
+export default class Dashboard extends Component {
     constructor(props) {
         super(props)
         this.state = {
@@ -11,7 +11,7 @@ class Dashboard extends Component {
             this.setState({menus: window.THQ.menus})
         })
     }
-    render() { 
+    render() {
         return (
             <div className="container-fluid">
                 <div className="row">
@@ -119,5 +119,3 @@ class Dashboard extends Component {
         )
     }
 }
- 
-export { Dashboard }

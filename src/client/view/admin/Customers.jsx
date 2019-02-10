@@ -11,49 +11,16 @@ class Customers extends Component {
             error: false,
             message: '',
             id: 'nsNonsig',
-            cols: {
-                'Nonsig': {
-                    boundTo: 'nsNonsig',
-                    type: 'string',
-                    baseURL: '/customer/',
-                    id: true
-                },
-                'Tradestyle': {
-                    boundTo: 'nsTradeStyle',
-                    type: 'string'
-                },
-                'Address': {
-                    boundTo: 'nsAddr1',
-                    type: 'string'
-                },
-                'City': {
-                    boundTo: 'nsCity',
-                    type: 'string'
-                },
-                'State': {
-                    boundTo: 'nsState',
-                    type: 'string'
-                }
-            },
+            cols: [
+                'sys_id',
+                'nsNonsig',
+                'nsTradestyle',
+                'nsAddr1',
+                'nsCity',
+                'nsState'
+            ],
             customers: []
         }
-        this.getCustomers()
-    }
-
-    getCustomers() {
-        API.GET({path: '/api/q/sys_customer_list'})
-        .then(response => {
-            if (response.errors.length !== 0) {
-                this.setState({error: true, message: response.errors[0].message})
-            }
-            let state = {...this.state}
-            state['customers'] = response.data.sys_customer_list
-            state['loaded'] = true
-            this.setState(state)
-        })
-        .catch(err => {
-            this.setState({error: true, message: err.message})
-        })
     }
 
     handleClick(e) {
@@ -64,7 +31,7 @@ class Customers extends Component {
         return (
             <>
                 {this.state.error && <Alert message={this.state.message} alertType="danger" />}
-                {this.state.loaded && <Table cols={this.state.cols} rows={this.state.customers} id={this.state.id} onClick={this.handleClick.bind(this)} baseURL="/customer/" /> }
+                <Table table="sys_customer_list" cols={this.state.cols} hideActions={true} />
             </>
         )
     }

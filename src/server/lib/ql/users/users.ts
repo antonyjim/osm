@@ -148,7 +148,7 @@ class User extends Querynator {
      * @param {string, string} Object containing the username and email
      */
     public async validateUsernameAndEmail(
-        {userName, userEmail}: 
+        {userName, userEmail}:
         {userName: string, userEmail: string}
     ) {
         let query = 'SELECT userName FROM ?? WHERE ?'

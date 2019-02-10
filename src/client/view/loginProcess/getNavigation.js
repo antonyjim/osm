@@ -7,11 +7,18 @@ function fetchLogin(token) {
         && window.localStorage.getItem('navigation') 
         && (window.THQ.privs && window.THQ.user.privs.length > 0)) {
             console.log('New user userId = ', details.userId, ' Existing userId = ', localStorage.userId)
-            document.dispatchEvent(new Event('thq.receivedNav'))
+            let event
+            if (typeof Event === 'function') {
+                event = new Event('thq.receivedNav')
+            } else {
+                event = document.createEvent('Event')
+                event.initEvent('thq.receivedNav', true, true)
+            }
+            document.dispatchEvent(event)
             resolve(JSON.parse(window.localStorage.getItem('navigation')))
         } else {
             window.localStorage.setItem('userId', details.userId)
-            $.ajax('/api/accounts/navigation?token=' + token, {
+            $.ajax('/login/navigation?token=' + token, {
                 xhrFields: {
                     withCredentials: true
                 },
@@ -20,7 +27,14 @@ function fetchLogin(token) {
                         let menus = formatNavigation(response.details.navs)
                         window.THQ.user.privs = response.details.privs
                         window.localStorage.setItem('navigation', JSON.stringify(menus))
-                        document.dispatchEvent(new Event('thq.receivedNav'))
+                        let event
+                        if (typeof Event === 'function') {
+                            event = new Event('thq.receivedNav')
+                        } else {
+                            event = document.createEvent('Event')
+                            event.initEvent('thq.receivedNav', true, true)
+                        }
+                        document.dispatchEvent(event)
                         resolve(menus)
                     } else {
                         throw err

@@ -10,7 +10,7 @@ import Stats from './Stats.jsx';
 import Column from './Column.jsx';
 import { TableModifier } from './TableMaint.jsx';
 
-class Admin extends Component {
+export default class Admin extends Component {
     constructor(props) {
         super(props)
     }
@@ -31,5 +31,3 @@ class Admin extends Component {
         )
     }
 }
- 
-export { Admin };

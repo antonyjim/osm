@@ -51,6 +51,8 @@ CREATE TABLE sys_role (
 
 -- This data will not be tied to any one user account
 CREATE TABLE sys_customer (
+    PRIMARY KEY (sys_id),
+    sys_id CHAR(36),
     nsNonsig CHAR(9) NOT NULL,
     nsTradeStyle VARCHAR(100) NOT NULL,
     nsAddr1 VARCHAR(40),
@@ -64,7 +66,7 @@ CREATE TABLE sys_customer (
     nsIsActiveTHQ BOOLEAN DEFAULT 1,
     nsType CHAR(3),
 
-    PRIMARY KEY (nsNonsig)
+    INDEX(nsNonsig)
 );
 
 -- +-----------------------------------------+

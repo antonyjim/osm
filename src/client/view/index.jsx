@@ -1,15 +1,18 @@
-import React, { Component } from 'react'
+import React, { Component, Suspense } from 'react'
 import { render } from 'react-dom'
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
-import { Navigation } from './navigation.jsx'
 import { Footer } from './common/footer.jsx'
-import { Dashboard } from './home/dashboard.jsx'
-import { Admin } from './admin/Admin.jsx'
 import { E404, ErrorBoundary } from './common/errors.jsx';
 import UserProfile from './home/UserProfile.jsx';
 import Customers from './admin/Customers.jsx'
 import Customer from './admin/Customer.jsx'
 import Users from './admin/Users.jsx'
+import Navigation from './navigation.jsx'
+import "@babel/polyfill"
+import SuspenseLoader from './common/Suspense.jsx';
+
+const Admin = React.lazy(() => import('./admin/Admin.jsx'))
+const Dashboard = React.lazy(() => import('./home/dashboard.jsx'))
 
 class App extends Component {
     constructor(props) {
@@ -84,10 +87,10 @@ class App extends Component {
             <ErrorBoundary>
                 <Router>
                     <>
-			<div className="fill">
-                            <Navigation/>
-                            <ErrorBoundary>
-                            	<Switch>
+                        <Navigation/>
+                        <ErrorBoundary>
+                            <Suspense fallback={SuspenseLoader}>
+                                <Switch>
                                     <Route exact path="/" component={Dashboard}></Route>
                                     <Route path="/profile" component={UserProfile}/>
                                     <Route path="/admin/" component={Admin} />
@@ -96,9 +99,9 @@ class App extends Component {
                                     <Route path="/userAdministration" component={Users} />
                                     <Route component={E404}/>
                                 </Switch>
-                            </ErrorBoundary>
-                	</div>
-		        <Footer />
+                            </Suspense>
+                        </ErrorBoundary>
+		                <Footer />
                     </>
                 </Router>
             </ErrorBoundary>

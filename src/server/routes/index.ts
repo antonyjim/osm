@@ -26,12 +26,10 @@ router.use((req, res, next) => {
     new Log(req.method + ' ' + req.originalUrl).info()
     return next()
 })
-router.use((req, res, next) => {
-    console.log('Debugging is set to ' + process.env.DEBUG)
-    next() 
-})
 router.use(bodyParser.json())
+// Require token in query string for api calls
 router.use('/api', apiRoutes)
+// Parse cookies on routes that return a webpage
 router.use(cookieParser())
 router.use('/', uiRoutes)
 

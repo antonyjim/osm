@@ -101,7 +101,7 @@ loginRoutes.post('/forgot', function(req: Request, res: Response) {
     }
 })
 
-loginRoutes.post('/newUser', function(req, res) {
+loginRoutes.post('/newUser', function(req: Request, res: Response) {
     new User().create(req.body)
     .then(onUserCreated => {
         res.status(200).json(onUserCreated)

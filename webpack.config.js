@@ -1,7 +1,7 @@
 const webpack = require('webpack')
 const path = require('path')
 
-let BUILD_DIR = path.resolve(__dirname, 'public')
+let BUILD_DIR = path.resolve(__dirname, 'public/scripts')
 let APP_DIR = path.resolve(__dirname, 'src/client/view')
 let STYLE_DIR = path.resolve(__dirname, 'src/client/styles')
 
@@ -16,7 +16,8 @@ let config = {
     },
     output: {
         path: BUILD_DIR,
-        filename: 'bundle.js'
+        filename: '[name].bundle.js',
+        chunkFilename: '[name].bundle.js'
     },
     module: {
         rules: [
@@ -35,6 +36,11 @@ let config = {
                 ]
             }
         ]
+    },
+    optimization: {
+        splitChunks: {
+            chunks: 'all'
+        }
     }
 }
 

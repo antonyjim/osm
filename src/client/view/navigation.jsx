@@ -4,18 +4,6 @@ import { fetchLogin } from './loginProcess/getNavigation';
 // React-Router
 import { Route, Link } from 'react-router-dom'
 
-class NavigationLink extends Component {
-    constructor(props) {
-        super(props)
-    }
-
-    render() {
-        return (
-            <Link className="dropdown-item" to={this.props.href}>{this.props.innerText}</Link>
-        )
-    }
-}
-
 class NavigationHeading extends Component {
     constructor(props) {
         super(props)
@@ -25,7 +13,7 @@ class NavigationHeading extends Component {
         let links = []
         let key = 0
         for (let navLink of this.props.links) {
-            links.push(<NavigationLink href={navLink.href} innerText={navLink.innerText} key={'l' + key} />)
+            links.push(<Link className="dropdown-item" to={navLink.href} key={'nav-link' + key}>{navLink.innerText}</Link>)
             key++
         }
         return (
@@ -48,7 +36,7 @@ class NavigationDropdown extends Component {
         let key = 0
         
         Object.keys(this.props.navHeading).map(heading => {
-            subHeadings.push(<NavigationHeading header={heading} links={this.props.navHeading[heading]} key={'m' + key} />)
+            subHeadings.push(<NavigationHeading header={heading} links={this.props.navHeading[heading]} key={'nav-header' + key} />)
             key++
         })
         return (
@@ -64,11 +52,12 @@ class NavigationDropdown extends Component {
     }
 }
 
-class Navigation extends Component {
+export default class Navigation extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            nav: null
+            nav: null,
+            loaded: false
         }
         this.getNav()
     }
@@ -79,17 +68,17 @@ class Navigation extends Component {
             if (navigation.error) {
                 console.error(err)
             }
-            this.setState({nav: navigation})
+            this.setState({nav: navigation, loaded: true})
         })
         .catch(err => {
             console.log('Error occurred')
             console.error(err)
-            this.setState({nav: 'Error'})
+            this.setState({nav: 'Error', loaded: true})
         })
     }
 
     render() {
-        if (this.state.nav === null) {
+        if (this.state.nav === null || this.state.nav === undefined || this.state.loaded !== true) {
             return null
         } else {
             let menus = []
@@ -130,5 +119,3 @@ class Navigation extends Component {
         }
     }
 }
-
-export { Navigation }

@@ -12,9 +12,7 @@ import { sign } from 'jsonwebtoken'
 
 // Local Modules
 import { endpointAuthentication, apiTokenValidation } from '../middleware/authentication';
-import { orderRoutes } from './ordering';
 import { adminRoutes } from './admin'
-import { apiAccountRoutes } from './accounts'
 import { Login, getToken } from './../../lib/users/login'
 import { StatusMessage } from '../../types/server';
 import { jwtSecret } from '../../lib/connection';
@@ -73,8 +71,6 @@ apiRoutes.use('/q', q) // q is for general api queries
 apiRoutes.use(endpointAuthentication())
 apiRoutes.use(bodyParser.json())
 apiRoutes.use('/admin', adminRoutes) // admin is for site-administration duties
-apiRoutes.use('/ordering', orderRoutes)
-apiRoutes.use('/accounts', apiAccountRoutes)
 apiRoutes.use('/users', useradminRoutes) // users is for user administration
 apiRoutes.get('/refresh', (req: Request, res: Response) => {
     if (req.auth.iA && req.auth.c) {

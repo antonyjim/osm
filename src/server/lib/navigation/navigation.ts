@@ -10,10 +10,11 @@
 
 
 // Local Modules
-import { getPool } from './../connection'
+import { getPool, Querynator } from './../connection'
 import { StatusMessage } from '../../types/server';
 import { RolePermissions } from '../../types/roles';
 import { Log } from '../log';
+import schema from '../tables.config';
 
 // Constants and global variables
 const pool = getPool()
@@ -26,44 +27,43 @@ export function getRoleAuthorizedNavigation(userId: string, userNonsig: string):
         }
 
         if (userId && userNonsig) {
-            let navigation = `
-                SELECT *
-                FROM thq.uiNavigation
-                WHERE rpId = (
-                    SELECT nsaRole
-                    FROM sys_user_nsacl
-                    WHERE nsaUserId = ${pool.escape(userId)}
-                    AND nsaNonsig = ${pool.escape(userNonsig)}
-                )
-            `
-	    if (process.env.STATEMENT_LOGGING === 'true') {
-		    new Log(navigation).info()
-	    }
-            pool.query(navigation, (err: Error, authorizedNavigationLinks) => {
-                if (err) {
-                    console.error(err)
-                    throw err
-                 } else {
-                    let role = authorizedNavigationLinks[0] ? authorizedNavigationLinks[0].rpId : 'No-Conf'
-                    resultSet.navs = authorizedNavigationLinks
-                    let getPrivs = `
-                        SELECT DISTINCT rpPriv
-                        FROM sys_role
-                        WHERE rpId = ${pool.escape(role)}
-                    `
-                    pool.query(getPrivs, (err: Error, authorizePrivs) => {
-                        if (err) {
-                            throw err
-                         } else {
-                            resultSet.privs = authorizePrivs.map(priv => priv.rpPriv)
-                            resolve({
-                                error: false,
-                                message: 'Retrieved',
-                                details: resultSet
-                            })
-                         }
-                    })
-                 }
+            let query = 'SELECT * FROM ?? WHERE ?? = (SELECT ?? FROM ?? WHERE ?? = ? AND ?? = ?)'
+            let params = [
+                schema.sys_navigation_list,
+                'rpId',
+                'nsaRole',
+                schema.sys_user_nsacl,
+                'nsaUserId',
+                userId,
+                'nsaNonsig',
+                userNonsig
+            ]
+            new Querynator().createQ({query, params}, 'CALL')
+            .then((navigation) => {
+                let role = navigation[0] ? navigation[0].rpId : 'No-Conf'
+                resultSet.navs = navigation
+                let queryPrivs = 'SELECT DISTINCT ?? FROM ?? WHERE ?? = ?'
+                let paramPrivs = [
+                    'rpPriv',
+                    schema.sys_role,
+                    'rpId',
+                    role
+                ]
+                return new Querynator().createQ({query: queryPrivs, params: paramPrivs}, 'CALL')
+            })
+            .then((authorizedPrivs) => {
+                resultSet.privs = authorizedPrivs.map(priv => priv.rpPriv)
+                resolve({
+                    error: false,
+                    message: 'Retrieved',
+                    details: resultSet
+                })
+            })
+            .catch(err => {
+                reject({
+                    error: true,
+                    message: err.message
+                })
             })
         } else {
             reject({

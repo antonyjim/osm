@@ -91,10 +91,6 @@ export default class APICall extends Querynator {
         Promise.resolve(validFields)
     }
 
-    protected prepareQuery() {
-
-    }
-
     /**
      * Create new users from a POST request
      */

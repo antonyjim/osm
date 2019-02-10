@@ -1,4 +1,77 @@
 /*Boot THQ*/
+.form-check {
+	position: relative;
+	margin: 1em 0;
+	text-align: left;
+}
+
+.form-check.form-check-inline {
+	display: inline-block;
+	margin: 1em 1em;
+}
+
+.form-check label {
+	cursor: pointer;
+	display: inline;
+	line-height: 1.25em;
+	vertical-align: top;
+	clear: both;
+	padding-left: 1px;
+	user-select: no-select;
+}
+
+.form-check label:not(:empty) {
+	padding-left: 0.75em;
+}
+
+.form-check label:before, .form-check label:after {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 0;
+}
+
+.form-check label:before {
+	width: 1.25em;
+	height: 1.25em;
+	background: #fff;
+	border: 2px solid rgba(0, 0, 0, 0.54);
+	border-radius: 0.125em;
+	cursor: pointer;
+	transition: background .3s;
+}
+
+.form-check input[type="checkbox"] {
+	outline: 0;
+	visibility: hidden;
+	width: 1.25em;
+	margin: 0;
+	display: block;
+	float: left;
+	font-size: inherit;
+}
+
+.form-check input[type="checkbox"]:checked + label:before {
+	background: #007bff;
+	border: none;
+}
+
+.form-check input[type="checkbox"]:checked + label:after {
+	transform: translate(0.25em, 0.33654em) rotate(-45deg);
+	width: 0.75em;
+	height: 0.375em;
+	border: 0.125em solid #fff;
+	border-top-style: none;
+	border-right-style: none;
+}
+
+.form-check input[type="checkbox"]:disabled + label:before {
+	border-color: rgba(0, 0, 0, 0.26);
+}
+
+.form-check input[type="checkbox"]:disabled:checked + label:before {
+	background: rgba(0, 0, 0, 0.26);
+}
 
 .bg-goodyear{
     background-color: rgb(22, 33, 106);
@@ -15,7 +88,7 @@ height: 100%;
 }
 
 .dropdown-toggle::after {
-display:none
+    display:none
 }
 
 .btn-goodyear{
