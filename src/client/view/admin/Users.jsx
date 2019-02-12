@@ -52,6 +52,7 @@ class Users extends Component {
                 'Username': {
                     boundTo: 'username',
                     type: 'string',
+                    baseURL: '/admin/user/',
                     id: true
                 },
                 'First Name': {

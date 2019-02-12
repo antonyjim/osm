@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Pills from '../common/PillLayout.jsx';
 import Table from '../common/Table.jsx'
-import { Field, SelectField } from '../common/forms.jsx'
+import { Field, SelectField, Checkbox } from '../common/forms.jsx'
 import API from '../lib/API.js';
 
 export class ColumnGeneralInformation extends Component {
@@ -16,11 +16,12 @@ export class ColumnGeneralInformation extends Component {
     }
 
     handleChange(e) {
-        let state = {...this.state}
-        state.fields[e.target.id] = e.target.value
-        if (!state.modifiedFields.includes(e.target.id)) state.modifiedFields.push(e.target.id)
-        state.saveDisabled = {}
-        this.setState(state)
+        let _state = {...this.state}
+        _state.fields[e.target.id] = e.target.value
+        if (e.target.type === 'checkbox') _state.fields[e.target.id] = e.target.checked 
+        if (!_state.modifiedFields.includes(e.target.id)) _state.modifiedFields.push(e.target.id)
+        _state.saveDisabled = {}
+        this.setState(_state)
     }
 
     handleSubmit(e) {
@@ -46,10 +47,18 @@ export class ColumnGeneralInformation extends Component {
                     <input type="hidden" id="sys_id" value={this.state.sys_id}/>
                     <Field id="column_name" label="Column Name" value={this.state.fields.column_name} onChange={this.handleChange.bind(this)} className="col-lg-6 col-md-12" attributes={{readOnly: 'readonly'}} />
                     <Field id="label" label="Label" value={this.state.fields.label} onChange={this.handleChange.bind(this)} className="col-lg-6 col-md-12" />
-                    <Field id="table_name" label="Table" value={this.state.fields.table_name} onChange={this.handleChange.bind(this)} className="col-lg-6 col-md-12" type="text"/>
+                    <Field id="table_name" label="Table" value={this.state.fields.table_name} onChange={this.handleChange.bind(this)} className="col-lg-6 col-md-12" type="text" references="sys_db_object" />
                     <Field id="hint" label="Hint" value={this.state.fields.hint} onChange={this.handleChange.bind(this)} className="col-lg-6 col-md-12" type="text"/>
                     <SelectField id="type" label="Data Type" value={this.state.fields.type} onChange={this.handleChange.bind(this)} className="col-lg-6 col-md-12" opts={dataTypes}/>
                     <Field id="length" label="Length" value={this.state.fields.length} onChange={this.handleChange.bind(this)} attributes={length} className="col-lg-6 col-md-12" type="number" />
+                    <Field id="base_url" label="Base URL" value={this.state.fields.base_url } onChange={this.handleChange.bind(this)} className="col-lg-6 col-md-12" type="text" />
+                    <Field id="reference_id" label="References" value={this.state.fields.reference_id} onChange={this.handleChange.bind(this)} className="col-lg-6 col-md-12" type="text" references="sys_db_dictionary" />
+                    <Checkbox id="linkable" label="Linkable" checked={this.state.fields.linkable} onChange={this.handleChange.bind(this)} />
+                    <Checkbox id="readonly" label="Readonly" checked={this.state.fields.readonly} onChange={this.handleChange.bind(this)} />
+                    <Checkbox id="nullable" label="Nullable" checked={this.state.fields.nullable} onChange={this.handleChange.bind(this)} />
+                    <Checkbox id="update_key" label="Primary Key" checked={this.state.fields.update_key} onChange={this.handleChange.bind(this)} />
+                    <Checkbox id="default_view" label="Show as Default" checked={this.state.fields.default_view} onChange={this.handleChange.bind(this)} />
+                    <Checkbox id="admin_view" label="View as Admin" checked={this.state.fields.admin_view} onChange={this.handleChange.bind(this)} />
                     <button className="btn btn-primary btn-block submit" onClick={this.handleSubmit.bind(this)} data-form="info" type="button" {...this.state.saveDisabled}>Save</button>
                 </form>
             </>
@@ -102,14 +111,16 @@ export default class Column extends Component {
             }
         }
 
-        this.getInfo()
+        if (this.state.sys_id !== 'new') {
+            this.getInfo()
+        }
     }
 
     getInfo() {
         API.GET({
             path: '/api/q/sys_db_dictionary/' + this.state.sys_id,
             query: {
-                fields: 'sys_id,column_name,label,table_name,hint,type,length'
+                fields: 'sys_id,column_name,label,table_name,hint,type,length,readonly,base_url,default_view,selectable,nullable,reference_id'
             }
         })
         .then(data => {

@@ -172,13 +172,18 @@ export default class APICall extends Querynator {
         this.on('validatedFields', (e) => {
             let rawArgs = this.context.req.query.args
             let args: any = null
-
+            let order: {by?: string, direction?: 'ASC' | 'DESC'} = {}
             if (rawArgs && rawArgs.length > 0 && rawArgs !== "undefined") {
                 args = {}
                 rawArgs.split(',').map(arg => {
                     let keyVal = arg.split('=')
                     args[keyVal[0]] = keyVal[1]
                 })
+            }
+
+            if (this.context.req.query.order_by) {
+                order.by = this.context.req.query.order_by
+                order.direction = this.context.req.query.order_direction || 'ASC'
             }
             // If both the ID and table is provided, query the single record
             if (this.context.req.params.table
@@ -201,7 +206,8 @@ export default class APICall extends Querynator {
             } else if (queryTable) {
                 const pagination = {
                     limit: parseInt(this.context.req.query.limit) || 20,
-                    offset: parseInt(this.context.req.query.offset) || 0
+                    offset: parseInt(this.context.req.query.offset) || 0,
+                    order
                 }
                 
                 handler(fields, args, this.context, pagination)

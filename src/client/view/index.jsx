@@ -10,9 +10,9 @@ import Users from './admin/Users.jsx'
 import Navigation from './navigation.jsx'
 import "@babel/polyfill"
 import SuspenseLoader from './common/Suspense.jsx';
+import Dashboard from './home/dashboard.jsx'
 
 const Admin = React.lazy(() => import('./admin/Admin.jsx'))
-const Dashboard = React.lazy(() => import('./home/dashboard.jsx'))
 
 class App extends Component {
     constructor(props) {
@@ -87,20 +87,22 @@ class App extends Component {
             <ErrorBoundary>
                 <Router>
                     <>
-                        <Navigation/>
-                        <ErrorBoundary>
-                            <Suspense fallback={SuspenseLoader}>
-                                <Switch>
-                                    <Route exact path="/" component={Dashboard}></Route>
-                                    <Route path="/profile" component={UserProfile}/>
-                                    <Route path="/admin/" component={Admin} />
-                                    <Route path="/customer/:customer" component={Customer} />
-                                    <Route path="/changeCustomer" component={Customers} />
-                                    <Route path="/userAdministration" component={Users} />
-                                    <Route component={E404}/>
-                                </Switch>
-                            </Suspense>
-                        </ErrorBoundary>
+                        <div className="fill">
+                            <Navigation/>
+                            <ErrorBoundary>
+                                <Suspense fallback={SuspenseLoader}>
+                                    <Switch>
+                                        <Route exact path="/" component={Dashboard} />
+                                        <Route path="/profile" component={UserProfile} />
+                                        <Route path="/admin/" component={Admin} />
+                                        <Route path="/customer/:customer" component={Customer} />
+                                        <Route path="/changeCustomer" component={Customers} />
+                                        <Route path="/userAdministration" component={Users} />
+                                        <Route component={E404}/>
+                                    </Switch>
+                                </Suspense>
+                            </ErrorBoundary>
+                        </div>
 		                <Footer />
                     </>
                 </Router>

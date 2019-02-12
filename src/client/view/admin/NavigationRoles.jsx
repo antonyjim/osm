@@ -658,12 +658,12 @@ class AdminWireFrame extends Component {
             tables: {
                 id: 'tables',
                 label: 'Tables',
-                body: <Table table="sys_db_object_list" hideActions={true} />
+                body: <Table table="sys_db_object_list" hideActions={true} showSearch={true} />
             },
             views: {
                 id: 'views',
                 label: 'Columns',
-                body: <Table table="sys_db_dictionary_list" perPage={15} cols={['column_name','label','table_name', 'hint', 'col_order']} />
+                body: <Table table="sys_db_dictionary_list" perPage={15} cols={['column_name','label','table_name', 'hint', 'col_order']} showSearch={true} />
             }
         }
         return (

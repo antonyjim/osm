@@ -68,10 +68,17 @@ export default class Table extends Component {
       hideActions: props.hideActions || false,
       table: props.table,
       offset: 0,
-      nextOffset: props.perPage || 20,
+      nextOffset: 25,
       from: 0,
-      perPage: props.perPage || 20,
-      loaded: false
+      loaded: false,
+      search: '',
+      searchOn: '',
+      order: {},
+      field: {
+        col: '',
+        searchQ: '',
+        limit: 25
+      }
     }
     if (this.props.args) {
       let flatArgs = ''
@@ -84,24 +91,77 @@ export default class Table extends Component {
     else if (props.cols && !props.rows && props.table) this.getCols(props.cols)
     else this.state.loaded = true // Show data with the provided rows and column headers
   }
+
+  getData({args, offset}) {
+    API.GET({path: '/api/q/' + this.state.table, query: {
+      args: args,
+      limit: this.state.field.limit
+    }})
+    .then(response => {
+      if (response && response.data && response.data[this.state.table] && response.meta) {
+        this.setState(
+          {
+            rows: response.data[this.state.table], 
+            loaded: true, 
+            count: response.meta.count,
+            offset: response.meta.to,
+            from: response.meta.from,
+            nextOffset: response.meta.to
+          }
+        )
+      }
+      else if (response && response.data && response.data[this.state.table]) {
+        this.setState(
+          {
+            rows: response.data[this.state.table], 
+            loaded: true,
+            count: response.data[this.state.table].length
+          }
+        )
+      }
+      else this.setState({error: 'No data received'})
+    })
+    .catch(err => {
+      console.error(err)
+    })
+  }
+
+  handleSearchKeyDown(e) {
+    if (e.keyCode && e.keyCode === 13) {
+      let args = `${this.state.field.col}=lk|${this.state.field.searchQ}*`
+      this.getData({args})
+    } else {
+      console.log(e.keyCode)
+    }
+  }
+
+  handleHeaderClick(e) {
+
+  }
   
   getCols() {
     API.GET({path: '/api/q/describe/' + this.state.table})
     .then(response => {
-      if (response.cols && this.props.cols) {
+      if (response.cols) {
         let allowedCols = {}
-        Object.keys(response.cols).map(col => {
-          if (this.props.cols.includes(response.cols[col].boundTo) || response.id === response.cols[col].boundTo) {
+        let fieldSearchSelections = []
+        let hasSelectedInitialField = false
+        let fields = {...this.state.field}
+
+        Object.keys(response.cols).map((col, key) => {
+          if (this.props.cols && this.props.cols.includes(response.cols[col].boundTo) || response.id === response.cols[col].boundTo) {
             allowedCols[col] = response.cols[col]
           }
+          if ((response.cols[col].type === 'VARCHAR' || response.cols[col].type === 'CHAR') && response.cols[col].boundTo !== this.state.id) {
+            fieldSearchSelections.push(<option key={'search-col' + key} value={response.cols[col].boundTo}>{col}</option>)
+            if (!hasSelectedInitialField) fields.col = response.cols[col].boundTo
+          }
         })
-        this.setState({cols: allowedCols, id: response.id})
-      } else if (response.cols) {
-        this.setState({cols: response.cols, id: response.id})
+        this.setState({cols: allowedCols, id: response.id, fieldSearchSelections, field: fields})
       }
       return API.GET({path: '/api/q/' + this.state.table, query: {
         args: this.state.args,
-        limit: this.state.perPage
+        limit: this.state.field.limit
       }})
     })
     .then(response => {
@@ -133,6 +193,12 @@ export default class Table extends Component {
     })
   }
 
+  handleChange(e) {
+    let field = {...this.state.field}
+    field[e.target.id] = e.target.value
+    this.setState({field})
+  }
+
   handlePage(e) {
     let dir = parseInt(e.target.getAttribute('data-page')) // Get the pagination value from the element
     let offset = this.state.offset
@@ -142,21 +208,15 @@ export default class Table extends Component {
     } else if (dir === -1) { // Previous page
       offset = this.state.prevOffset
     } else if (dir === 2) { // Last page
-      offset = this.state.count - this.state.perPage
+      offset = this.state.count - this.state.field.limit
     } else { // Next page
-      offset = offset + this.state.perPage
+      offset = offset + this.state.field.limit
     }
-
-    console.log({
-      args: this.state.args,
-      offset: offset,
-      limit: this.state.perPage
-    })
 
     API.GET({path: '/api/q/' + this.state.table, query: {
       args: this.state.args,
       offset: offset,
-      limit: this.state.perPage
+      limit: this.state.field.limit
     }})
     .then(response => {
       if (response && response.data && response.data[this.state.table] && response.meta.count) {
@@ -190,10 +250,11 @@ export default class Table extends Component {
   render() {
     let headers = []
     let nextPage = this.state.nextOffset >= this.state.count ? ' disabled' : ''
-    let prevPage = this.state.offset - this.state.perPage <= 0 ? ' disabled': ''
+    let prevPage = this.state.offset - this.state.field.limit <= 0 ? ' disabled': ''
+    let fieldSearchSelections = []
 
     if (!this.state.hideActions) {
-      headers.push(      
+      headers.push(
         <th scope="col" key={Math.floor(Math.random() * 10000)}>            
           <input className="position-static" type="checkbox"/>
         </th>
@@ -217,6 +278,39 @@ export default class Table extends Component {
       <>
       {this.state.loaded && 
             <>
+              {this.props.showSearch && 
+                <div className="row">
+                  <div className="col">
+                    <div className="form-group mr-a">
+                      <div className="input-group">
+                        <div className="input-group-prepend">
+                          <select className="custom-select" onChange={this.handleChange.bind(this)} value={this.state.field.col} id="col">
+                            {this.state.fieldSearchSelections}
+                          </select>
+                        </div>
+                        <input id="searchQ" className="form-control" onChange={this.handleChange.bind(this)} value={this.state.field.stringQ} onKeyDown={this.handleSearchKeyDown.bind(this)} type="text" />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col">
+                    <div className="form-group">
+                      <div className="input-group">
+                        <select className="custom-select" onChange={this.handleChange.bind(this)} value={this.state.field.limit} id="limit">
+                          <option value={15}>15</option>
+                          <option value={25}>25</option>
+                          <option value={35}>35</option>
+                          <option value={50}>50</option>
+                          <option value={75}>75</option>
+                          <option value={100}>100</option>
+                        </select>
+                        <div className="input-group-append">
+                          <label className="input-group-text" htmlFor="limit">Results / Page</label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
               <div className="row">
                 <div className="col">
                   <div className="table-responsive">

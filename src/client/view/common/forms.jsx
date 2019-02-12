@@ -4,13 +4,53 @@ class Field extends Component {
     constructor(props) {
         super(props)
     }
+
+    findReference() {
+
+    }
+
+    openPopup() {
+
+    }
+
     render() { 
+        if (this.props.references) {
+            return (
+                <div className={'form-group ' + this.props.className}  id={'cont' + this.props.id}>
+                    <label htmlFor={this.props.id}>
+                        {this.props.label}
+                    </label>
+                    <div className="input-group">
+                        <input {...this.props.attributes} type={this.props.type} className="form-control" id={this.props.id} value={this.props.value || ''} onChange={this.props.onChange} />
+                        <div className="input-group-append">
+                            <button className="btn btn-outline-secondary" type="button" id={this.props.id + '_search'}>Search</button>
+                        </div>
+                    </div>
+                </div>
+            )
+        } else {
+            return !this.props.isHidden && (
+                <div className={'form-group ' + this.props.className}  id={'cont' + this.props.id}>
+                    <label htmlFor={this.props.id}>
+                        {this.props.label}
+                    </label>
+                    <input {...this.props.attributes} type={this.props.type} className="form-control" id={this.props.id} value={this.props.value || ''} onChange={this.props.onChange} />
+                </div>
+            )
+        }
+    }
+}
+
+class Checkbox extends Component {
+    constructor(props) {
+        super(props)
+    }
+
+    render() {
         return !this.props.isHidden && (
-            <div className={'form-group ' + this.props.className}  id={'cont' + this.props.id}>
-                <label htmlFor={this.props.id}>
-                    {this.props.label}
-                </label>
-                <input {...this.props.attributes} type={this.props.type} className="form-control" id={this.props.id} value={this.props.value || ''} onChange={this.props.onChange} />
+            <div className={'form-checkbox ' + this.props.className} id={'check-' + this.props.id}>
+                <input {...this.props.attributes} type="checkbox" id={this.props.id} checked={!!this.props.checked} value={!!this.props.checked} onChange={this.props.onChange} />
+                <label htmlFor={this.props.id}>{this.props.label}</label>
             </div>
         )
     }
@@ -71,4 +111,4 @@ class SelectField extends Component {
     }
 }
 
-export { Field, SelectField }
+export { Field, SelectField, Checkbox }

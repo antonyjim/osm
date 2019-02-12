@@ -14,7 +14,7 @@ class Customers extends Component {
             cols: [
                 'sys_id',
                 'nsNonsig',
-                'nsTradestyle',
+                'nsTradeStyle',
                 'nsAddr1',
                 'nsCity',
                 'nsState'

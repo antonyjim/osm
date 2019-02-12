@@ -60,9 +60,9 @@ class Log {
             query = 'INSERT INTO ?? (log_message, log_severity) VALUES (?, 5)'
         }
         if (typeof this.message !== 'string') {
-            log = JSON.stringify(this.message).slice(0, 100)
+            log = JSON.stringify(this.message).slice(0, 250)
         } else if (typeof this.message === 'string') {
-            log = this.message.slice(0, 100)
+            log = this.message.slice(0, 250)
         } else {
             console.error('Cannot log without a message')
         }
@@ -88,9 +88,9 @@ class Log {
             query = 'INSERT INTO ?? (log_message) VALUES (?)'
         }
         if (this.message && typeof this.message !== 'string') {
-            log = JSON.stringify(this.message).slice(0, 100)
+            log = JSON.stringify(this.message).slice(0, 250)
         } else if (this.message && typeof this.message === 'string') {
-            log = this.message.slice(0, 100)
+            log = this.message.slice(0, 250)
         } else {
             console.error('Cannot log without a message')
         }

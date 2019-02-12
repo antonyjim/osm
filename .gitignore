@@ -63,5 +63,5 @@ typings/
 # next.js build output
 .next
 
-# Ignore bundle
-public/bundle.js
+# Ignore bundles
+public/scripts/*.bundle.js

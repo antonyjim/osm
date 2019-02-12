@@ -139,7 +139,7 @@ class User extends Querynator {
      * @param fields Fields to query upon
      */
     public async where(fields, pagination) {
-        if (fields === undefined || Object.keys(fields).length === 0) return await this.all(pagination)
+        if (!fields) return await this.all(pagination)
         return await this.byFields({fields}, pagination)
     }
 
