@@ -5,8 +5,8 @@
 const uuid = require('uuid/v4')
 
 
-const usersToGenerate = 150
-const customersToGenerate = 100
+const usersToGenerate = 150000
+const customersToGenerate = 1000000
 const firstNames = [
     'Savannah',
     'Todd',
@@ -29,7 +29,9 @@ const firstNames = [
     'Abraham',
     'Kayla',
     'Kim',
-    'Carly'
+    'Carly',
+    'Amy',
+    'Jennifer'
 ]
 
 const surNames = [
@@ -49,7 +51,10 @@ const surNames = [
     'Frazier',
     'Reid',
     'Johnson',
-    'Jones'
+    'Jones',
+    'Williams',
+    'Lawrence',
+    'McClean'
 ]
 
 const types = [
@@ -71,7 +76,10 @@ const tradePt1 = [
     'Midland',
     'Homeland',
     'Central',
-    'Coastal'
+    'Coastal',
+    'Heartland',
+    'Trusted',
+    'Authentic'
 ]
 
 const tradePt2 = [

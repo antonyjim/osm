@@ -274,24 +274,22 @@ CREATE TABLE sys_addr (
 -- |Start Document Schema for Gov/National ACCTS |
 -- +---------------------------------------------+
 
--- Store data about the national account
-CREATE TABLE sys_customer_account (
-    naId CHAR(36) NOT NULL,
-    naNbr VARCHAR(7),
-    naNonsig VARCHAR(7),
-    naName VARCHAR(40),
-    naAddr1 VARCHAR(40),
-    naAddr2 VARCHAR(40),
-    naPostalCode VARCHAR(10),
-    naCity VARCHAR(40),
-    naState CHAR(2),
-    naCountry CHAR(2),
-    naIsOnCreditHold BOOLEAN,
-    naIsActive BOOLEAN,
+-- Store information about national accounts
 
-    PRIMARY KEY (naId),
+/*
+    There does not really need to be any more information than this due
+    to the fact that everything is driven off of the bt_nonsig field.
+*/
+CREATE TABLE nat_account (
+    PRIMARY KEY(sys_id),
+    sys_id CHAR(36),
+    na_nbr VARCHAR(7), -- National account number
+    bt_nonsig VARCHAR(7),
+    name VARCHAR(40), -- Name of the account
+    credit_hold BOOLEAN,
+    active BOOLEAN,
 
-    INDEX(naNbr, naNonsig)
+    INDEX(na_nbr, bt_nonsig)
 );
 
 CREATE TABLE sys_addr_ship (
@@ -316,7 +314,7 @@ CREATE TABLE sys_addr_ship (
 
 -- Store the data for the various types of requirements,
 -- E.g. PO, Unit Number, Location Code
-CREATE TABLE doc_req(
+CREATE TABLE doc_req (
     reKeyWord CHAR(3), -- ShortHand, E.g. Location code could be shortened to EO3 / Whatever
     reShortDesc VARCHAR(40), -- The label that will be used in the <label> element
     reId VARCHAR(20), -- The id/name that the <input> element will be assigned
@@ -324,6 +322,23 @@ CREATE TABLE doc_req(
     reHelpURL VARCHAR(15), -- Eventually, reference an inline help article by clicking on ?
 
     PRIMARY KEY (reKeyWord)
+);
+
+CREATE TABLE content_article (
+    PRIMARY KEY(sys_id),
+    sys_id CHAR(36),
+    article_link VARCHAR(40), -- Friendly article name
+    title VARCHAR(60), -- Title at top of page and tab title
+    meta VARCHAR(100), -- Search terms for article, in addition to title
+    na_key CHAR(36), -- National account info, if applicable
+    content TEXT, -- Body of the article, will not be indexed or searchable
+
+    INDEX(title, meta),
+
+    FOREIGN KEY(na_key)
+        REFERENCES nat_account(sys_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
 );
 
 CREATE TABLE doc_req_accept (
@@ -466,7 +481,7 @@ CREATE TABLE sys_log (
 	log_severity INT(1) DEFAULT 3
 );
 
-CREATE TABLE sys_log_user AS SELECT * FROM sys_log;
+CREATE TABLE sys_log_user LIKE sys_log;
 ALTER TABLE sys_log_user ADD COLUMN log_user CHAR(36) NOT NULL;
 
 CREATE TABLE sys_authorization (

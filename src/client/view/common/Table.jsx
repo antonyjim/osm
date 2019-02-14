@@ -21,18 +21,18 @@ class TableRow extends Component {
       let type = this.props.cols[col].type
       if (this.props.cols[col].id || this.props.cols[col].linkable) {
         cells.push(
-          <td key={Math.floor(Math.random() * 10000)}>
+          <td key={Math.floor(Math.random() * 1000000)}>
             <Link to={this.props.cols[col].baseURL + this.props.cells[this.props.id]}>
                 {val || ''} 
             </Link>
           </td>
         )
       } else if (type && type.toLowerCase() === 'date') {
-        cells.push(<td key={'row' + Math.floor(Math.random() * 10000)}>{new Date(val).toDateString() || ''}</td>)        
+        cells.push(<td key={~~(Math.random() * 100000)}>{new Date(val).toDateString() || ''}</td>)        
       } else if (type && type.toLowerCase() === 'boolean') {
-        cells.push(<td key={Math.floor(Math.random() * 10000)} style={{textAlign: 'center', fontSize: '20px'}}>{val === true || val === 1  && '×' || ''}</td>)        
+        cells.push(<td key={~~(Math.random() * 100000)} style={{textAlign: 'center', fontSize: '20px'}}>{val === true || val === 1  && '×' || ''}</td>)        
       } else {
-        cells.push(<td key={Math.floor(Math.random() * 10000)}>{val || ''}</td>)
+        cells.push(<td key={~~(Math.random() * 100000)}>{val || ''}</td>)
       }
     })
     return (
@@ -151,6 +151,8 @@ export default class Table extends Component {
         Object.keys(response.cols).map((col, key) => {
           if (this.props.cols && this.props.cols.includes(response.cols[col].boundTo) || response.id === response.cols[col].boundTo) {
             allowedCols[col] = response.cols[col]
+          } else {
+            allowedCols[col] = response.cols[col]
           }
           if ((response.cols[col].type === 'VARCHAR' || response.cols[col].type === 'CHAR') && response.cols[col].boundTo !== this.state.id) {
             fieldSearchSelections.push(<option key={'search-col' + key} value={response.cols[col].boundTo}>{col}</option>)
@@ -206,7 +208,7 @@ export default class Table extends Component {
     if (dir === -2) { // First page
       offset = 0
     } else if (dir === -1) { // Previous page
-      offset = this.state.prevOffset
+      offset = this.state.from - this.state.field.limit
     } else if (dir === 2) { // Last page
       offset = this.state.count - this.state.field.limit
     } else { // Next page
@@ -270,7 +272,7 @@ export default class Table extends Component {
     let rows = []
     if (this.state.rows && this.state.rows.length > 0) {
       for(let row of this.state.rows) {
-        rows.push(<TableRow key={Math.floor(Math.random() * 10000)} showSelect={!this.state.hideActions} cells={row} cols={this.state.cols} onClick={this.state.handleClick} href={this.state.baseURL} id={this.state.id}/>)
+        rows.push(<TableRow key={~~(Math.random() * 10000).toString()} showSelect={!this.state.hideActions} cells={row} cols={this.state.cols} onClick={this.state.handleClick} href={this.state.baseURL} id={this.state.id}/>)
       }
     }
 

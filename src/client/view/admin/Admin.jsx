@@ -4,11 +4,15 @@ import { AdminWireFrame } from './NavigationRoles.jsx';
 import Customers from './Customers.jsx'
 import { E404 } from './../common/errors.jsx'
 import Wetty from './Wetty.jsx';
-import Users from './Users.jsx';
 import UserProfile from '../home/UserProfile.jsx';
 import Stats from './Stats.jsx';
 import Column from './Column.jsx';
 import { TableModifier } from './TableMaint.jsx';
+import Table from '../common/Table.jsx';
+
+function Users() {
+    return (<Table table="sys_user_list" baseURL="/admin/user/"/>)
+}
 
 export default class Admin extends Component {
     constructor(props) {

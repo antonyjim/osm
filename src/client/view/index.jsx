@@ -6,7 +6,6 @@ import { E404, ErrorBoundary } from './common/errors.jsx';
 import UserProfile from './home/UserProfile.jsx';
 import Customers from './admin/Customers.jsx'
 import Customer from './admin/Customer.jsx'
-import Users from './admin/Users.jsx'
 import Navigation from './navigation.jsx'
 import "@babel/polyfill"
 import SuspenseLoader from './common/Suspense.jsx';
@@ -97,7 +96,6 @@ class App extends Component {
                                         <Route path="/admin/" component={Admin} />
                                         <Route path="/customer/:customer" component={Customer} />
                                         <Route path="/changeCustomer" component={Customers} />
-                                        <Route path="/userAdministration" component={Users} />
                                         <Route component={E404}/>
                                     </Switch>
                                 </Suspense>
