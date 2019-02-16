@@ -7,6 +7,11 @@ class TableRow extends Component {
     super(props)
   }
   
+  handleValReturn(e) {
+    e.preventDefault()
+    console.log(e.target.href, ' ', e.target.innerText)
+  }
+  
   render() {
     let cells = []
     if (this.props.showSelect) {
@@ -20,13 +25,23 @@ class TableRow extends Component {
       let val = this.props.cells[this.props.cols[col].boundTo]
       let type = this.props.cols[col].type
       if (this.props.cols[col].id || this.props.cols[col].linkable) {
-        cells.push(
-          <td key={Math.floor(Math.random() * 1000000)}>
-            <Link to={this.props.cols[col].baseURL + this.props.cells[this.props.id]}>
-                {val || ''} 
-            </Link>
-          </td>
-        )
+        if (this.props.onSelectKey) {
+          cells.push(
+            <td key={Math.floor(Math.random() * 1000000)}>
+              <a href="#" data-key={this.props.cells[this.props.id]} onClick={this.props.onSelectKey}>
+                  {val || ''}
+              </a>
+            </td>
+          )
+        } else {
+          cells.push(
+            <td key={Math.floor(Math.random() * 1000000)}>
+              <Link to={this.props.cols[col].baseURL + this.props.cells[this.props.id]}>
+                  {val || ''} 
+              </Link>
+            </td>
+          )
+        }
       } else if (type && type.toLowerCase() === 'date') {
         cells.push(<td key={~~(Math.random() * 100000)}>{new Date(val).toDateString() || ''}</td>)        
       } else if (type && type.toLowerCase() === 'boolean') {
@@ -93,7 +108,7 @@ export default class Table extends Component {
   }
 
   getData({args, offset}) {
-    API.GET({path: '/api/q/' + this.state.table, query: {
+    API.get({path: '/api/q/' + this.state.table, query: {
       args: args,
       limit: this.state.field.limit
     }})
@@ -122,7 +137,7 @@ export default class Table extends Component {
       else this.setState({error: 'No data received'})
     })
     .catch(err => {
-      console.error(err)
+      this.props.handleErrorMessage ? this.props.handleErrorMessage(err) : console.error(err)
     })
   }
 
@@ -140,7 +155,7 @@ export default class Table extends Component {
   }
   
   getCols() {
-    API.GET({path: '/api/q/describe/' + this.state.table})
+    API.get({path: '/api/q/describe/' + this.state.table})
     .then(response => {
       if (response.cols) {
         let allowedCols = {}
@@ -161,7 +176,7 @@ export default class Table extends Component {
         })
         this.setState({cols: allowedCols, id: response.id, fieldSearchSelections, field: fields})
       }
-      return API.GET({path: '/api/q/' + this.state.table, query: {
+      return API.get({path: '/api/q/' + this.state.table, query: {
         args: this.state.args,
         limit: this.state.field.limit
       }})
@@ -191,7 +206,7 @@ export default class Table extends Component {
       else this.setState({error: 'No data received'})
     })
     .catch(err => {
-      console.error(err)
+      this.props.handleErrorMessage ? this.props.handleErrorMessage(err) : console.error(err)
     })
   }
 
@@ -215,7 +230,7 @@ export default class Table extends Component {
       offset = offset + this.state.field.limit
     }
 
-    API.GET({path: '/api/q/' + this.state.table, query: {
+    API.get({path: '/api/q/' + this.state.table, query: {
       args: this.state.args,
       offset: offset,
       limit: this.state.field.limit
@@ -249,10 +264,11 @@ export default class Table extends Component {
     })
   }
 
+
   render() {
     let headers = []
-    let nextPage = this.state.nextOffset >= this.state.count ? ' disabled' : ''
-    let prevPage = this.state.offset - this.state.field.limit <= 0 ? ' disabled': ''
+    let nextPage = this.state.nextOffset >= this.state.count ? {disabled: 'disabled'} : ''
+    let prevPage = this.state.offset - this.state.field.limit <= 0 ? {disabled: 'disabled'}: ''
     let fieldSearchSelections = []
 
     if (!this.state.hideActions) {
@@ -272,7 +288,7 @@ export default class Table extends Component {
     let rows = []
     if (this.state.rows && this.state.rows.length > 0) {
       for(let row of this.state.rows) {
-        rows.push(<TableRow key={~~(Math.random() * 10000).toString()} showSelect={!this.state.hideActions} cells={row} cols={this.state.cols} onClick={this.state.handleClick} href={this.state.baseURL} id={this.state.id}/>)
+        rows.push(<TableRow key={~~(Math.random() * 10000).toString()} showSelect={!this.state.hideActions} cells={row} cols={this.state.cols} onClick={this.state.handleClick} href={this.state.baseURL} id={this.state.id} onSelectKey={this.props.onSelectKey} />)
       }
     }
 
@@ -323,6 +339,11 @@ export default class Table extends Component {
                         </tr>
                       </thead>
                     <tbody>
+                      {rows.length === 0 && 
+                        <tr>
+                          <td colSpan={headers.length} style={{textAlign: 'center'}}>No Results Found</td>
+                        </tr>
+                      }
                       {rows.length > 0 && rows}
                     </tbody>
                   </table>
@@ -342,13 +363,13 @@ export default class Table extends Component {
                 <div className="col"/>
                 {!this.state.hidePagination && 
                   <div className="col-lg-6 col-md-10 col-sm-12">
-                    <button className={"btn btn-secondary m-1" + prevPage} data-page="-2" onClick={this.handlePage.bind(this)}>&laquo;</button>
-                    <button className={"btn btn-secondary m-1" + prevPage} data-page="-1" onClick={this.handlePage.bind(this)}>&lsaquo;</button>
+                    <button {...prevPage} className={"btn btn-secondary m-1"} data-page="-2" onClick={this.handlePage.bind(this)}>&laquo;</button>
+                    <button {...prevPage} className={"btn btn-secondary m-1"} data-page="-1" onClick={this.handlePage.bind(this)}>&lsaquo;</button>
                     <span className="mx-1">
                       {this.state.from + ' - ' + this.state.nextOffset + ' of ' + this.state.count}
                     </span>
-                    <button className={"btn btn-secondary m-1" + nextPage} data-page="1" onClick={this.handlePage.bind(this)}>&rsaquo;</button>
-                    <button className={"btn btn-secondary m-1" + nextPage} data-page="2" onClick={this.handlePage.bind(this)}>&raquo;</button>
+                    <button {...nextPage} className={"btn btn-secondary m-1"} data-page="1" onClick={this.handlePage.bind(this)}>&rsaquo;</button>
+                    <button {...nextPage} className={"btn btn-secondary m-1"} data-page="2" onClick={this.handlePage.bind(this)}>&raquo;</button>
                   </div>
                 }
               </div>

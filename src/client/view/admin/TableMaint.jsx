@@ -18,7 +18,7 @@ class TableGeneralInformation extends Component {
     }
 
     fetchTableInformation() {
-        API.GET({path: '/api/q/sys_db_object/' + this.state.sys_id})
+        API.get({path: '/api/q/sys_db_object/' + this.state.sys_id})
         .then(response => {
             this.setState({fields: response.data.sys_db_object || {}, loaded: true})
         })
@@ -45,7 +45,7 @@ class TableGeneralInformation extends Component {
                     <>
                         <Field label="Label" value={this.state.fields.label} onChange={this.handleChange.bind(this)} />
                         <Field label="Name" value={this.state.fields.name} onChange={this.handleChange.bind(this)} readOnly="readonly"/>
-                        <button className="btn btn-primary btn-block" onClick={this.submitChange.bind(this)} />
+                        <button className="btn btn-primary btn-block" onClick={this.submitChange.bind(this)}>Save</button>
                     </>
                 }
             </>

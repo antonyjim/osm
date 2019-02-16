@@ -25,7 +25,17 @@ export class ColumnGeneralInformation extends Component {
     }
 
     handleSubmit(e) {
-        console.log(e)
+        let body = {sys_id: this.state.sys_id}
+        this.state.modifiedFields.forEach(field => {
+            body[field] = this.state.fields[field]
+        })
+        API.put({path: '/api/q/sys_db_dictionary/' + this.state.sys_id, body})
+        .then(res => {
+            console.log(res)
+        })
+        .catch(err => {
+            this.props.handleErrorMessage(err)
+        })
     }
 
     render() {
@@ -38,7 +48,7 @@ export class ColumnGeneralInformation extends Component {
             'BOOLEAN'
         ]
         let length = {}
-        if (this.state.type in ['CHAR', 'VARCHAR']) length = {readOnly: 'readonly'}
+        if (!this.state.type in ['CHAR', 'VARCHAR']) length = {readOnly: 'readonly'}
         return (
             <>
                 <h4> General Information </h4>
@@ -53,7 +63,7 @@ export class ColumnGeneralInformation extends Component {
                     <Field id="length" label="Length" value={this.state.fields.length} onChange={this.handleChange.bind(this)} attributes={length} className="col-lg-6 col-md-12" type="number" />
                     <Field id="base_url" label="Base URL" value={this.state.fields.base_url } onChange={this.handleChange.bind(this)} className="col-lg-6 col-md-12" type="text" />
                     <Field id="reference_id" label="References" value={this.state.fields.reference_id} onChange={this.handleChange.bind(this)} className="col-lg-6 col-md-12" type="text" references="sys_db_dictionary" />
-                    <Checkbox id="linkable" label="Linkable" checked={this.state.fields.linkable} onChange={this.handleChange.bind(this)} />
+                    <Checkbox id="selectable" label="Selectable" checked={this.state.fields.selectable} onChange={this.handleChange.bind(this)} />
                     <Checkbox id="readonly" label="Readonly" checked={this.state.fields.readonly} onChange={this.handleChange.bind(this)} />
                     <Checkbox id="nullable" label="Nullable" checked={this.state.fields.nullable} onChange={this.handleChange.bind(this)} />
                     <Checkbox id="update_key" label="Primary Key" checked={this.state.fields.update_key} onChange={this.handleChange.bind(this)} />
@@ -117,7 +127,7 @@ export default class Column extends Component {
     }
 
     getInfo() {
-        API.GET({
+        API.get({
             path: '/api/q/sys_db_dictionary/' + this.state.sys_id,
             query: {
                 fields: 'sys_id,column_name,label,table_name,hint,type,length,readonly,base_url,default_view,selectable,nullable,reference_id'

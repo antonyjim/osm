@@ -643,27 +643,35 @@ class AdminWireFrame extends Component {
         this.setState({fields, modifiedFields})
     }
 
+    handleErrorMessage(err) {
+        this.setState({errorMessage: err.message})
+    }
+
+    handleStatusMessage(message) {
+        this.setState({statusMessage: message})
+    }
+
     render() {
         let comps = {
             routes: {
                 id: 'routes',
                 label: 'Routes',
-                body: <Routes/>
+                body: <Routes />
             },
             roles: {
                 id: 'roles',
                 label: 'Roles',
-                body: <Roles/>
+                body: <Roles />
             },
             tables: {
                 id: 'tables',
                 label: 'Tables',
-                body: <Table table="sys_db_object_list" hideActions={true} showSearch={true} />
+                body: <Table table="sys_db_object_list" hideActions={true} showSearch={true} handleErrorMessage={this.handleErrorMessage.bind(this)} handleStatusMessage={this.handleStatusMessage.bind(this)} />
             },
             views: {
                 id: 'views',
                 label: 'Columns',
-                body: <Table table="sys_db_dictionary_list" perPage={15} cols={['column_name','label','table_name', 'hint', 'col_order']} showSearch={true} />
+                body: <Table table="sys_db_dictionary_list" perPage={15} cols={['column_name','label','table_name', 'hint', 'col_order']} showSearch={true} handleErrorMessage={this.handleErrorMessage.bind(this)} handleStatusMessage={this.handleStatusMessage.bind(this)} />
             }
         }
         return (

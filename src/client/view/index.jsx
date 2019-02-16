@@ -93,7 +93,7 @@ class App extends Component {
                                     <Switch>
                                         <Route exact path="/" component={Dashboard} />
                                         <Route path="/profile" component={UserProfile} />
-                                        <Route path="/admin/" component={Admin} />
+                                        <Route path="/admin/" component={props => <Admin {...props} />} />
                                         <Route path="/customer/:customer" component={Customer} />
                                         <Route path="/changeCustomer" component={Customers} />
                                         <Route component={E404}/>

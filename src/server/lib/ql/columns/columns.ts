@@ -52,15 +52,16 @@ export default class Column extends Querynator {
         let params: any[] = [this.tableName]
         let invalidFields = new Validation(fields)
         .required([
-            'name',
+            'sys_id',
         ])
-        if (invalidFields) {
-            throw new TypeError('Missing required fields')
+        if (invalidFields.length > 0) {
+            throw new TypeError('Missing required fields ' + invalidFields.join(','))
         } else {
-            params.push(new Validation(fields).updateFields(['label, description']))
+            params.push(new Validation(fields).updateFields(['label', 'hint', 'type', 'length', 'readonly', 'linkable', 'nullable', 'update_key', 'default_view', 'admin_view', 'table_name']))
             params.push(this.primaryKey)
-            params.push(fields.name)
-            return this.createQ({query, params})
+            params.push(this.context.req.params.id)
+            this.createQ({query, params})
+            return this.byId(this.context.req.params.id)
         }  
     }
 

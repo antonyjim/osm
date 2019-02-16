@@ -1,32 +1,57 @@
 import React, { Component } from 'react';
+import SearchModal from './SearchModal.jsx';
 
 class Field extends Component {
     constructor(props) {
         super(props)
+
+        this.state = {
+            validReference: '',
+            fields: {},
+            openSearch: false
+        }
     }
 
     findReference() {
 
     }
 
-    openPopup() {
+    handleChange(e) {
+        let name = this.state.name
+        name = e.target.value
+        this.setState({name})
+    }
 
+    handleSelection(e) {
+        this.props.onChange({
+            target: {
+                id: this.props.id,
+                value: e.target.getAttribute('data-key')
+            }
+        })
+        this.setState({
+          name: e.target.innerText  
+        })
     }
 
     render() { 
         if (this.props.references) {
             return (
-                <div className={'form-group ' + this.props.className}  id={'cont' + this.props.id}>
-                    <label htmlFor={this.props.id}>
-                        {this.props.label}
-                    </label>
-                    <div className="input-group">
-                        <input {...this.props.attributes} type={this.props.type} className="form-control" id={this.props.id} value={this.props.value || ''} onChange={this.props.onChange} />
-                        <div className="input-group-append">
-                            <button className="btn btn-outline-secondary" type="button" id={this.props.id + '_search'}>Search</button>
+                <>
+                    <div className={'form-group ' + this.props.className}  id={'cont' + this.props.id}>
+                        <input type="hidden" id={this.props.id} value={this.props.value || ''} onChange={this.props.onChange} /> {/* Store the actual value */}
+                        <label htmlFor={this.props.id}>
+                            {this.props.label}
+                        </label>
+                        <div className="input-group">
+                            <input {...this.props.attributes} type={this.props.type} className="form-control" id={this.props.id + '_name'} value={this.state.name || ''} onChange={this.handleChange} />
+                            <div className="input-group-append">
+                                <button className="btn btn-outline-secondary" type="button" id={this.props.id + '_search'} data-toggle="modal" data-target={'#' + this.props.references + '_search_modal'} >Search</button>
+                            </div>
                         </div>
                     </div>
-                </div>
+                    <SearchModal table={this.props.references} handleSelectKey={this.handleSelection.bind(this)} />
+                </>
             )
         } else {
             return !this.props.isHidden && (

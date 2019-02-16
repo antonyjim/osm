@@ -16,7 +16,7 @@ const API = {
         
     },
 
-    GET: ({path, query}, cb) => {
+    get: ({path, query}, cb) => {
         const authPath = path + '?' + flattenQuery(query)
         console.log('Making GET request to ' + authPath)
         if (cb !== null && cb !== undefined) {
@@ -51,6 +51,11 @@ const API = {
 
     },
 
+    /**
+     * @param {string} path URL to make request to
+     * @param {object} query Query string parameters in object format
+     * @param {object} body Body of update parameters
+     */
     put: ({path, query, body}, cb) => {
         const authPath = path + '?' + flattenQuery(query)
         if (cb !== null && cb !== undefined) {
@@ -59,7 +64,7 @@ const API = {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
-                data: body,
+                data: JSON.stringify(body),
                 method: "PUT",
                 success: (res => {
                     cb(null, res)
@@ -75,7 +80,8 @@ const API = {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     },
-                    method: "GET",
+                    data: JSON.stringify(body),
+                    method: "PUT",
                     success: (res => {
                         resolve(res)
                     }),

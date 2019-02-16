@@ -16,6 +16,7 @@
 // Local Modules
 import { userMutations } from '../mutations/userMutations'
 import { tableMutations } from "../tables/mutations"
+import columnMutations from '../columns/mutations';
 
 // Constants and global variables
 const rootMutations = {
@@ -25,7 +26,8 @@ const rootMutations = {
     },
     update: {
         sys_user: userMutations.update_user,
-        sys_db_object: tableMutations.update_table
+        sys_db_object: tableMutations.update_table,
+        sys_db_dictionary: columnMutations.update_column
     },
     delete: {
         

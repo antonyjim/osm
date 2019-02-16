@@ -13,7 +13,7 @@ export default class Stats extends Component {
     }
 
     getStats() {
-        API.GET({path: '/stats'})
+        API.get({path: '/stats'})
         .then(stats => {
             console.log(stats)
             this.setState({stats, loaded: true})

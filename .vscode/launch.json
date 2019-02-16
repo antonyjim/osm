@@ -6,6 +6,12 @@
     "configurations": [
         {
             "type": "node",
+            "request": "attach",
+            "name": "Attach by Process ID",
+            "processId": "${command:PickProcess}"
+        },
+        {
+            "type": "node",
             "request": "launch",
             "name": "Launch via NPM",
             "runtimeExecutable": "npm",
@@ -27,7 +33,6 @@
             "port": 9229,
             "restart": true,
             "localRoot": "${workspaceFolder}",
-            "preLaunchTask": "tsc-watch",
             "remoteRoot": "/server",
             "outFiles": [
                 "${workspaceFolder}/dist/**/*.js"

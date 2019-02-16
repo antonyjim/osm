@@ -119,14 +119,14 @@ class UserProfile extends Component {
     getUser() {
         let apiQ;
         if (this.state.sys_id) {
-            apiQ = API.GET({
+            apiQ = API.get({
                 path: '/api/users/profile',
                 query: {
                     sys_id: this.state.sys_id
                 }
             })
         } else {
-            apiQ = API.GET({path: '/api/users/me'})
+            apiQ = API.get({path: '/api/users/me'})
         }
         apiQ.then(response => {
             if (response.errors) throw response.errors

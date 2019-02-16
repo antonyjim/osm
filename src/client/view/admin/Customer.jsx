@@ -22,7 +22,7 @@ export default class Customer extends Component {
     }
 
     getCustomer() {
-        API.GET({path: '/api/q/sys_customer/' + this.state.customer, query: {
+        API.get({path: '/api/q/sys_customer/' + this.state.customer, query: {
             fields: 'nsNonsig,nsTradeStyle,nsAddr1,nsAddr2,nsState,nsCity,nsPostalCode,nsCountry,nsIsActive,nsIsActiveTHQ,nsType'
         }})
         .then(response => {
