@@ -8,18 +8,18 @@ class Field extends Component {
         this.state = {
             validReference: '',
             fields: {},
-            openSearch: false
+            openSearch: false,
+            name: props.display || ''
         }
     }
 
-    findReference() {
-
-    }
-
     handleChange(e) {
-        let name = this.state.name
-        name = e.target.value
-        this.setState({name})
+        this.props.onChange({
+            target: {
+                id: this.props.id + '_display',
+                value: e.target.innerText
+            }
+        })
     }
 
     handleSelection(e) {
@@ -29,8 +29,11 @@ class Field extends Component {
                 value: e.target.getAttribute('data-key')
             }
         })
-        this.setState({
-          name: e.target.innerText  
+        this.props.onChange({
+            target: {
+                id: this.props.id + '_display',
+                value: e.target.innerText
+            }
         })
     }
 
@@ -44,7 +47,7 @@ class Field extends Component {
                             {this.props.label}
                         </label>
                         <div className="input-group">
-                            <input {...this.props.attributes} type={this.props.type} className="form-control" id={this.props.id + '_name'} value={this.state.name || ''} onChange={this.handleChange} />
+                            <input {...this.props.attributes} type={this.props.type} className="form-control" id={this.props.id + '_display'} value={this.state.name} onChange={this.handleChange} />
                             <div className="input-group-append">
                                 <button className="btn btn-outline-secondary" type="button" id={this.props.id + '_search'} data-toggle="modal" data-target={'#' + this.props.references + '_search_modal'} >Search</button>
                             </div>

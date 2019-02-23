@@ -15,6 +15,7 @@ import { Querynator } from "../../connection";
 import { Log } from "../../log";
 import { rootQueries } from "./queries";
 import rootMutations from "./mutations";
+import constructSchema from "./constructSchema";
 
 
 // Constants and global variables
@@ -25,6 +26,9 @@ interface APIResponse {
         errors?: [{
             message: string
         }?],
+        warnings?: [{
+            message: string
+        }?]
         meta?: any
         data?: any
     }
@@ -40,6 +44,7 @@ export default class APICall extends Querynator {
             status: 200,
             body: {
                 errors: [],
+                warnings: [],
                 data: {}
             },
         }
@@ -68,27 +73,6 @@ export default class APICall extends Querynator {
         } else {
             new Log(message).error(4)
         }
-    }
-
-    private async verifyFields(fields: string[]) {
-        let query = 'SELECT column_name, type, length FROM sys_db_dictionary WHERE table_name = ?'
-        let params = [this.context.req.params.table || false]
-        let validFields: string[] = []
-        let format = await this.createQ({query, params}, 'CALL')
-        .catch((err: Error) => this.handleError(err))
-        if (format.length > 0 && fields.length > 0) {
-            format.map(field => {
-                if (fields.includes(field.column_name)) validFields.push(field.column_name)  
-            })
-        } else if (format.length > 0 && fields.length < 0) {
-            format.FIELDS.map(field => {
-                if (field.default_view) validFields.push(field.column_name)  
-            })
-        } else {
-            validFields.push('*')
-        }
-
-        Promise.resolve(validFields)
     }
 
     /**
@@ -125,12 +109,13 @@ export default class APICall extends Querynator {
                 if (rows.data) {
                     this.response.body.data[queryTable] = rows.data[0]
                 } else {
-                    this.response.body.data[queryTable] = rows[0]
+                    this.response.body.data[queryTable] = rows
                 }
                 this.response.status = 200
                 return this.sendResponse()
             })
             .catch(err => {
+                console.error(err)
                 return this.handleError(err, true)
             })
         } else {
@@ -192,6 +177,7 @@ export default class APICall extends Querynator {
                 rootQueries[queryTable](fields, this.context.req.params.id, this.context)
                 .then(rows => {
                     if (rows.errors) this.response.body.errors.push(rows.errors) // Allow non-terminating errors to be passed in the response
+                    if (rows.warnings) this.response.body.warnings.push(rows.warnings)
                     if (rows.data) {
                         this.response.body.data[queryTable] = rows.data[0]
                     } else {
@@ -213,6 +199,7 @@ export default class APICall extends Querynator {
                 handler(fields, args, this.context, pagination)
                 .then(rows => {
                     if (rows.errors) this.response.body.errors.push(rows.errors) // Allow non-terminating errors to be passed in the response
+                    if (rows.warnings) this.response.body.warnings.push(rows.warnings)
                     if (rows.meta) this.response.body.meta = rows.meta
                     if (rows.data) {
                         this.response.body.data[queryTable] = rows.data

@@ -19,7 +19,7 @@ import { Log, UserLog } from '../log';
 
 // Constants and global variables
 const pool = getPool()
-const tokenExpiration = process.env.TOKEN_EXPIRATION || '1h'
+const tokenExpiration = process.env.TOKEN_EXPIRATION || '10h'
 
 export async function Login(credentials: UserTypes.Credentials) {
     this.credentials = credentials

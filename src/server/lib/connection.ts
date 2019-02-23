@@ -10,6 +10,7 @@
 import { Pool, PoolConfig, createPool, PoolConnection } from 'mysql'
 import { Log } from './log';
 import { EventEmitter } from 'events';
+import constructSchema from './ql/schema/constructSchema';
 
 
 // Local Modules
@@ -42,6 +43,21 @@ function getPool(): Pool {
     return pool
 }
 
+function simpleQuery(query: string, params?: any[]): Promise<any[]> {
+    return new Promise(resolve => {
+        getPool().getConnection((err, conn) => {
+            if (err) console.error(err)
+            console.log(conn.format(query, params).toString())
+            conn.release()
+        })
+        getPool().query(query, params, (err: Error, results: any[]) => {
+            if (err) console.error(err)
+            return resolve(results)
+        })
+    })
+}
+
+
 class Querynator extends EventEmitter {
     protected pool: Pool
     protected tableName: string
@@ -50,6 +66,7 @@ class Querynator extends EventEmitter {
     protected baseParams: any[]
     protected queryFields: string
     private queryFieldsArr: string[]
+    protected warnings: any[]
 
     /**
      * Create an interface for graphql to query from, with authorization included
@@ -63,6 +80,7 @@ class Querynator extends EventEmitter {
         this.baseParams = []
         this.context = context
         this.tableName =  ''
+        this.warnings = []
         this.once('init', () => {
             if (this.queryFieldsArr && Array.isArray(this.queryFieldsArr)) {
                 let fieldPlaceholders: string[] = []
@@ -155,10 +173,6 @@ class Querynator extends EventEmitter {
         })
     }
 
-    protected updateById(id) {
-        
-    }
-
     /**
      * Allow operators to be used with graphql queries in the format {field: "operator|value"}
      * @param fields Object containing field operators
@@ -166,10 +180,6 @@ class Querynator extends EventEmitter {
     private evaluateFieldOperator(field) {
         if (!field || typeof field !== 'string') return field
         let op = field.split('|')
-        let fieldInfo = {
-            operator: '',
-            value: ''
-        }
         // Test for the existence of an operator
         if (op[1]) {
             switch(op[0]) {
@@ -200,7 +210,7 @@ class Querynator extends EventEmitter {
                 case 'lk': {
                     return ({
                         operator: 'LIKE',
-                        value: op[1].replace('*', '%')
+                        value: `%${op[1]}%` // op[1].replace('*', '%')
                     })
                 }
                 default: {
@@ -218,55 +228,134 @@ class Querynator extends EventEmitter {
         }
     }
 
+    protected async queryBuilder(fields: string[] | string = this.queryFieldsArr) {
+        let schema = await constructSchema().catch(e => console.error(e))
+        let tableCols = schema[this.tableName].columns
+        let validFields = []
+        let fieldPlaceholders = []
+        let tableAliases = {} // Every table gets it's own alias, something like `sys_user` `t1`
+        let tableAliasIndex = 1
+        let baseStatement = 'SELECT '
+        let fromStatement = ' FROM '
+        let leftJoin = ' LEFT JOIN ?? ?? ON ??.?? = ??.?? '
+        let tableParams = []
+        let fieldArr
+        if (fields && fields[0] === '*' || !fields) fieldArr = schema[this.tableName].defaultFields
+        else if (!Array.isArray(fields)) fieldArr = fields.split(',')
+        else fieldArr = fields
+
+        fieldArr.map(qField => {
+            let refCol = tableCols[qField]
+            if (refCol) {
+                if (!refCol.reference && !tableAliases[this.tableName]) {
+                    tableAliases[this.tableName] = `t${tableAliasIndex}` // Add the table to aliases
+                    fromStatement += ' ?? ?? ' // Provide for table alias e.g. `sys_user` `t1`
+                    tableParams.push(this.tableName, `t${tableAliasIndex}`) // Add params to field substution
+                    validFields.push(tableAliases[this.tableName], qField) // Add field value to params with alias
+                    tableAliasIndex++
+                    fieldPlaceholders.push('??.??')
+                } else if (refCol.localRef && refCol.tableRef) {
+                    let alias = `t${tableAliasIndex}`
+                    tableAliasIndex++
+
+                    fromStatement += leftJoin // Add the join statement, which requires 6 params
+                    /*
+                        Params required for joins:
+                         1. Name of the table that is being joined
+                         2. Alias of the table being joined
+                         3. Alias of the table on the left of the join
+                         4. Column from the table on the left of the join
+                         5. Alias of table being joined (same as 2)
+                         6. Column of the table being joined
+                    */
+                    tableParams.push(
+                        refCol.tableRef, 
+                        alias,
+                        tableAliases[this.tableName],
+                        refCol.localRef,
+                        alias,
+                        refCol.reference
+                    )
+                    /*
+                        Params required for the select part of the query:
+                         1. table alias of table being joined
+                         2. column from joined table
+                         3. alias for this column
+                    */
+                    validFields.push(
+                        alias, 
+                        refCol.displayAs,
+                        qField
+                    )
+                    fieldPlaceholders.push('??.?? AS ??')
+                } else {
+                    validFields.push(tableAliases[this.tableName], qField)
+                    fieldPlaceholders.push('??.??')
+                }
+            } else {
+                this.warnings.push({
+                    message: `Column "${qField}" does not exist on table "${this.tableName}"`
+                })
+            }
+        })
+        return {
+            query: `${baseStatement} ${fieldPlaceholders.join(', ')} ${fromStatement}`,
+            params: Array.prototype.concat(validFields, tableParams),
+            aliases: tableAliases
+        }
+        // return await simpleQuery(`${baseStatement} ${fieldPlaceholders.join(', ')} ${fromStatement}`, Array.prototype.concat(validFields, tableParams))
+    }
+
     protected async byId(reqId: string): Promise<any> {
         if (typeof reqId !== 'string') throw new TypeError(this.primaryKey + ' must be in string format')
-        let params: any[] = this.baseParams
-        let query: string = ''
         let id = reqId
-        query = 'SELECT ' + this.queryFields + ' FROM ?? WHERE ?? = ?'
-        params.push(this.tableName, this.primaryKey, id)
-        return this.createQ({
-            query,
-            params
+        let queryParams = await this.queryBuilder()
+        queryParams.query += ' WHERE ??.?? = ?'
+        queryParams.params.push(queryParams.aliases[this.tableName], this.primaryKey, id)
+        return ({
+            warnings: this.warnings,
+            data: await this.createQ(queryParams)
         })
     }
 
     protected async byFields({fields}: {fields: any}, {order, offset, limit}: {order?: {by?: string, direction?: 'ASC' | 'DESC'}, offset?: number, limit?: number}) {
-        let query = 'SELECT ' + this.queryFields + ' FROM ?? WHERE '
         let params = this.baseParams
-        params.push(this.tableName + '_list')
-
+        params.push(this.tableName)
+        let queryParams = await this.queryBuilder()
+        queryParams.query += ' WHERE ' // Add the where statement to the query
+        
         if (fields) {
             Object.keys(fields).forEach((col, i) => {
                 let fieldValue = fields[col]
                 if (typeof fieldValue === 'string') {
                     let parsedField = this.evaluateFieldOperator(fieldValue)
-                    query += '?? ' + parsedField.operator + ' ?'
-                    params.push(col, parsedField.value)
+                    queryParams.query += '??.?? ' + parsedField.operator + ' ?'
+                    queryParams.params.push(queryParams.aliases[this.tableName], col, parsedField.value)
                 } else {
-                    query += '?? = ?'
-                    params.push(col, fieldValue)
+                    queryParams.query += '??.?? = ?'
+                    queryParams.params.push(queryParams.aliases[this.tableName], col, fieldValue)
                 }
-                if (i + 1 !== Object.keys(fields).length) query += ' AND '
+                if (i + 1 !== Object.keys(fields).length) queryParams.query += ' AND '
             })
         }
-        // Query for count as soon
-        params.unshift(this.primaryKey) // Add the primary key to the beginning of the array for the next query
-        let count = await this.createQ({query: 'SELECT COUNT(??) AS COUNT FROM (' + query + ') AS COUNTING', params})
-        params.shift() // Remove the primary key for the main query
+
+        // Query for count for meta information
+        queryParams.params.unshift(this.primaryKey) // Add the primary key to the beginning of the array for the next query
+        let count = await this.createQ({query: 'SELECT COUNT(??) AS COUNT FROM (' + queryParams.query + ') AS COUNTING', params: queryParams.params})
+        queryParams.params.shift() // Remove the primary key for the main query
 
         if (order && order.by && order.direction) {
-            query += 'ORDER BY ??'
-            query += order.direction === 'DESC' ? ' DESC': ' ASC'
-            params.push(order.by)
+            queryParams.query += 'ORDER BY ??'
+            queryParams.query += order.direction === 'DESC' ? ' DESC': ' ASC'
+            queryParams.params.push(order.by)
         }
 
         if (limit !== null && !isNaN(limit)) {
-            query += ' LIMIT ' + limit
+            queryParams.query += ' LIMIT ' + limit
         }
 
         if (offset !== null && !isNaN(offset)) {
-            query += ' OFFSET ' + offset
+            queryParams.query += ' OFFSET ' + offset
         }
 
         return ({
@@ -275,23 +364,26 @@ class Querynator extends EventEmitter {
                 from: offset < 1 ? 1 : offset,
                 to: limit + offset > count[0].COUNT ? count[0].COUNT : limit + offset
             },
-            data: await this.createQ({query, params})
+            warnings: this.warnings,
+            data: await this.createQ(queryParams)
         })
     }
 
+    /**
+     * Return all rows
+     * @param param0 Object containing the information for pagination
+     */
     protected async all({limit, offset, order}: {limit?: number, offset?: number, order?: {by?: string, direction?: 'ASC' | 'DESC'}}) {
-        let query: string = 'SELECT * FROM ??',
-            params: Array<string> = [ this.tableName + '_list' ],
-            countParams: Array<string> = [ this.primaryKey, this.tableName + '_list' ],
-            count = await this.createQ({query: 'SELECT COUNT(??) AS COUNT FROM (' + query + ') AS COUNTING', params: countParams})
-        if (limit && limit !== null && !isNaN(limit)) {
-            query += ' LIMIT ' + limit
+        const count = await this.createQ({query: 'SELECT COUNT(??) AS COUNT FROM ??', params: [ this.primaryKey, this.tableName ]})
+        let queryParams = await this.queryBuilder() // The query with necessary joins
+        if (limit && limit !== null && !isNaN(limit) && limit <= 100) { // Put a hard limit on 100 rows
+            queryParams.query += ' LIMIT ' + limit
         } else {
-            query += ' LIMIT 20'
+            queryParams.query += ' LIMIT 20'
         }
         if (offset + limit > count[0].COUNT) offset = count[0].COUNT - limit < 0 ? 0 : count[0].COUNT - limit // Limit the offset to the max number of results
         else if (offset === null || isNaN(offset)) offset = 0 // Fallback to an offset of 0 if an invalid offset is provided
-        query += ' OFFSET ' + offset
+        queryParams.query += ' OFFSET ' + offset
 
         return ({
             meta: {
@@ -299,7 +391,8 @@ class Querynator extends EventEmitter {
                 from: offset < 1 ? 1 : offset,
                 to: limit + offset > count[0].COUNT ? count[0].COUNT : limit + offset
             },
-            data: await this.createQ({query, params})
+            warnings: this.warnings,
+            data: await this.createQ(queryParams)
         })
     }
 
@@ -314,4 +407,4 @@ class Querynator extends EventEmitter {
     }
 }
 
-export { getPool, transporterSettings, jwtSecret, Querynator }
+export { getPool, transporterSettings, jwtSecret, Querynator, simpleQuery }

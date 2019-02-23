@@ -25,16 +25,41 @@ export class ColumnGeneralInformation extends Component {
     }
 
     handleSubmit(e) {
-        let body = {sys_id: this.state.sys_id}
-        this.state.modifiedFields.forEach(field => {
-            body[field] = this.state.fields[field]
+        if (this.props.sys_id === 'new') {
+            createNew()
+        } else {
+            let body = {sys_id: this.state.sys_id}
+            this.state.modifiedFields.forEach(field => {
+                body[field] = this.state.fields[field]
+            })
+            API.put({
+                path: '/api/q/sys_db_dictionary/' + this.state.sys_id, 
+                body: body, 
+                query: {fields: this.props.fields.join(',')}
+            })
+            .then(res => {
+                console.log(res)
+            })
+            .catch(err => {
+                this.props.handleErrorMessage(err)
+            })
+        }
+
+    }
+
+    createNew(e) {
+        API.post({
+            path: '/api/q/sys_db_dictionary',
+            query: {
+                fields: this.props.fields.join(',')
+            },
+            body: this.state.fields
         })
-        API.put({path: '/api/q/sys_db_dictionary/' + this.state.sys_id, body})
         .then(res => {
             console.log(res)
         })
         .catch(err => {
-            this.props.handleErrorMessage(err)
+            console.error(err)
         })
     }
 
@@ -48,22 +73,23 @@ export class ColumnGeneralInformation extends Component {
             'BOOLEAN'
         ]
         let length = {}
+        let colNameReadonly = {}
         if (!this.state.type in ['CHAR', 'VARCHAR']) length = {readOnly: 'readonly'}
+        if (!this.props.sys_id === 'new') colNameReadonly = {readOnly: 'readonly'}
         return (
             <>
                 <h4> General Information </h4>
                 <hr/>
                 <form className="form-row" name="info">
                     <input type="hidden" id="sys_id" value={this.state.sys_id}/>
-                    <Field id="column_name" label="Column Name" value={this.state.fields.column_name} onChange={this.handleChange.bind(this)} className="col-lg-6 col-md-12" attributes={{readOnly: 'readonly'}} />
+                    <Field id="column_name" label="Column Name" value={this.state.fields.column_name} onChange={this.handleChange.bind(this)} className="col-lg-6 col-md-12" attributes={colNameReadonly} />
                     <Field id="label" label="Label" value={this.state.fields.label} onChange={this.handleChange.bind(this)} className="col-lg-6 col-md-12" />
-                    <Field id="table_name" label="Table" value={this.state.fields.table_name} onChange={this.handleChange.bind(this)} className="col-lg-6 col-md-12" type="text" references="sys_db_object" />
+                    <Field id="table_name" label="Table" value={this.state.fields.table_name} display={this.state.fields.table_name_display} onChange={this.handleChange.bind(this)} className="col-lg-6 col-md-12" type="text" references="sys_db_object" />
                     <Field id="hint" label="Hint" value={this.state.fields.hint} onChange={this.handleChange.bind(this)} className="col-lg-6 col-md-12" type="text"/>
                     <SelectField id="type" label="Data Type" value={this.state.fields.type} onChange={this.handleChange.bind(this)} className="col-lg-6 col-md-12" opts={dataTypes}/>
                     <Field id="length" label="Length" value={this.state.fields.length} onChange={this.handleChange.bind(this)} attributes={length} className="col-lg-6 col-md-12" type="number" />
                     <Field id="base_url" label="Base URL" value={this.state.fields.base_url } onChange={this.handleChange.bind(this)} className="col-lg-6 col-md-12" type="text" />
-                    <Field id="reference_id" label="References" value={this.state.fields.reference_id} onChange={this.handleChange.bind(this)} className="col-lg-6 col-md-12" type="text" references="sys_db_dictionary" />
-                    <Checkbox id="selectable" label="Selectable" checked={this.state.fields.selectable} onChange={this.handleChange.bind(this)} />
+                    <Field id="reference_id" label="References" value={this.state.fields.reference_id} display={this.state.fields.reference_id_display} onChange={this.handleChange.bind(this)} className="col-lg-6 col-md-12" type="text" references="sys_db_dictionary" />
                     <Checkbox id="readonly" label="Readonly" checked={this.state.fields.readonly} onChange={this.handleChange.bind(this)} />
                     <Checkbox id="nullable" label="Nullable" checked={this.state.fields.nullable} onChange={this.handleChange.bind(this)} />
                     <Checkbox id="update_key" label="Primary Key" checked={this.state.fields.update_key} onChange={this.handleChange.bind(this)} />
@@ -118,11 +144,30 @@ export default class Column extends Component {
             modifiedFields: {},
             disableSubmit: {
                 disabled: 'disabled'
-            }
+            },
+            fields: [
+                'sys_id',
+                'column_name',
+                'label',
+                'table_name',
+                'hint',
+                'type',
+                'length',
+                'readonly',
+                'base_url',
+                'default_view',
+                'selectable',
+                'nullable',
+                'reference_id',
+                'table_name_display',
+                'reference_id_display'
+            ]
         }
 
         if (this.state.sys_id !== 'new') {
             this.getInfo()
+        } else {
+            this.state.loaded = true
         }
     }
 
@@ -130,7 +175,7 @@ export default class Column extends Component {
         API.get({
             path: '/api/q/sys_db_dictionary/' + this.state.sys_id,
             query: {
-                fields: 'sys_id,column_name,label,table_name,hint,type,length,readonly,base_url,default_view,selectable,nullable,reference_id'
+                fields: this.state.fields.join(',')
             }
         })
         .then(data => {
@@ -162,7 +207,7 @@ export default class Column extends Component {
             general: {
                 id: 'general',
                 label: 'General',
-                body: <ColumnGeneralInformation info={this.state.generalInfo} sys_id={this.state.sys_id} />
+                body: <ColumnGeneralInformation info={this.state.generalInfo} sys_id={this.state.sys_id} fields={this.state.fields} />
             },
             ref: {
                 id: 'references',

@@ -29,10 +29,10 @@ class Customers extends Component {
 
     render() { 
         return (
-            <>
+            <div className="m-3">
                 {this.state.error && <Alert message={this.state.message} alertType="danger" />}
-                <Table table="sys_customer_list" cols={this.state.cols} hideActions={true} />
-            </>
+                <Table table="sys_customer_list" cols={this.state.cols} hideActions={true} showSearch={true} />
+            </div>
         )
     }
 }

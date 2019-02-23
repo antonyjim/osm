@@ -429,7 +429,6 @@ CREATE TABLE sys_db_dictionary (
 	type VARCHAR(10), -- Type (boolean, varchar, char, etc...)
 	length INT, -- Length of field, applies to varchar, char
 	table_name CHAR(36),
-    selectable BOOLEAN NOT NULL DEFAULT 0,
     update_key BOOLEAN NOT NULL DEFAULT 0,
     base_url VARCHAR(40),
 
@@ -538,7 +537,6 @@ AS
         sys_db_dictionary.length,
         sys_db_dictionary.update_key,
         sys_db_dictionary.base_url,
-        sys_db_dictionary.selectable,
         sys_db_dictionary.col_order,
         sys_db_dictionary.table_name AS table_sys_id,
         sys_db_object.name AS table_name

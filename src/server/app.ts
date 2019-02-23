@@ -13,6 +13,8 @@ import * as express from 'express'
 // Local Modules
 import { router } from './routes/index'
 import { Log } from './lib/log';
+import { getPool } from './lib/connection';
+import constructSchema from './lib/ql/schema/constructSchema';
 
 export default function routes() {
     if (process.env.NODE_ENV === 'production') {
@@ -42,9 +44,14 @@ export default function routes() {
         // Routes
         app.disable('x-powered-by')
         app.use('/', router)
+        process.on('SIGTERM', (e) => {
+            getPool().end()
+            new Log('Pool connections closed').info()
+        })
 
         app.listen(port, function() {
             new Log(`Listening at port ${port} on process ${process.pid}`).info()
+            constructSchema()
         })
     }
 }

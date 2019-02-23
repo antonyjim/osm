@@ -64,7 +64,7 @@ export default class Description extends Querynator {
                 if (fields.length > 0) {
                     fields.map(field => {
                         if (field.update_key) updateKey = field.column_name
-                        if (field.visible && field.selectable) {
+                        if (field.visible) {
                             formattedFields[field.label] = {
                                 boundTo: field.column_name,
                                 type: field.type,

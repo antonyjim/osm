@@ -43,11 +43,11 @@ class TableRow extends Component {
           )
         }
       } else if (type && type.toLowerCase() === 'date') {
-        cells.push(<td key={~~(Math.random() * 100000)}>{new Date(val).toDateString() || ''}</td>)        
+        cells.push(<td key={'table-data-' + ~~(Math.random() * 100000)}>{new Date(val).toDateString() || ''}</td>)        
       } else if (type && type.toLowerCase() === 'boolean') {
-        cells.push(<td key={~~(Math.random() * 100000)} style={{textAlign: 'center', fontSize: '20px'}}>{val === true || val === 1  && '×' || ''}</td>)        
+        cells.push(<td key={'table-data-' + ~~(Math.random() * 100000)} style={{textAlign: 'center', fontSize: '20px'}}>{val === true || val === 1  && '×' || ''}</td>)        
       } else {
-        cells.push(<td key={~~(Math.random() * 100000)}>{val || ''}</td>)
+        cells.push(<td key={'table-data-' + ~~(Math.random() * 100000)}>{val || ''}</td>)
       }
     })
     return (
@@ -110,7 +110,8 @@ export default class Table extends Component {
   getData({args, offset}) {
     API.get({path: '/api/q/' + this.state.table, query: {
       args: args,
-      limit: this.state.field.limit
+      limit: this.state.field.limit,
+      offset: 0
     }})
     .then(response => {
       if (response && response.data && response.data[this.state.table] && response.meta) {
@@ -143,7 +144,7 @@ export default class Table extends Component {
 
   handleSearchKeyDown(e) {
     if (e.keyCode && e.keyCode === 13) {
-      let args = `${this.state.field.col}=lk|${this.state.field.searchQ}*`
+      let args = `${this.state.field.col}=lk|${this.state.field.searchQ}`
       this.getData({args})
     } else {
       console.log(e.keyCode)
@@ -216,6 +217,19 @@ export default class Table extends Component {
     this.setState({field})
   }
 
+  handleSetCount(e) {
+    let rows = this.state.rows
+    let field = {...this.state.field}
+    field.limit = e.target.value
+    if (e.target.value < this.state.field.limit) {
+      rows = rows.slice(0, e.target.value)
+      this.setState({field, rows})
+    } else {
+      this.setState({field})
+      this.getData()
+    }
+  }
+
   handlePage(e) {
     let dir = parseInt(e.target.getAttribute('data-page')) // Get the pagination value from the element
     let offset = this.state.offset
@@ -273,7 +287,7 @@ export default class Table extends Component {
 
     if (!this.state.hideActions) {
       headers.push(
-        <th scope="col" key={Math.floor(Math.random() * 10000)}>            
+        <th scope="col" key={'header-' + ~~(Math.random() * 10000)}>            
           <input className="position-static" type="checkbox"/>
         </th>
       )
@@ -281,14 +295,14 @@ export default class Table extends Component {
     if (this.state.cols) {
       let headerTitles = Object.keys(this.state.cols)
       for(let col of headerTitles) {
-        headers.push(<th scope="col" data-bind={this.state.cols[col].boundTo} key={Math.floor(Math.random() * 10000)}>{col}</th>)
+        headers.push(<th scope="col" data-bind={this.state.cols[col].boundTo} key={'col-' + Math.floor(Math.random() * 10000)}>{col}</th>)
       }
     }
 
     let rows = []
     if (this.state.rows && this.state.rows.length > 0) {
       for(let row of this.state.rows) {
-        rows.push(<TableRow key={~~(Math.random() * 10000).toString()} showSelect={!this.state.hideActions} cells={row} cols={this.state.cols} onClick={this.state.handleClick} href={this.state.baseURL} id={this.state.id} onSelectKey={this.props.onSelectKey} />)
+        rows.push(<TableRow key={'tablerow-' + ~~(Math.random() * 100000)} showSelect={!this.state.hideActions} cells={row} cols={this.state.cols} onClick={this.state.handleClick} href={this.state.baseURL} id={this.state.id} onSelectKey={this.props.onSelectKey} />)
       }
     }
 
@@ -313,7 +327,7 @@ export default class Table extends Component {
                   <div className="col">
                     <div className="form-group">
                       <div className="input-group">
-                        <select className="custom-select" onChange={this.handleChange.bind(this)} value={this.state.field.limit} id="limit">
+                        <select className="custom-select" onChange={this.handleSetCount.bind(this)} value={this.state.field.limit} id="limit">
                           <option value={15}>15</option>
                           <option value={25}>25</option>
                           <option value={35}>35</option>
@@ -326,6 +340,9 @@ export default class Table extends Component {
                         </div>
                       </div>
                     </div>
+                  </div>
+                  <div className="col-1">
+                    <Link to="/admin/column/new">New</Link>
                   </div>
                 </div>
               }
