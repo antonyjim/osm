@@ -34,7 +34,6 @@ interface APIResponse {
     }
 }
 
-
 export default class APICall extends Querynator {
     response: APIResponse
 
@@ -50,9 +49,9 @@ export default class APICall extends Querynator {
         }
     }
 
-    protected sendResponse() {
-        this.context.res.status(this.response.status).json(this.response.body)
-    }
+    /* Send the response */
+    protected sendResponse = () => this.context.res.status(this.response.status).json(this.response.body)
+    
 
     /**
      * Log and handle any errors encountered in the resolver functions
@@ -73,7 +72,7 @@ export default class APICall extends Querynator {
         } else {
             new Log(message).error(4)
         }
-    }
+    } // handleError()
 
     /**
      * Create new users from a POST request
@@ -85,7 +84,7 @@ export default class APICall extends Querynator {
             rootMutations.create[queryTable](this.context.req.query.fields, null, this.context)
             .then(rows => {
                 this.response.body.data[queryTable] = rows[0]
-                this.response.status = 200
+                this.response.status = 201
                 return this.sendResponse()
             })
             .catch(err => {
@@ -94,7 +93,7 @@ export default class APICall extends Querynator {
         } else {
             return this.handleError(new Error(`Table ${this.context.req.params.table} does not exist.`), true)
         }
-    }
+    } // create()
 
     /**
      * Update data received from PUT requests
@@ -102,40 +101,55 @@ export default class APICall extends Querynator {
     public update() {
         const queryTable = this.context.req.params.table
         const id = this.context.req.params.id
+        const updateBody = this.context.req.body
+        const queryFields = this.context.req.query.fields
+
+        /* Update the table by calling on the resolver function */
         if(rootMutations.update[queryTable] && id) {
-            rootMutations.update[queryTable](this.context.req.query.fields, this.context.req.body, this.context)
+            rootMutations.update[queryTable](queryFields, updateBody, this.context)
             .then(rows => {
-                if (rows.errors) this.response.body.errors.push(rows.errors) // Allow non-terminating errors to be passed in the response
+                if (rows.errors) this.response.body.errors.push(rows.errors) 
+                if (rows.warnings) this.response.body.warnings.push(rows.warnings) // Allow non-terminating errors to be passed in the response
                 if (rows.data) {
                     this.response.body.data[queryTable] = rows.data[0]
                 } else {
                     this.response.body.data[queryTable] = rows
                 }
-                this.response.status = 200
+                this.response.status = 204
                 return this.sendResponse()
             })
             .catch(err => {
                 console.error(err)
                 return this.handleError(err, true)
             })
+        } else if (!id) {
+            /* Require the ID to update any record */
+            return this.handleError(new Error(`Cannot update table ${queryTable} because an invalid identifier was provided`), true)
         } else {
-            return this.handleError(new Error(`Table ${this.context.req.params.table} does not exist.`), true)
+            /* In the event that no resolver is found in rootMutations.update */
+            return this.handleError(new Error(`Table ${queryTable} does not exist.`), true)
         }
-    }
+    } // update()
 
+    /**
+     * Delete requested record from DELETE request
+     */
     public delete() {
         const queryTable = this.context.req.params.table
         const id = this.context.req.params.id
+        const queryFields = this.context.req.query.fields
         if(rootMutations.delete[queryTable] && id) {
-            rootMutations.delete[queryTable](this.context.req.query.fields, this.context.req.body, this.context)
+            /* Pass the query fields, null for the body and context */
+            rootMutations.delete[queryTable](queryFields, null, this.context)
             .then(rows => {
                 if (rows.errors) this.response.body.errors.push(rows.errors) // Allow non-terminating errors to be passed in the response
+                if (rows.warnings) this.response.body.warnings.push(rows.warnings) 
                 if (rows.data) {
                     this.response.body.data[queryTable] = rows.data[0]
                 } else {
                     this.response.body.data[queryTable] = rows[0]
                 }
-                this.response.status = 200
+                this.response.status = 204
                 return this.sendResponse()
             })
             .catch(err => {
@@ -144,110 +158,95 @@ export default class APICall extends Querynator {
         } else {
             return this.handleError(new Error(`Table ${this.context.req.params.table} does not exist.`), true)
         }
-    }
+    } // delete()
 
     /**
-     * Sample query: /api/q/user_list?fields=userId,userName,userFirstName,userLastName&args=userId=eq|29b7b057-9438-4d01-9bc5-b94387e3f51e
+     * Provide a simple interface for accepting queries from /api/q/:table/:id
+     * Arguments are passed in 2 ways:
+     *  1. Pathname parameters:
+     *    - table: represents the table name that is going to be queried
+     *    - id: represents the value of the primary key for a specific resource
+     *  2. Query string parameters:
+     *    - fields: A comma separated list of fields that exist on the object
+     *      NOTE: If no fields are provided, the response will default to displaying
+     *      the defaults that are specified in the sys_db_dictionary table.
+     *    - args: A comma separated list of key value pairs that will be evaluated
+     *      as object. E.g. ?args=active=eq|true,name=lk|john*
+     *    - order_by: A single column name to order the list
+     *    - order_direction: Either DESC or ASC
      */
-    public query() {
-        let fields = this.context.req.query.fields
-        const queryTable = this.context.req.params.table
-        const handler = rootQueries[queryTable]
+    public query(): void {
+        const queryTable: string = this.context.req.params.table
+        const queryId: string = this.context.req.params.id || false
+        const handler: Function = rootQueries[queryTable]
+        const rawArgs: string = this.context.req.query.args
+        const fields: string = this.context.req.query.fields
+        let queryFields: string[] = []
+        let args: any = null
+        let order: {by?: string, direction?: 'ASC' | 'DESC'} = {}
 
-        this.on('validatedFields', (e) => {
-            let rawArgs = this.context.req.query.args
-            let args: any = null
-            let order: {by?: string, direction?: 'ASC' | 'DESC'} = {}
-            if (rawArgs && rawArgs.length > 0 && rawArgs !== "undefined") {
-                args = {}
-                rawArgs.split(',').map(arg => {
-                    let keyVal = arg.split('=')
-                    args[keyVal[0]] = keyVal[1]
-                })
-            }
+        /* Optionally provide a fields argument */
+        if (fields) {
+            queryFields = fields.split(',')
+        } else {
+            /* The Querynator.buildQuery will recognize this as the default */
+            queryFields = ['*']
+        }
+        if (rawArgs && rawArgs.length > 0 && rawArgs !== undefined) {
+            args = {}
+            rawArgs.split(',').map(arg => {
+                let keyVal = arg.split('=')
+                args[keyVal[0]] = keyVal[1]
+            })
+        }
 
-            if (this.context.req.query.order_by) {
-                order.by = this.context.req.query.order_by
-                order.direction = this.context.req.query.order_direction || 'ASC'
-            }
-            // If both the ID and table is provided, query the single record
-            if (this.context.req.params.table
-            && this.context.req.params.id
-            && rootQueries[queryTable]) {
-                rootQueries[queryTable](fields, this.context.req.params.id, this.context)
-                .then(rows => {
-                    if (rows.errors) this.response.body.errors.push(rows.errors) // Allow non-terminating errors to be passed in the response
-                    if (rows.warnings) this.response.body.warnings.push(rows.warnings)
-                    if (rows.data) {
-                        this.response.body.data[queryTable] = rows.data[0]
-                    } else {
-                        this.response.body.data[queryTable] = rows[0]
-                    }
-                    this.response.status = 200
-                    this.sendResponse()
-                }, failure => {
-                    this.handleError(failure, true)
-                })
-                .catch(err => this.handleError(err, true))
-            } else if (queryTable) {
-                const pagination = {
-                    limit: parseInt(this.context.req.query.limit) || 20,
-                    offset: parseInt(this.context.req.query.offset) || 0,
-                    order
+        if (this.context.req.query.order_by) {
+            order.by = this.context.req.query.order_by
+            order.direction = this.context.req.query.order_direction || 'ASC'
+        }
+        if (queryTable && queryId && handler) {
+            /* If both the ID and table is provided, query the single record */
+            rootQueries[queryTable](queryFields, this.context.req.params.id, this.context)
+            .then(rows => {
+                if (rows.errors) this.response.body.errors.push(rows.errors) // Allow non-terminating errors to be passed in the response
+                if (rows.warnings) this.response.body.warnings.push(rows.warnings)
+                if (rows.data) {
+                    this.response.body.data[queryTable] = rows.data[0]
+                } else {
+                    this.response.body.data[queryTable] = rows[0]
                 }
-                
-                handler(fields, args, this.context, pagination)
-                .then(rows => {
-                    if (rows.errors) this.response.body.errors.push(rows.errors) // Allow non-terminating errors to be passed in the response
-                    if (rows.warnings) this.response.body.warnings.push(rows.warnings)
-                    if (rows.meta) this.response.body.meta = rows.meta
-                    if (rows.data) {
-                        this.response.body.data[queryTable] = rows.data
-                    } else {
-                        this.response.body.data[queryTable] = rows
-                    }
-                    this.response.status = 200
-                    this.sendResponse()
-                }, failure => {
-                    this.handleError(failure, true)
-                })
-                .catch(err => this.handleError(err, true))
-            } else {
-                this.handleError(new Error(`No data associated with request`), true)
-            }
-        })
-//        if (fields && fields.length > 0) {
-            if (fields) {
-                fields = fields.split(',')
-            } else {
-                fields = ['*']
-            }
-            if (handler && handler !== undefined) {
-                this.emit('validatedFields')
-            } else {
-                return this.handleError(new Error(`Table ${this.context.req.params.table} does not exist`), true)
-            }
-            /*
-            this.verifyFields(fields.split(','))
-            .then(validFields => {
-                fields = validFields
-                this.emit('validatedFields')
+                this.response.status = 200
+                this.sendResponse()
+            }, failure => {
+                this.handleError(failure, true)
             })
-            .catch(err => {
-                new Log(err.message).error(3)
-                this.handleError(new Error(`Table ${this.context.req.params.table} does not exist.`), true)
+            .catch(err => this.handleError(err, true))
+        } else if (queryTable && handler) {
+            /* If just the table is provided, query with the args */
+            const pagination = {
+                limit: parseInt(this.context.req.query.limit) || 20,
+                offset: parseInt(this.context.req.query.offset) || 0,
+                order
+            }
+            
+            handler(queryFields, args, this.context, pagination)
+            .then(rows => {
+                if (rows.errors) this.response.body.errors.push(rows.errors) // Allow non-terminating errors to be passed in the response
+                if (rows.warnings) this.response.body.warnings.push(rows.warnings)
+                if (rows.meta) this.response.body.meta = rows.meta
+                if (rows.data) {
+                    this.response.body.data[queryTable] = rows.data
+                } else {
+                    this.response.body.data[queryTable] = rows
+                }
+                this.response.status = 200
+                this.sendResponse()
+            }, failure => {
+                this.handleError(failure, true)
             })
-            */
-//        } else {
-//            this.verifyFields([])
-//            .then(defaultFields => {
-//                fields = defaultFields
-//                this.emit('validatedFields')
-//            })
-//            .catch(err => {
-//                new Log(err.message).error(3)
-//                this.handleError(new Error(`Table ${this.context.req.params.table} does not exist.`), true)
-//            })
-//        }
-    }
+            .catch(err => this.handleError(err, true))
+        } else {
+            this.handleError(new Error(`No data associated with request`), true)
+        }
+    } // query
 }

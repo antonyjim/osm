@@ -45,6 +45,18 @@ uiRoutes.get('/stats', function(req: Request, res: Response) {
     })
 })
 
+uiRoutes.get('/wetty', function(req: Request, res: Response) {
+    res.writeHead(200, {'Content-Type': 'text/html; charset=UTF-8'})
+        let fileStream = createReadStream(resolve(__dirname, '../../../static/wettyError.html'))
+        fileStream.on('data', function(data) {
+            res.write(data)
+        })
+        fileStream.on('end', function() {
+            res.end()
+            return
+        })
+})
+
 uiRoutes.get('*', function(req: Request, res: Response) {
     if (req.auth.iA && req.auth.u) {
         res.writeHead(200, {'Content-Type': 'text/html; charset=UTF-8'})

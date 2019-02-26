@@ -1,22 +1,16 @@
-import { getPool, Querynator, simpleQuery } from "../../connection";
-import { inspect } from "util";
-import { EventEmitter } from "events";
-
 /**
  * lib/ql/schema/constructSchema.ts
  * Create a schema object from the sys_db_dictionary and sys_db_object tables
 */
 
 // Node Modules
-
-
-// NPM Modules
-
+import { inspect } from "util";
+import { EventEmitter } from "events";
 
 // Local Modules
+import { simpleQuery } from "../../connection";
 
-
-// Constants and global variables
+// Constants and global module variables
 const
     SYS_DB_OBJECT = 'sys_db_object',
     SYS_DB_DICTIONARY = 'sys_db_dictionary'
@@ -24,6 +18,12 @@ const
 let tables = null
 let references = []
 
+/**
+ * Converts an sql data type such as VARCHAR, INT
+ * into a valid javascript data type such as
+ * string, number, boolean.
+ * @param type SQL Data Type
+ */
 function sqlToJsType(type: string) {
     let returnType: string = ''
     switch (type.toUpperCase()) {
@@ -112,6 +112,10 @@ export default async function constructSchema() {
             else tableConstructorEmitter.emit('tabled')
         })()
     })
+    /**
+     * Wait for all of the normal field to be populated in the
+     * table object, then add in all of the reference columns.
+     */
     tableConstructorEmitter.on('done', () => {
         references.map(ref => {
             let colName = ref.col + '_display'
@@ -122,10 +126,10 @@ export default async function constructSchema() {
             tables[colTable].columns[colName] = {
                 type: colDetails.type,
                 readonly: colDetails.readonly,
-                localRef: ref.col, // The name of the id for joins
+                localRef: ref.col, // The name of the id for JOIN ON
                 displayAs: tables[refTable].displayField || tables[refTable].primaryKey,
-                reference: refCol,
-                tableRef: refTable
+                reference: refCol, // Foreign reference column
+                tableRef: refTable // Foreign reference table
             }
         })
         console.log(inspect(tables, false, 5))
