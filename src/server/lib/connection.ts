@@ -4,17 +4,15 @@
 */
 
 // Node Modules
-
+import { EventEmitter } from 'events';
 
 // NPM Modules
+import uuid = require('uuid/v4');
 import { Pool, PoolConfig, createPool, PoolConnection } from 'mysql'
-import { Log } from './log';
-import { EventEmitter } from 'events';
-import constructSchema from './ql/schema/constructSchema';
-
 
 // Local Modules
-
+import constructSchema from './ql/schema/constructSchema';
+import { Log } from './log';
 
 // Constants and global variables
 const poolConfig: PoolConfig = {
@@ -181,7 +179,7 @@ class Querynator extends EventEmitter {
         if (!field || typeof field !== 'string') return field
         let op = field.split('|')
         // Test for the existence of an operator
-        if (op[1]) {
+        if (op[1] && op[1] !== null && op[1].length > 0) {
             switch(op[0]) {
                 case 'lt': {
                     return ({
@@ -306,6 +304,56 @@ class Querynator extends EventEmitter {
         // return await simpleQuery(`${baseStatement} ${fieldPlaceholders.join(', ')} ${fromStatement}`, Array.prototype.concat(validFields, tableParams))
     }
 
+    protected async validateFields(fields: string[]): Promise<string[]> {
+        const schema = await constructSchema().catch(e => console.error(e))
+        let validFields: string[] = []
+        fields.forEach(field => {
+            if (schema[this.tableName] && schema[this.tableName].columns[field]) {
+                validFields.push(field)
+            }
+        })
+
+        return Promise.resolve(validFields)
+    }
+
+    /**
+     * Validate fields provided in request bodies against the schema
+     * defined in sys_db_dictionary
+     * @param providedFields Fields provided in the body of the request
+     */
+    protected async validateUpdatedFields(providedFields: any): Promise<{errors: FieldError[], warnings: FieldError[], valid: any}> {
+        const returnVal = {
+            errors: [],
+            warnings: [],
+            valid: {}
+        }
+        const schema = await constructSchema().catch(e => console.error(e))
+        const tableSchema = schema[this.tableName].columns
+        if (!providedFields) throw new Error('Missing fields')
+        Object.keys(tableSchema).map(field => {
+            if (field.endsWith('_display')) return false // Return for joined fields.
+            if (providedFields[field] && typeof providedFields[field] === tableSchema[field].type) {
+                returnVal.valid[field] = providedFields[field]
+            } else {
+                // If the field is nullable, allow a null value to be entered. Throw a warning
+                if (tableSchema[field].nullable) {
+                    returnVal.warnings.push({
+                        message: `Expected ${tableSchema[field].type} for field ${field} but got ${typeof field}`,
+                        field
+                    })
+                } else {
+                // If the field is not nullable, throw an error.
+                    returnVal.errors.push({
+                        message: `Expected ${tableSchema[field].type} for field ${field} but got ${typeof field}`,
+                        field
+                    })
+                }
+            }
+        })
+
+        return returnVal
+    }
+
     protected async byId(reqId: string): Promise<any> {
         if (typeof reqId !== 'string') throw new TypeError(this.primaryKey + ' must be in string format')
         let id = reqId
@@ -322,10 +370,11 @@ class Querynator extends EventEmitter {
         let params = this.baseParams
         params.push(this.tableName)
         let queryParams = await this.queryBuilder()
-        queryParams.query += ' WHERE ' // Add the where statement to the query
         
         if (fields) {
-            Object.keys(fields).forEach((col, i) => {
+            const validatedFields = await this.validateFields(Object.keys(fields))
+            validatedFields.length > 0 ? queryParams.query += ' WHERE ' : void 0
+            validatedFields.map((col, i) => {
                 let fieldValue = fields[col]
                 if (typeof fieldValue === 'string') {
                     let parsedField = this.evaluateFieldOperator(fieldValue)
@@ -396,14 +445,46 @@ class Querynator extends EventEmitter {
         })
     }
 
-    protected async insert({query, params}) {
-        return this.createQ({query, params})
+    protected async insert(providedFields) {
+        if (this.primaryKey === 'sys_id') providedFields[this.primaryKey] = uuid()
+        
+
+        const query = 'INSERT INTO ?? SET ?'
+        const params = [this.tableName]
+        let validatedFields = await this.validateUpdatedFields(providedFields)
+        let returnObject = {}
+        if (validatedFields.errors.length > 0) {
+            return Promise.resolve({
+                errors: validatedFields.errors,
+                warnings: validatedFields.warnings
+            })
+        }
+        params.push(validatedFields.valid)
+        this.createQ({query, params})
+        returnObject[this.tableName] = await this.byId(validatedFields[this.primaryKey])
+        returnObject['warnings'] = validatedFields['warnings']
+
+        return returnObject
     }
 
-    protected createUpdate(fields: any, id: string) {
+    protected async createUpdate(fields: any) {
         const query = 'UPDATE ?? SET ? WHERE ?? = ?'
-        const params = [this.tableName, fields, this.primaryKey, id]
-        return this.createQ({query, params})
+        let validatedFields = await this.validateUpdatedFields(fields)
+        let params = []
+        let returnObject = {}
+        if (validatedFields.errors.length > 0) {
+            return Promise.resolve({
+                errors: validatedFields.errors,
+                warnings: validatedFields.warnings
+            })
+        }
+        if (validatedFields.valid[this.primaryKey]) delete validatedFields.valid[this.primaryKey]
+        params = [this.tableName, validatedFields.valid, this.primaryKey, this.context.req.params.id]
+        this.createQ({query, params})
+        returnObject[this.tableName] = await this.byId(this.context.req.params.id)
+        returnObject['warnings'] = validatedFields['warnings']
+
+        return returnObject
     }
 }
 

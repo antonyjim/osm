@@ -26,7 +26,7 @@ export class ColumnGeneralInformation extends Component {
 
     handleSubmit(e) {
         if (this.props.sys_id === 'new') {
-            createNew()
+            this.createNew()
         } else {
             let body = {sys_id: this.state.sys_id}
             this.state.modifiedFields.forEach(field => {

@@ -31,23 +31,11 @@ export default class Column extends Querynator {
     }
 
     public async create(fields) {
-        const query = 'INSERT INTO ?? SET ?'
-        let params: any[] = [this.tableName]
-        let invalidFields = new Validation(fields)
-        .required([
-            'column_name',
-            
-        ])
-        if (invalidFields.length > 0) {
-            throw new TypeError('Missing required fields ' + JSON.stringify(invalidFields))
-        } else {
-            params.push(new Validation(fields).updateFields([this.primaryKey, 'label', 'description']))
-	        this.createQ({query, params})
-            return await this.byId(fields.name)
-        }  
+        return await this.insert(fields)
     }
 
     public async update(fields) {
+        return await this.createUpdate(fields)
         const query = 'UPDATE ?? SET ? WHERE ?? = ?'
         let params: any[] = [this.tableName]
         let invalidFields = new Validation(fields)

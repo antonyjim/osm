@@ -370,7 +370,7 @@ class User extends Querynator {
                         }
                     )
                 }
-                this.createUpdate(fieldsToUpdate, this.context.req.params.id)
+                this.createUpdate(fieldsToUpdate)
                 return this.byId(this.context.req.params.id)
             } catch(e) {
                 throw e
@@ -390,6 +390,13 @@ class User extends Querynator {
       return new Customer(this.context, ['userDefaultNonsig']).getById(customer)
     }
 
+    /**
+     * Insert the user's new password in the database as well as
+     * provide simple data validation.
+     * @param jwt Token provided in the t query string parameter
+     * @param password1 Password that will be set
+     * @param password2 duh
+     */
     public async confirmAccount(jwt, password1, password2) {
         const query = 'SELECT confirmUser(?) AS CONFIRMED'
         let params: [string[]] = [[]]
@@ -410,7 +417,7 @@ class User extends Querynator {
         } else {
             throw new Error('Unexpected error occurred. Please try again later')
         }
-    }
+    } //confirmAccount()
 }
 
 /**

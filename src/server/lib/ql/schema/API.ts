@@ -23,9 +23,7 @@ import constructSchema from "./constructSchema";
 interface APIResponse {
     status: number,
     body: {
-        errors?: [{
-            message: string
-        }?],
+        errors?: any[],
         warnings?: [{
             message: string
         }?]
@@ -58,13 +56,19 @@ export default class APICall extends Querynator {
      * @param err Error to be logged
      * @param terminatingError Whether the response should be sent or should wait until data is received
      */
-    protected handleError(err: Error, terminatingError?: boolean) {
+    protected handleError(err: Error | FieldError[], terminatingError?: boolean) {
         const requestFailure = () => this.context.res.status(500).send(this.response.body)
         let message = ''
-        if (typeof err === 'string') message = err
-        else message = err.message
 
-        this.response.body.errors.push({message})
+
+        if (Array.isArray(err)) {
+            this.response.body.errors = err
+            return requestFailure()
+        } else {
+            if (typeof err === 'string') message = err
+            else message = err.message
+            this.response.body.errors.push({message})
+        }
 
         if (terminatingError) {
             requestFailure()
@@ -81,13 +85,22 @@ export default class APICall extends Querynator {
         // rootQueries[queryTable](fields, this.context.req.params.id, this.context)
         const queryTable = this.context.req.params.table
         if(rootMutations.create[queryTable]) {
-            rootMutations.create[queryTable](this.context.req.query.fields, null, this.context)
+            rootMutations.create[queryTable](this.context.req.query.fields, this.context.req.body, this.context)
             .then(rows => {
-                this.response.body.data[queryTable] = rows[0]
+                if (rows.warnings) this.response.body.warnings.push(rows.warnings) // Allow non-terminating errors to be passed in the response
+                if (rows.errors) {
+                    return this.handleError(rows.errors, true)
+                } 
+                if (rows.data) {
+                    this.response.body.data[queryTable] = rows.data[0]
+                } else {
+                    this.response.body.data[queryTable] = rows[0]
+                }
                 this.response.status = 201
                 return this.sendResponse()
             })
             .catch(err => {
+                console.error(err)
                 return this.handleError(err, true)
             })
         } else {
@@ -108,12 +121,14 @@ export default class APICall extends Querynator {
         if(rootMutations.update[queryTable] && id) {
             rootMutations.update[queryTable](queryFields, updateBody, this.context)
             .then(rows => {
-                if (rows.errors) this.response.body.errors.push(rows.errors) 
                 if (rows.warnings) this.response.body.warnings.push(rows.warnings) // Allow non-terminating errors to be passed in the response
+                if (rows.errors) {
+                    return this.handleError(rows.errors, true)
+                } 
                 if (rows.data) {
                     this.response.body.data[queryTable] = rows.data[0]
                 } else {
-                    this.response.body.data[queryTable] = rows
+                    this.response.body.data[queryTable] = rows[0]
                 }
                 this.response.status = 204
                 return this.sendResponse()

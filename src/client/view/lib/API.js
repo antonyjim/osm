@@ -12,16 +12,19 @@ function flattenQuery(queryObject) {
 }
 
 const API = {
+    // Define constants
+    TABLE: '/api/q/',
     post: ({path, query, body}, cb) => {
         const authPath = path + '?' + flattenQuery(query)
         console.log('Making POST request to ' + authPath)
         if (cb !== null && cb !== undefined) {
             $.ajax(authPath, {
                 headers: {
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
                 },
                 method: "POST",
-                data: body,
+                data: JSON.stringify(body),
                 success: (res => {
                     cb(null, res)
                 }),
@@ -33,10 +36,11 @@ const API = {
             return new Promise((resolve, reject) => {
                 $.ajax(authPath, {
                     headers: {
-                        'Accept': 'application/json'
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
                     },
                     method: "POST",
-                    data: body,
+                    data: JSON.stringify(body),
                     success: (res => {
                         resolve(res)
                     }),

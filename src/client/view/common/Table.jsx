@@ -170,7 +170,7 @@ export default class Table extends Component {
           } else {
             allowedCols[col] = response.cols[col]
           }
-          if ((response.cols[col].type === 'VARCHAR' || response.cols[col].type === 'CHAR') && response.cols[col].boundTo !== this.state.id) {
+          if ((response.cols[col].type === 'string') && response.cols[col].boundTo !== this.state.id) {
             fieldSearchSelections.push(<option key={'search-col' + key} value={response.cols[col].boundTo}>{col}</option>)
             if (!hasSelectedInitialField) fields.col = response.cols[col].boundTo
           }
@@ -349,7 +349,7 @@ export default class Table extends Component {
               <div className="row">
                 <div className="col">
                   <div className="table-responsive">
-                    <table className="table table-striped table-hover">
+                    <table className="table table-striped table-hover table-sm">
                       <thead className="thead-dark">
                         <tr>
                           {headers}

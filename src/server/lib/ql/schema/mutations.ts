@@ -22,7 +22,8 @@ import columnMutations from '../columns/mutations';
 const rootMutations = {
     create: {
         sys_user: userMutations.add_user,
-        sys_db_object: tableMutations.add_table
+        sys_db_object: tableMutations.add_table,
+        sys_db_dictionary: columnMutations.create_column
     },
     update: {
         sys_user: userMutations.update_user,

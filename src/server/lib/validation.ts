@@ -30,7 +30,7 @@ export class Validation {
      * @param switchOn If this, validate on more fields
      * @param extraRequiredFields Any more fields based on the switch
      */
-    public required(requiredFields, switchOn?, extraRequiredFields?): Array<ValidationFields> {
+    public required(requiredFields: string[], switchOn?: string, extraRequiredFields?): Array<ValidationFields> {
         if (!requiredFields) {
             return [{
                 isInvalid: true,
@@ -39,7 +39,7 @@ export class Validation {
             }]
         }
         let fieldsToValidate: Array<string> = []
-        if (this.providedFields[switchOn]) {
+        if (this.providedFields && this.providedFields[switchOn]) {
             fieldsToValidate = requiredFields.concat(extraRequiredFields)
         } else {
             fieldsToValidate = requiredFields

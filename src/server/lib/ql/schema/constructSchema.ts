@@ -24,7 +24,7 @@ let references = []
  * string, number, boolean.
  * @param type SQL Data Type
  */
-function sqlToJsType(type: string) {
+export function sqlToJsType(type: string) {
     let returnType: string = ''
     switch (type.toUpperCase()) {
         case 'VARCHAR': {
@@ -100,6 +100,7 @@ export default async function constructSchema() {
             tableColumns.map(col => {
                 tables[tableName].columns[col.column_name] = {
                     type: sqlToJsType(col.type),
+                    nullable: col.nullable,
                     readonly: col.readonly,
                     reference: col.reference_id_display || false
                 }

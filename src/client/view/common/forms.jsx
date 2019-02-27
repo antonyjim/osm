@@ -23,6 +23,7 @@ class Field extends Component {
     }
 
     handleSelection(e) {
+        console.log(e.target)
         this.props.onChange({
             target: {
                 id: this.props.id,
