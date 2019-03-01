@@ -1,12 +1,9 @@
 import React, { Component } from 'react'
-import { Tabs } from '../common/tabs.jsx';
 import { Field, SelectField } from './../common/forms.jsx'
 import { submitForm } from '../lib/formSubmission.js';
 import Alert from '../common/alerts.jsx';
 import { E401 } from '../common/errors.jsx'
-import API from '../lib/API.js'
 import Table from '../common/Table.jsx'
-import TableViews from './TableViews.jsx';
 import Pills from '../common/PillLayout.jsx'
 
 class ExistingRoute extends Component {

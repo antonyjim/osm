@@ -16,14 +16,13 @@ class Field extends Component {
     handleChange(e) {
         this.props.onChange({
             target: {
-                id: this.props.id + '_display',
-                value: e.target.innerText
+                id: e.target.id,
+                value: e.target.value
             }
         })
     }
 
     handleSelection(e) {
-        console.log(e.target)
         this.props.onChange({
             target: {
                 id: this.props.id,
@@ -42,13 +41,13 @@ class Field extends Component {
         if (this.props.references) {
             return (
                 <>
-                    <div className={'form-group ' + this.props.className}  id={'cont' + this.props.id}>
+                    <div className={'form-group ' + this.props.className}  id={'cont-' + this.props.id}>
                         <input type="hidden" id={this.props.id} value={this.props.value || ''} onChange={this.props.onChange} /> {/* Store the actual value */}
                         <label htmlFor={this.props.id}>
                             {this.props.label}
                         </label>
                         <div className="input-group">
-                            <input {...this.props.attributes} type={this.props.type} className="form-control" id={this.props.id + '_display'} value={this.state.name} onChange={this.handleChange} />
+                            <input {...this.props.attributes} type={this.props.type} className="form-control" id={this.props.id + '_display'} value={this.props.display} onChange={this.handleChange} />
                             <div className="input-group-append">
                                 <button className="btn btn-outline-secondary" type="button" id={this.props.id + '_search'} data-toggle="modal" data-target={'#' + this.props.references + '_search_modal'} >Search</button>
                             </div>
@@ -59,7 +58,7 @@ class Field extends Component {
             )
         } else {
             return !this.props.isHidden && (
-                <div className={'form-group ' + this.props.className}  id={'cont' + this.props.id}>
+                <div className={'form-group ' + this.props.className || ''}  id={'cont-' + this.props.id}>
                     <label htmlFor={this.props.id}>
                         {this.props.label}
                     </label>

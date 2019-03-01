@@ -34,7 +34,7 @@ export class UserProfileInfo extends Component {
         })
         API.put({
             path: '/api/q/sys_user/' + body.sys_id,
-            body: JSON.stringify(body)
+            body: body
         }, (err, data) => {
             console.log(err)
             if (err) this.setState({error: true, errorMessage: err})
@@ -85,7 +85,7 @@ class UserProfile extends Component {
                 userPassConfirmation: 'thisisnotanactualpassword'
             },
             modifiedFields: [],
-            sys_id: props.match.params.userId || false,
+            sys_id: props.match.params.id || false,
             logs: [],
             logCols: {
                 'Time': {

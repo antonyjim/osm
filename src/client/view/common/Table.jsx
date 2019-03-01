@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom'
-import API from '../lib/API';
+import API from '../lib/API.js';
+import { E404 } from './errors.jsx';
 
 class TableRow extends Component {
   constructor(props) {
@@ -22,22 +23,34 @@ class TableRow extends Component {
       )
     }
     Object.keys(this.props.cols).map(col => {
-      let val = this.props.cells[this.props.cols[col].boundTo]
-      let type = this.props.cols[col].type
-      if (this.props.cols[col].id || this.props.cols[col].linkable) {
+      if (col === this.props.id) return false
+      let thisCol = this.props.cols[col]
+      let val = this.props.cells[col]
+      let type = thisCol.type
+      if (thisCol.reference || thisCol.display) {
         if (this.props.onSelectKey) {
           cells.push(
             <td key={Math.floor(Math.random() * 1000000)}>
               <a href="#" data-key={this.props.cells[this.props.id]} onClick={this.props.onSelectKey}>
-                  {val || ''}
+                {val || ''} 
               </a>
             </td>
           )
-        } else {
+        } else if (thisCol.display) {
           cells.push(
             <td key={Math.floor(Math.random() * 1000000)}>
-              <Link to={this.props.cols[col].baseURL + this.props.cells[this.props.id]}>
-                  {val || ''} 
+              <Link to={`/f/${thisCol.display}/${this.props.cells[this.props.id] || '#'}`}>
+                {val || ''} 
+              </Link>
+            </td>
+          )
+        } else {
+          let refCol = this.props.cols[col + '_display']
+          let refTab = refCol ? refCol.tableRef : '#'
+          cells.push(
+            <td key={Math.floor(Math.random() * 1000000)}>
+              <Link to={`/f/${refTab}/${val || '#'}`}>
+                {this.props.cells[col + '_display'] || ''} 
               </Link>
             </td>
           )
@@ -47,7 +60,7 @@ class TableRow extends Component {
       } else if (type && type.toLowerCase() === 'boolean') {
         cells.push(<td key={'table-data-' + ~~(Math.random() * 100000)} style={{textAlign: 'center', fontSize: '20px'}}>{val === true || val === 1  && '×' || ''}</td>)        
       } else {
-        cells.push(<td key={'table-data-' + ~~(Math.random() * 100000)}>{val || ''}</td>)
+        cells.push(<td key={'table-data-' + ~~(Math.random() * 100000)}>{typeof val === 'string' ? val : ''}</td>)
       }
     })
     return (
@@ -75,11 +88,10 @@ export default class Table extends Component {
   constructor(props) {
     super(props)
     this.state = {
+      allCols: {},
       cols: props.cols,
       rows: props.rows,
       handleClick: props.onClick,
-      id: props.id,
-      baseURL: props.baseURL,
       hideActions: props.hideActions || false,
       table: props.table,
       offset: 0,
@@ -93,7 +105,8 @@ export default class Table extends Component {
         col: '',
         searchQ: '',
         limit: 25
-      }
+      },
+      shownColumns: []
     }
     if (this.props.args) {
       let flatArgs = ''
@@ -117,6 +130,7 @@ export default class Table extends Component {
       if (response && response.data && response.data[this.state.table] && response.meta) {
         this.setState(
           {
+            args: args,
             rows: response.data[this.state.table], 
             loaded: true, 
             count: response.meta.count,
@@ -129,6 +143,7 @@ export default class Table extends Component {
       else if (response && response.data && response.data[this.state.table]) {
         this.setState(
           {
+            args: args,
             rows: response.data[this.state.table], 
             loaded: true,
             count: response.data[this.state.table].length
@@ -146,8 +161,6 @@ export default class Table extends Component {
     if (e.keyCode && e.keyCode === 13) {
       let args = `${this.state.field.col}=lk|${this.state.field.searchQ}`
       this.getData({args})
-    } else {
-      console.log(e.keyCode)
     }
   }
 
@@ -158,28 +171,32 @@ export default class Table extends Component {
   getCols() {
     API.get({path: '/api/q/describe/' + this.state.table})
     .then(response => {
-      if (response.cols) {
+      if (response.columns) {
         let allowedCols = {}
         let fieldSearchSelections = []
         let hasSelectedInitialField = false
         let fields = {...this.state.field}
 
-        Object.keys(response.cols).map((col, key) => {
-          if (this.props.cols && this.props.cols.includes(response.cols[col].boundTo) || response.id === response.cols[col].boundTo) {
-            allowedCols[col] = response.cols[col]
-          } else {
-            allowedCols[col] = response.cols[col]
-          }
-          if ((response.cols[col].type === 'string') && response.cols[col].boundTo !== this.state.id) {
-            fieldSearchSelections.push(<option key={'search-col' + key} value={response.cols[col].boundTo}>{col}</option>)
-            if (!hasSelectedInitialField) fields.col = response.cols[col].boundTo
+        Object.keys(response.columns).map((col, key) => {
+          let colObj = response.columns[col]
+          if (response.defaultFields && response.defaultFields.indexOf(col) > -1 || this.props.cols.indexOf(col) > -1) allowedCols[col] = colObj
+          
+          if ((colObj.type === 'string') && col !== this.state.id) {
+            let searchColVal = col
+            if (colObj.reference) searchColVal += '_display' 
+            fieldSearchSelections.push(<option key={'search-col' + key} value={searchColVal}>{colObj.label}</option>)
+            if (!hasSelectedInitialField) fields.col = colObj.boundTo
           }
         })
-        this.setState({cols: allowedCols, id: response.id, fieldSearchSelections, field: fields})
+        allowedCols[response.displayField].display = this.state.table.slice(0, -5)
+        this.setState({cols: allowedCols, id: response.primaryKey, fieldSearchSelections, field: fields, allCols: response.columns})
+      } else {
+        throw new Error(response.errors[0].message)
       }
       return API.get({path: '/api/q/' + this.state.table, query: {
         args: this.state.args,
-        limit: this.state.field.limit
+        limit: this.state.field.limit,
+        fields: Object.keys(this.state.cols).join(',')
       }})
     })
     .then(response => {
@@ -207,7 +224,8 @@ export default class Table extends Component {
       else this.setState({error: 'No data received'})
     })
     .catch(err => {
-      this.props.handleErrorMessage ? this.props.handleErrorMessage(err) : console.error(err)
+      console.error(err)
+      this.props.handleErrorMessage ? this.props.handleErrorMessage(err) : this.setState({error: err, loaded: true})
     })
   }
 
@@ -232,21 +250,21 @@ export default class Table extends Component {
 
   handlePage(e) {
     let dir = parseInt(e.target.getAttribute('data-page')) // Get the pagination value from the element
-    let offset = this.state.offset
+    let nextOffset = 0
     console.log(dir)
     if (dir === -2) { // First page
-      offset = 0
+      nextOffset = 0
     } else if (dir === -1) { // Previous page
-      offset = this.state.from - this.state.field.limit
+      nextOffset = this.state.from - this.state.field.limit
     } else if (dir === 2) { // Last page
-      offset = this.state.count - this.state.field.limit
+      nextOffset = this.state.count - this.state.field.limit
     } else { // Next page
-      offset = offset + this.state.field.limit
+      nextOffset = this.state.offset + this.state.field.limit
     }
 
     API.get({path: '/api/q/' + this.state.table, query: {
       args: this.state.args,
-      offset: offset,
+      offset: nextOffset,
       limit: this.state.field.limit
     }})
     .then(response => {
@@ -285,6 +303,12 @@ export default class Table extends Component {
     let prevPage = this.state.offset - this.state.field.limit <= 0 ? {disabled: 'disabled'}: ''
     let fieldSearchSelections = []
 
+    if (this.state.error) {
+      return (
+        <E404 />
+      )
+    }
+
     if (!this.state.hideActions) {
       headers.push(
         <th scope="col" key={'header-' + ~~(Math.random() * 10000)}>            
@@ -295,14 +319,14 @@ export default class Table extends Component {
     if (this.state.cols) {
       let headerTitles = Object.keys(this.state.cols)
       for(let col of headerTitles) {
-        headers.push(<th scope="col" data-bind={this.state.cols[col].boundTo} key={'col-' + Math.floor(Math.random() * 10000)}>{col}</th>)
+        headers.push(<th scope="col" data-bind={col} key={'col-' + Math.floor(Math.random() * 10000)}>{this.state.cols[col].label}</th>)
       }
     }
 
     let rows = []
     if (this.state.rows && this.state.rows.length > 0) {
       for(let row of this.state.rows) {
-        rows.push(<TableRow key={'tablerow-' + ~~(Math.random() * 100000)} showSelect={!this.state.hideActions} cells={row} cols={this.state.cols} onClick={this.state.handleClick} href={this.state.baseURL} id={this.state.id} onSelectKey={this.props.onSelectKey} />)
+        rows.push(<TableRow key={'tablerow-' + ~~(Math.random() * 100000)} showSelect={!this.state.hideActions} cells={row} cols={this.state.cols} id={this.state.id} onSelectKey={this.props.onSelectKey} />)
       }
     }
 
@@ -342,7 +366,7 @@ export default class Table extends Component {
                     </div>
                   </div>
                   <div className="col-1">
-                    <Link to="/admin/column/new">New</Link>
+                    <Link className="btn btn-primary" to={`/f/${this.state.table.slice(0, -5)}/new`}>New</Link>
                   </div>
                 </div>
               }

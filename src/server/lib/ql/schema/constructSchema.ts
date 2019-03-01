@@ -70,11 +70,12 @@ export default async function constructSchema() {
                 columns: {}
             }
             /* Find the column name, reference field, selectablility, table_name, table_display_name */
-            let statement = 'SELECT `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t2`.?? AS ??, `t3`.?? AS ??, `t4`.?? AS ?? FROM ?? `t1` LEFT JOIN ?? `t2` ON `t1`.?? = `t2`.?? INNER JOIN ?? `t3` ON `t1`.?? = `t3`.?? LEFT JOIN ?? `t4` ON `t2`.?? = `t4`.?? WHERE `t3`.?? = ?'
+            let statement = 'SELECT `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t2`.?? AS ??, `t3`.?? AS ??, `t4`.?? AS ?? FROM ?? `t1` LEFT JOIN ?? `t2` ON `t1`.?? = `t2`.?? INNER JOIN ?? `t3` ON `t1`.?? = `t3`.?? LEFT JOIN ?? `t4` ON `t2`.?? = `t4`.?? WHERE `t3`.?? = ? ORDER BY `t1`.??'
             let params = [
                 'column_name',
                 'base_url', 
                 'nullable',
+                'label',
                 'type',
                 'default_view',
                 'update_key', 
@@ -94,7 +95,8 @@ export default async function constructSchema() {
                 'table_name',
                 'sys_id',
                 'name',
-                tableName
+                tableName,
+                'col_order'
             ]
             let tableColumns = await simpleQuery(statement, params) // I know I'm trying to avoid static queries, but come on
             tableColumns.map(col => {
@@ -102,11 +104,16 @@ export default async function constructSchema() {
                     type: sqlToJsType(col.type),
                     nullable: col.nullable,
                     readonly: col.readonly,
-                    reference: col.reference_id_display || false
+                    reference: col.reference_id_display || false,
+                    refTable: col.reference_id_table_name_display,
+                    label: col.label
                 }
                 if (col.default_view) tables[tableName].defaultFields.push(col.column_name)
                 if (col.reference_id_display) references.push({col: col.column_name, table: tableName, refTable: col.reference_id_table_name_display, refCol: col.reference_id_display})
-                if (col.base_url) tables[tableName].displayField = col.column_name
+                if (col.base_url) {
+                    tables[tableName].displayField = col.column_name
+                    tables[tableName].columns[col.column_name].baseURL = col.base_url
+                }
                 if (col.update_key) tables[tableName].primaryKey = col.column_name
             })
             if (i === gotTables.length - 1) tableConstructorEmitter.emit('done')
@@ -131,6 +138,9 @@ export default async function constructSchema() {
                 displayAs: tables[refTable].displayField || tables[refTable].primaryKey,
                 reference: refCol, // Foreign reference column
                 tableRef: refTable // Foreign reference table
+            }
+            if (tables[colTable].defaultFields.indexOf(ref.col) > -1) {
+                tables[colTable].defaultFields.push(colName)
             }
         })
         console.log(inspect(tables, false, 5))

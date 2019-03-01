@@ -46,6 +46,8 @@ class Table extends Querynator {
     }
 
     public async create(fields) {
+        this.insert(fields).catch(err => this.warnings.push({message: err.message}))
+        return this.byId(fields.name)
         const query = 'INSERT INTO ?? SET ?'
         let params: any[] = [this.tableName]
         let invalidFields = new Validation(fields)
@@ -59,7 +61,6 @@ class Table extends Querynator {
             params.push(new Validation(fields).updateFields(['name', 'label', 'description']))
             console.log('Submitting to query')
 	    this.createQ({query, params})
-            return this.byId(fields.name)
         }  
     }
 

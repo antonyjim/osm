@@ -427,7 +427,11 @@ CREATE TABLE sys_db_dictionary (
 	label VARCHAR(40), -- Friendly name
 	hint VARCHAR(40), -- Popup hint
 	type VARCHAR(10), -- Type (boolean, varchar, char, etc...)
-	length INT, -- Length of field, applies to varchar, char
+    enum CHAR(36), -- Reference the ref_id column on the sys_enum table. Used for data validation
+	len INT, -- Length of field, applies to varchar, char
+    required_on_update BOOLEAN DEFAULT 0,
+    required_on_create BOOLEAN DEFAULT 1,
+    default_value VARCHAR(40),
 	table_name CHAR(36),
     update_key BOOLEAN NOT NULL DEFAULT 0,
     base_url VARCHAR(40),
@@ -502,6 +506,43 @@ CREATE TABLE sys_authorization (
         ON UPDATE CASCADE
 );
 
+CREATE TABLE sys_forms (
+    PRIMARY KEY(sys_id),
+    sys_id INT AUTO_INCREMENT,
+    form_id CHAR(36),
+    form_name VARCHAR(40),
+    tab_name VARCHAR(40),
+    tab_title VARCHAR(40),
+    table_ref CHAR(36),
+    table_args VARCHAR(100),
+    field_name CHAR(36),
+
+    FOREIGN KEY(table_ref)
+        REFERENCES sys_db_object(sys_id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    
+    FOREIGN KEY(field_name)
+        REFERENCES sys_db_object(sys_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+) CHARSET = utf8;
+
+-- Store the options for any forms. This is NOT to be used for requirement data. Just misc forms around the site
+-- Instead of storing a list of enums for every field, the fields that reference the enums will store a reference
+-- to the rows on this table
+CREATE TABLE sys_db_enum (
+    PRIMARY KEY(sys_id),
+    sys_id CHAR(36), -- Store a unique identifier for the key value pair
+    ref_id CHAR(36), -- Store a unique identifier for the group of values
+    label VARCHAR(40), -- Friendly label for the enums
+    value VARCHAR(40),
+    display VARCHAR(40),
+    active BOOLEAN,
+
+    INDEX(ref_id) -- Make searches on ref_id quick
+) CHARSET = utf8;
+
 -- Store custom views
 
 /* Provide the list of users with their default nonsig information */
@@ -534,7 +575,7 @@ AS
         sys_db_dictionary.label,
         sys_db_dictionary.hint,
         sys_db_dictionary.type,
-        sys_db_dictionary.length,
+        sys_db_dictionary.len,
         sys_db_dictionary.update_key,
         sys_db_dictionary.base_url,
         sys_db_dictionary.col_order,

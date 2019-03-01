@@ -10,9 +10,8 @@ export default class SearchModal extends Component {
     }
 
     handleClick(e) {
-        console.log('Clicked')
         e.preventDefault()
-        $('#' + this.state.table + '_search_modal_close').click()
+        $('#' + this.state.table + '_search_modal').modal('hide')
         this.props.handleSelectKey(e)
     }
 

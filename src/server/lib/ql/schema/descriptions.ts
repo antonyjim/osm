@@ -1,6 +1,6 @@
 import { rootQueries } from "./queries";
 import { Querynator } from "../../connection";
-import { sqlToJsType } from "./constructSchema";
+import constructSchema, { sqlToJsType } from "./constructSchema";
 
 /**
  * lib/ql/schemadescriptions.ts
@@ -30,7 +30,7 @@ export default class Description extends Querynator {
      * Return the columns that are visible and queryable on any given table
      */
     public async verifyAndReturnFields() {
-        return new Promise((resolve) => {
+        return new Promise(async (resolve) => {
             /* Message to be returned with the response */
             let message: string = 'Details for view ' + this.tableName
             /* Provide the key to be used when pushing updates */
@@ -41,7 +41,9 @@ export default class Description extends Querynator {
                 one or more of: ['READ', 'UPDATE', 'DELETE', 'CREATE'] */
             let privs: string[] = []
 
-            this.once('notFound', (e) => {
+            const schema = await constructSchema()
+            const thisTable = schema[this.tableName]
+            if (!thisTable) {
                 return resolve({
                     errors: [
                         {
@@ -49,49 +51,30 @@ export default class Description extends Querynator {
                         }
                     ]
                 })
-            })
-            this.once('fieldDescriptors', (e) => {
-                return resolve({
-                    message,
-                    privs,
-                    id: updateKey,
-                    cols: formattedFields
-                })
-            })
-            const query = 'SELECT * FROM sys_db_dictionary_list WHERE table_name = ?'
-            const params = [this.tableName]
-            this.createQ({query, params}, 'CALL')
-            .then(fields => {
-                if (fields.length > 0) {
-                    fields.map(field => {
-                        if (field.update_key) updateKey = field.column_name
-                        if (field.visible) {
-                            formattedFields[field.label] = {
-                                boundTo: field.column_name,
-                                type: sqlToJsType(field.type),
-                                nullable: field.nullable,
-                                linkable: field.reference_id !== null || field.base_url ? true : false,
-                                baseURL: field.base_url
-                            }
-                        }
-                    })
-                    /* Return a query for the user's authorized actions */
-                    return this.createQ({
-                        query: 'SELECT * FROM ??',
-                        params: ['sys_authorization']
-                    }, 'CALL')
-                } else {
-                    return this.emit('notFound')
+            }
+            Object.keys(thisTable.columns).map(col => {
+                if (col.endsWith('_display')) return false
+                let thisCol = thisTable.columns[col]
+                let colDetails: {
+                    type: string,
+                    readonly: boolean,
+                    reference: boolean,
+                    boundTo: string,
+                    refTable?: string
+                } = {type: 'string', readonly: true, reference: false, boundTo: null};
+                colDetails.type = thisCol.type
+                colDetails.readonly = !!thisCol.readonly
+                colDetails.reference = thisCol.reference
+                colDetails.boundTo = col
+                
+                if (thisCol.reference) {
+                    const displayCol = thisTable.columns[col + '_display']
+                    colDetails.refTable = displayCol.tableRef
+                    colDetails.boundTo = col + '_display'
                 }
+                formattedFields[thisCol.label] = colDetails
             })
-            .then(authorization => {
-                privs = authorization[0]
-                this.emit('fieldDescriptors')
-            })
-            .catch(err => {
-                console.error(err)
-                this.emit('error')
-            })
+            return resolve({...schema[this.tableName]})
         })
     }
 }

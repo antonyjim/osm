@@ -149,3 +149,8 @@ export class Validation {
         }
     }
 }
+
+
+export function isBoolean(val) {
+    return val === 'false' || typeof val === 'boolean' || val === 'true' || val === 1 || val === 0
+}

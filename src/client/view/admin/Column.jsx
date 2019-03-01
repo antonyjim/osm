@@ -87,9 +87,11 @@ export class ColumnGeneralInformation extends Component {
                     <Field id="table_name" label="Table" value={this.state.fields.table_name} display={this.state.fields.table_name_display} onChange={this.handleChange.bind(this)} className="col-lg-6 col-md-12" type="text" references="sys_db_object" />
                     <Field id="hint" label="Hint" value={this.state.fields.hint} onChange={this.handleChange.bind(this)} className="col-lg-6 col-md-12" type="text"/>
                     <SelectField id="type" label="Data Type" value={this.state.fields.type} onChange={this.handleChange.bind(this)} className="col-lg-6 col-md-12" opts={dataTypes}/>
-                    <Field id="length" label="Length" value={this.state.fields.length} onChange={this.handleChange.bind(this)} attributes={length} className="col-lg-6 col-md-12" type="number" />
+                    <Field id="len" label="Length" value={this.state.fields.len} onChange={this.handleChange.bind(this)} attributes={length} className="col-lg-6 col-md-12" type="number" />
                     <Field id="base_url" label="Base URL" value={this.state.fields.base_url } onChange={this.handleChange.bind(this)} className="col-lg-6 col-md-12" type="text" />
                     <Field id="reference_id" label="References" value={this.state.fields.reference_id} display={this.state.fields.reference_id_display} onChange={this.handleChange.bind(this)} className="col-lg-6 col-md-12" type="text" references="sys_db_dictionary" />
+                    <Field id="enum" label="Enum" value={this.state.fields.enum} onChange={this.handleChange.bind(this)}  className="col-lg-6 col-md-12" type="text" />
+                    <Field id="col_order" label="Col Order" value={this.state.fields.col_order} onChange={this.handleChange.bind(this)} className="col-lg-6 col-md-12" type="number" />
                     <Checkbox id="readonly" label="Readonly" checked={this.state.fields.readonly} onChange={this.handleChange.bind(this)} />
                     <Checkbox id="nullable" label="Nullable" checked={this.state.fields.nullable} onChange={this.handleChange.bind(this)} />
                     <Checkbox id="update_key" label="Primary Key" checked={this.state.fields.update_key} onChange={this.handleChange.bind(this)} />
@@ -131,7 +133,7 @@ export default class Column extends Component {
         this.state = {
             error: false,
             loaded: false,
-            sys_id: props.match.params.sys_id,
+            sys_id: props.id,
             generalInfo: {},
             fields: {
                 column_name: '',
@@ -152,7 +154,7 @@ export default class Column extends Component {
                 'table_name',
                 'hint',
                 'type',
-                'length',
+                'len',
                 'readonly',
                 'base_url',
                 'default_view',

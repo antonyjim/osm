@@ -12,13 +12,26 @@ export default class Pills extends Component {
         this.handlePillBodies()
     }
 
+    handleDblClick(e) {
+        console.log('Double clicked')
+        e.target.children = (
+            <div>{e.target.innerText}</div>
+        )
+
+        $(document).once('click', this.handleOutsideClick.bind(this))
+    }
+
+    handleOutsideClick(e) {
+        console.log('Clicked on something else')
+    }
+
     handlePillBodies() {
         let pills = {...this.state.pills}
         let pillAs = []
         let pillBodies = []
         Object.keys(pills).map((pill, key) => {
             if (key === 0) { // First pill is active by default
-                pillAs.push(<a key={/* key * Date.now() + (~~Math.random() * 10000)*/pills[pill].id + '-tab'} className="nav-link active" id={pills[pill].id + '-tab'} data-toggle="pill" href={'#' + pills[pill].id} role="tab" aria-controls={pills[pill].id} aria-selected="true">{pills[pill].label}</a>)
+                pillAs.push(<a key={/* key * Date.now() + (~~Math.random() * 10000)*/pills[pill].id + '-tab'} onDoubleClick={this.handleDblClick.bind(this)} className="nav-link active" id={pills[pill].id + '-tab'} data-toggle="pill" href={'#' + pills[pill].id} role="tab" aria-controls={pills[pill].id} aria-selected="true">{pills[pill].label}</a>)
                 pillBodies.push(
                     <div key={pills[pill].id} className="tab-pane fade show active" id={pills[pill].id} role="tabpanel" aria-labelledby={pills[pill].id + '-tab'}>
                         <div className="row">
@@ -31,7 +44,7 @@ export default class Pills extends Component {
                     </div>
                 )
             } else {
-                pillAs.push(<a key={/* key * Date.now() + (~~Math.random() * 1000)*/pills[pill].id + '-tab'} className="nav-link" id={pills[pill].id + '-tab'} data-toggle="pill" href={'#' + pills[pill].id} role="tab" aria-controls={pills[pill].id} aria-selected="false">{pills[pill].label}</a>)
+                pillAs.push(<a key={/* key * Date.now() + (~~Math.random() * 1000)*/pills[pill].id + '-tab'} onDoubleClick={this.handleDblClick.bind(this)} className="nav-link" id={pills[pill].id + '-tab'} data-toggle="pill" href={'#' + pills[pill].id} role="tab" aria-controls={pills[pill].id} aria-selected="false">{pills[pill].label}</a>)
                 pillBodies.push(
                     <div key={pills[pill].id} className="tab-pane fade" id={pills[pill].id} role="tabpanel" aria-labelledby={pills[pill].id + '-tab'}>
                         <div className="row">

@@ -372,6 +372,7 @@ CREATE FUNCTION tbl_validation (
 RETURNS BOOLEAN
 BEGIN
     DECLARE _authorized BOOLEAN;
+    DECLARE _authorized_for_own BOOLEAN;
     DECLARE _priv VARCHAR(36);
 
     IF _action = 'SELECT' THEN

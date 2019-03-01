@@ -36,21 +36,6 @@ export default class Column extends Querynator {
 
     public async update(fields) {
         return await this.createUpdate(fields)
-        const query = 'UPDATE ?? SET ? WHERE ?? = ?'
-        let params: any[] = [this.tableName]
-        let invalidFields = new Validation(fields)
-        .required([
-            'sys_id',
-        ])
-        if (invalidFields.length > 0) {
-            throw new TypeError('Missing required fields ' + invalidFields.join(','))
-        } else {
-            params.push(new Validation(fields).updateFields(['label', 'hint', 'type', 'length', 'readonly', 'linkable', 'nullable', 'update_key', 'default_view', 'admin_view', 'table_name', 'reference_id']))
-            params.push(this.primaryKey)
-            params.push(this.context.req.params.id)
-            this.createQ({query, params})
-            return this.byId(this.context.req.params.id)
-        }  
     }
 
     public async getFields(fields, pagination) {

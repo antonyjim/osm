@@ -13,6 +13,8 @@ import { Pool, PoolConfig, createPool, PoolConnection } from 'mysql'
 // Local Modules
 import constructSchema from './ql/schema/constructSchema';
 import { Log } from './log';
+import { isBoolean } from './validation';
+import { inspect } from 'util';
 
 // Constants and global variables
 const poolConfig: PoolConfig = {
@@ -65,6 +67,7 @@ class Querynator extends EventEmitter {
     protected queryFields: string
     private queryFieldsArr: string[]
     protected warnings: any[]
+    protected errors: any[]
 
     /**
      * Create an interface for graphql to query from, with authorization included
@@ -77,8 +80,9 @@ class Querynator extends EventEmitter {
         this.queryFieldsArr = queryFields
         this.baseParams = []
         this.context = context
-        this.tableName =  ''
+        this.tableName = ''
         this.warnings = []
+        this.errors = []
         this.once('init', () => {
             if (this.queryFieldsArr && Array.isArray(this.queryFieldsArr)) {
                 let fieldPlaceholders: string[] = []
@@ -117,6 +121,7 @@ class Querynator extends EventEmitter {
             }
             conn.query('SELECT ?? (?) AS AUTHED', params, (err, authed) => {
                 if (err) {
+                    conn.release()
                     new Log(err.message).error(1)
                     throw err
                 }
@@ -157,6 +162,7 @@ class Querynator extends EventEmitter {
                                     conn.rollback()
                                     return reject(err)
                                 }
+                                console.log(inspect(results))
                                 return resolve(results)
                             })
                         })
@@ -169,6 +175,34 @@ class Querynator extends EventEmitter {
                 })
             })
         })
+    }
+
+    private async validateFieldIsValid(
+        fieldInfo: {type: string, readonly: boolean, nullable: boolean, reference: string, tableRef: string}, 
+        fieldValue: string | boolean | number) {
+            if (!fieldInfo.nullable && (fieldValue === null || fieldValue === undefined)) throw new Error(`Value cannot be null`)
+            else if (fieldInfo.reference && fieldInfo.tableRef) {
+                const row = await simpleQuery(
+                    'SELECT DISTINCT ?? FROM ?? WHERE ?? = ??', 
+                    [fieldInfo.reference, fieldInfo.tableRef, fieldInfo.reference, fieldValue]
+                ).catch(e => {throw new Error('Invalid reference')})
+                if (Array.isArray(row) && row.length !== 0) return true
+                else throw new Error('Invalid reference')
+            }
+            else if (fieldInfo.type === 'boolean') {
+                if (isBoolean(fieldValue)) {
+                    return !!fieldValue
+                } else {
+                    throw new Error('Expected boolean')
+                }
+            }
+            else if (fieldInfo.type === 'string' && typeof fieldValue === 'string') return fieldValue
+            else if (fieldInfo.type === 'number') {
+                if (typeof fieldInfo === 'number') return fieldInfo
+                else if (typeof fieldValue === 'string' && parseInt(fieldValue) !== NaN) return parseInt(fieldValue)
+                else throw new Error('Expected number')
+            }
+            else throw new Error('Unknown exception occurred')
     }
 
     /**
@@ -254,6 +288,7 @@ class Querynator extends EventEmitter {
                     fieldPlaceholders.push('??.??')
                 } else if (refCol.localRef && refCol.tableRef) {
                     let alias = `t${tableAliasIndex}`
+                    if (!tableAliases[refCol.tableRef]) tableAliases[refCol.tableRef] = alias
                     tableAliasIndex++
 
                     fromStatement += leftJoin // Add the join statement, which requires 6 params
@@ -299,21 +334,80 @@ class Querynator extends EventEmitter {
         return {
             query: `${baseStatement} ${fieldPlaceholders.join(', ')} ${fromStatement}`,
             params: Array.prototype.concat(validFields, tableParams),
-            aliases: tableAliases
+            aliases: tableAliases,
+            countField: validFields[1]
         }
         // return await simpleQuery(`${baseStatement} ${fieldPlaceholders.join(', ')} ${fromStatement}`, Array.prototype.concat(validFields, tableParams))
     }
 
-    protected async validateFields(fields: string[]): Promise<string[]> {
+    protected async validateFieldsExist(fields: string[], aliases?: any): Promise<{validField: string[], placeHolder: string, originalField: string}[]> {
         const schema = await constructSchema().catch(e => console.error(e))
-        let validFields: string[] = []
-        fields.forEach(field => {
+        let validFields: {validField: string[], placeHolder: string, originalField: string}[] = []
+
+        fields.map(field => {
             if (schema[this.tableName] && schema[this.tableName].columns[field]) {
-                validFields.push(field)
+                let ref = schema[this.tableName].columns[field]
+                let thisField = {
+                    validField: [],
+                    placeHolder: '',
+                    originalField: ''
+                }
+                if (aliases 
+                    && aliases[ref.tableRef] 
+                    && schema[ref.tableRef] 
+                    && schema[ref.tableRef].columns[ref.displayAs]) {
+                        thisField.validField.push(aliases[ref.tableRef], ref.displayAs)
+                        thisField.placeHolder = '??.??'
+                        thisField.originalField = field
+                } else if (aliases && aliases[this.tableName]) {
+                    thisField.validField.push(aliases[this.tableName], field)
+                    thisField.placeHolder = '??.??'
+                    thisField.originalField = field
+                } else if (aliases && !aliases[this.tableName]) {
+                    return false
+                } else {
+                    thisField.validField.push(field)
+                    thisField.placeHolder = '??'
+                    thisField.originalField = field
+                }
+                validFields.push(thisField)
             }
         })
+        return validFields
+    }
 
-        return Promise.resolve(validFields)
+    protected async validateNewFields(providedFields: any): Promise<{errors: FieldError[], warnings: FieldError[], valid: any}> {
+        const returnVal = {
+            errors: [],
+            warnings: [],
+            valid: {}
+        }
+        const schema = await constructSchema().catch(e => console.error(e))
+        const tableSchema = schema[this.tableName].columns
+        if (!providedFields) throw new Error('Missing fields')
+        Object.keys(tableSchema).map(async field => {
+            if (field.endsWith('_display')) return false // Return for joined fields.
+            if (!Object.keys(providedFields).includes(field)) return false
+
+            const validOrNot = await this.validateFieldIsValid(tableSchema[field], providedFields[field])
+            .catch(err => {
+                if (tableSchema[field].nullable) {
+                    this.warnings.push({
+                        message: err.message,
+                        field
+                    })
+                } else {
+                    this.errors.push({
+                        message: err.message,
+                        field
+                    })
+                }
+            })
+
+            returnVal.valid[field] = validOrNot
+        })
+
+        return returnVal
     }
 
     /**
@@ -329,26 +423,28 @@ class Querynator extends EventEmitter {
         }
         const schema = await constructSchema().catch(e => console.error(e))
         const tableSchema = schema[this.tableName].columns
+        delete providedFields[this.primaryKey] // Don't allow updates on primary keys
         if (!providedFields) throw new Error('Missing fields')
-        Object.keys(tableSchema).map(field => {
+        Object.keys(tableSchema).map(async field => {
             if (field.endsWith('_display')) return false // Return for joined fields.
-            if (providedFields[field] && typeof providedFields[field] === tableSchema[field].type) {
-                returnVal.valid[field] = providedFields[field]
-            } else {
-                // If the field is nullable, allow a null value to be entered. Throw a warning
+            if (!Object.keys(providedFields).includes(field)) return false
+
+            const validOrNot = await this.validateFieldIsValid(tableSchema[field], providedFields[field])
+            .catch(err => {
                 if (tableSchema[field].nullable) {
-                    returnVal.warnings.push({
-                        message: `Expected ${tableSchema[field].type} for field ${field} but got ${typeof field}`,
+                    this.warnings.push({
+                        message: err.message,
                         field
                     })
                 } else {
-                // If the field is not nullable, throw an error.
-                    returnVal.errors.push({
-                        message: `Expected ${tableSchema[field].type} for field ${field} but got ${typeof field}`,
+                    this.errors.push({
+                        message: err.message,
                         field
                     })
                 }
-            }
+            })
+
+            returnVal.valid[field] = validOrNot
         })
 
         return returnVal
@@ -372,25 +468,27 @@ class Querynator extends EventEmitter {
         let queryParams = await this.queryBuilder()
         
         if (fields) {
-            const validatedFields = await this.validateFields(Object.keys(fields))
+            const validatedFields = await this.validateFieldsExist(Object.keys(fields), queryParams.aliases)
             validatedFields.length > 0 ? queryParams.query += ' WHERE ' : void 0
             validatedFields.map((col, i) => {
-                let fieldValue = fields[col]
+                let fieldValue = fields[col.originalField]
                 if (typeof fieldValue === 'string') {
                     let parsedField = this.evaluateFieldOperator(fieldValue)
-                    queryParams.query += '??.?? ' + parsedField.operator + ' ?'
-                    queryParams.params.push(queryParams.aliases[this.tableName], col, parsedField.value)
+                    queryParams.query += col.placeHolder + ' ' + parsedField.operator + ' ?'
+                    queryParams.params = queryParams.params.concat(col.validField)
+                    queryParams.params.push(parsedField.value)
                 } else {
-                    queryParams.query += '??.?? = ?'
-                    queryParams.params.push(queryParams.aliases[this.tableName], col, fieldValue)
+                    queryParams.query += col.placeHolder + ' = ?'
+                    queryParams.params = queryParams.params.concat(col.validField)
+                    queryParams.params.push(fieldValue)
                 }
                 if (i + 1 !== Object.keys(fields).length) queryParams.query += ' AND '
             })
         }
 
         // Query for count for meta information
-        queryParams.params.unshift(this.primaryKey) // Add the primary key to the beginning of the array for the next query
-        let count = await this.createQ({query: 'SELECT COUNT(??) AS COUNT FROM (' + queryParams.query + ') AS COUNTING', params: queryParams.params})
+        queryParams.params.unshift(queryParams.countField) // Add the primary key to the beginning of the array for the next query
+        const count = await this.createQ({query: 'SELECT COUNT(??) AS COUNT FROM (' + queryParams.query + ') AS COUNTING', params: queryParams.params})
         queryParams.params.shift() // Remove the primary key for the main query
 
         if (order && order.by && order.direction) {
@@ -444,24 +542,31 @@ class Querynator extends EventEmitter {
             data: await this.createQ(queryParams)
         })
     }
-
-    protected async insert(providedFields) {
-        if (this.primaryKey === 'sys_id') providedFields[this.primaryKey] = uuid()
-        
+    protected async insert(providedFields: any, id?: string) {
+        id = this.primaryKey === 'sys_id' ? id = uuid() : id = id
+        providedFields[this.primaryKey] = id
 
         const query = 'INSERT INTO ?? SET ?'
         const params = [this.tableName]
-        let validatedFields = await this.validateUpdatedFields(providedFields)
+        let validatedFields = await this.validateNewFields(providedFields)
         let returnObject = {}
+        let inserted
         if (validatedFields.errors.length > 0) {
-            return Promise.resolve({
+            return {
                 errors: validatedFields.errors,
                 warnings: validatedFields.warnings
-            })
+            }
         }
         params.push(validatedFields.valid)
-        this.createQ({query, params})
-        returnObject[this.tableName] = await this.byId(validatedFields[this.primaryKey])
+        inserted = this.createQ({query, params}).catch(err => {
+            this.errors.push(err)
+            return {
+                errors: this.errors,
+                warnings: this.warnings
+            }
+        })
+        if (inserted.changedRows === 0) returnObject['errors'].push({message: 'Record was not updated'})
+        returnObject[this.tableName] = await this.byId(id)
         returnObject['warnings'] = validatedFields['warnings']
 
         return returnObject
@@ -469,20 +574,33 @@ class Querynator extends EventEmitter {
 
     protected async createUpdate(fields: any) {
         const query = 'UPDATE ?? SET ? WHERE ?? = ?'
-        let validatedFields = await this.validateUpdatedFields(fields)
+        let validatedFields = await this.validateUpdatedFields(fields).catch(err => console.log(err))
         let params = []
-        let returnObject = {}
-        if (validatedFields.errors.length > 0) {
-            return Promise.resolve({
-                errors: validatedFields.errors,
-                warnings: validatedFields.warnings
-            })
+        let changedRows
+        let returnObject = {
+            errors: [],
+            warnings: [],
+            data: {}
+        }
+        if (!validatedFields) return {
+            errors: this.errors,
+            warnings: this.warnings
         }
         if (validatedFields.valid[this.primaryKey]) delete validatedFields.valid[this.primaryKey]
+        if (Object.keys(validatedFields.valid).length === 0) {
+            validatedFields.errors.push({message: 'Could not update because of missing fields', field: 'all'})
+        }
+        if (this.errors.length > 0) {
+            return {
+                errors: this.errors,
+                warnings: this.warnings
+            }
+        }
         params = [this.tableName, validatedFields.valid, this.primaryKey, this.context.req.params.id]
-        this.createQ({query, params})
-        returnObject[this.tableName] = await this.byId(this.context.req.params.id)
-        returnObject['warnings'] = validatedFields['warnings']
+        changedRows = await this.createQ({query, params})
+        if (changedRows.changedRows === 0) returnObject['errors'].push({message: 'Record was not updated'})
+        returnObject.data[this.tableName] = await this.byId(this.context.req.params.id)
+        returnObject['warnings'] = this.warnings
 
         return returnObject
     }

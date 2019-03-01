@@ -14,7 +14,11 @@ class TableGeneralInformation extends Component {
             sys_id: props.sys_id,
             loaded: false
         }
-        this.fetchTableInformation()
+        if (props.sys_id === 'new') {
+            this.state.loaded = true
+        } else {
+            this.fetchTableInformation()
+        }
     }
 
     fetchTableInformation() {
@@ -34,7 +38,19 @@ class TableGeneralInformation extends Component {
     }
 
     submitChange(e) {
-
+        let apiRoute = '/api/q/sys_db_object'
+        let apiQuery;
+        if (this.state.sys_id === 'new') {
+            apiQuery = API.post({path: apiRoute, body: {...this.state.fields}})
+        } else {
+            apiQuery = API.put({path: apiRoute + '/' + this.state.sys_id, body: {...this.state.fields}})
+        }
+        apiQuery.then(response => {
+            console.log(response)
+        })
+        .catch(err => {
+            console.error(err)
+        })
     }
 
     render() {
@@ -43,8 +59,8 @@ class TableGeneralInformation extends Component {
                 {
                     this.state.loaded &&
                     <>
-                        <Field label="Label" value={this.state.fields.label} onChange={this.handleChange.bind(this)} />
-                        <Field label="Name" value={this.state.fields.name} onChange={this.handleChange.bind(this)} readOnly="readonly"/>
+                        <Field label="Label" value={this.state.fields.label} id="label" onChange={this.handleChange.bind(this)} />
+                        <Field label="Name" value={this.state.fields.name} id="name" onChange={this.handleChange.bind(this)} readOnly="readonly"/>
                         <button className="btn btn-primary btn-block" onClick={this.submitChange.bind(this)}>Save</button>
                     </>
                 }
@@ -57,7 +73,7 @@ export class TableModifier extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            sys_id: props.match.params.sys_id
+            sys_id: props.id
         }
     }
 
