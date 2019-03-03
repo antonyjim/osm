@@ -55,6 +55,7 @@
     "react-router-dom": "^4.3.1",
     "sass-loader": "^7.1.0",
     "serve": "^10.1.1",
+    "tslint-config-prettier": "^1.18.0",
     "webpack": "^4.28.1",
     "webpack-cli": "^3.1.2",
     "webpack-dev-server": "^3.1.11"
@@ -66,7 +67,9 @@
     "debug": "nodemon --legacy-watch --watch ./dist --inspect=127.0.0.1:9229 --nolazy ./dist/",
     "docker-debug": "docker-compose up",
     "client-watch": "webpack --watch",
-    "start": "tsc && node dist/app.js"
+    "start": "tsc && node dist/app.js",
+    "lint": "tslint 'src/**/*.{ts,tsx}'",
+    "lint-fix": "tslint --fix 'src/**/*.{ts,tsx}'"
   },
   "author": "",
   "license": "ISC"

@@ -1,4 +1,6 @@
 {
     "debug.node.autoAttach": "off",
-    "eslint.enable": false
+    "tslint.alwaysShowRuleFailuresAsWarnings": true,
+    "editor.formatOnSave": true,
+    "javascript.format.enable": false
 }
