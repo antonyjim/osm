@@ -92,7 +92,7 @@ export class TableModifier extends Component {
             relatedFields: {
                 id: 'related',
                 label: 'Fields',
-                body: <Table table="sys_db_dictionary_list" args={{table_name: this.state.sys_id}} />
+                body: <Table table="sys_db_dictionary_list" args={{table_name: this.state.sys_id}} showSearch={true} />
             }
         }
         return (

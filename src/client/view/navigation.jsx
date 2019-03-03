@@ -1,8 +1,9 @@
 import React, { Component } from 'react'
-import { fetchLogin } from './loginProcess/getNavigation';
+import { fetchLogin } from './lib/getNavigation';
 
 // React-Router
 import { Route, Link } from 'react-router-dom'
+import { pathMatcher } from './router/history';
 
 class NavigationHeading extends Component {
     constructor(props) {
@@ -109,6 +110,7 @@ export default class Navigation extends Component {
                                             <Link className="dropdown-item" to="/profile">Profile</Link>
                                             <a className="dropdown-item" href="#">French</a>
                                             <a className="dropdown-item" href="/logout">Logout</a>
+                                            <button onClick={pathMatcher} className="dropdown-item" value="/foo/:bar">Match</button>
                                         </div>
                                 </li>
                             </ul>

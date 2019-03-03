@@ -46,6 +46,7 @@
     "morgan": "^1.9.1",
     "node-sass": "^4.11.0",
     "nodemon": "^1.18.9",
+    "path-to-regexp": "*",
     "popper.js": "^1.14.7",
     "react": "^16.7.0",
     "react-dom": "^16.7.0",

@@ -112,4 +112,4 @@ class App extends Component {
   }
 }
 
-render(<App/> , document.querySelector('#root'))
+render(<App path={document.location.pathname} /> , document.querySelector('#root'))

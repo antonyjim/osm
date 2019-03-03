@@ -46,11 +46,11 @@ export namespace UserTypes {
     }
 
     interface AuthToken {
-        u?: string;
-        iA?: boolean;
-        r?: string;
-        t?: string;
-        c: string;
+        u?: string; // UserId of logged in or impersonated user
+        iA?: boolean; // Boolean indicated if the user is authorized
+        r?: string; // Role of the currently selected user
+        t?: string; // Token of the request, not included in the payload
+        c: string; // Currently selected customer
     }
 
     interface Credentials {

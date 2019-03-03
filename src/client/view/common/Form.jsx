@@ -70,6 +70,18 @@ export default class Form extends Component {
     })
   }
 
+  componentDidMount() {
+    console.log('Component Mounted')
+  }
+
+  componentDidUpdate(prevProps) {
+    console.log('component updated')
+    console.log(prevProps)
+    if (prevProps.match.params !== this.props.match.params) {
+      this.render()
+    }
+  }
+
   render() {
     if (specialForms[this.state.table]) {
       const ThisForm = specialForms[this.state.table]

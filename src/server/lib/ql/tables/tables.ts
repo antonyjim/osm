@@ -65,6 +65,8 @@ class Table extends Querynator {
     }
 
     public async update(fields) {
+        this.createUpdate(fields).catch(err => {this.errors.push({message: err})})
+        return this.byId(this.context.req.params.id);
         const query = 'UPDATE ?? SET ? WHERE ?? = ?'
         let params: any[] = [this.tableName]
         let invalidFields = new Validation(fields)

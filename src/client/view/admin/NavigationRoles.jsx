@@ -3,7 +3,6 @@ import { Field, SelectField } from './../common/forms.jsx'
 import { submitForm } from '../lib/formSubmission.js';
 import Alert from '../common/alerts.jsx';
 import { E401 } from '../common/errors.jsx'
-import Table from '../common/Table.jsx'
 import Pills from '../common/PillLayout.jsx'
 
 class ExistingRoute extends Component {
@@ -57,22 +56,6 @@ class ExistingRoutes extends Component {
                 throw err
             }
         })
-        /*
-        fetch('/api/admin/getAllRoutes?token=' + window.THQ.token)
-        .then(res => {
-            return res.json()
-        })
-        .then(links => {
-            if (links.error) {
-                console.error(links.message)
-            } else {
-                this.setState({links})
-            }
-        })
-        .catch(err => {
-            console.error(err)
-        })
-        */
     }
 
     render() {
@@ -659,16 +642,6 @@ class AdminWireFrame extends Component {
                 id: 'roles',
                 label: 'Roles',
                 body: <Roles />
-            },
-            tables: {
-                id: 'tables',
-                label: 'Tables',
-                body: <Table table="sys_db_object_list" hideActions={true} showSearch={true} handleErrorMessage={this.handleErrorMessage.bind(this)} handleStatusMessage={this.handleStatusMessage.bind(this)} />
-            },
-            views: {
-                id: 'views',
-                label: 'Columns',
-                body: <Table table="sys_db_dictionary_list" perPage={15} cols={['column_name','label','table_name', 'hint', 'col_order']} showSearch={true} handleErrorMessage={this.handleErrorMessage.bind(this)} handleStatusMessage={this.handleStatusMessage.bind(this)} />
             }
         }
         return (
