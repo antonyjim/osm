@@ -1,7 +1,7 @@
 const webpack = require('webpack')
 const path = require('path')
 
-let BUILD_DIR = path.resolve(__dirname, 'public/scripts/')
+let BUILD_DIR = path.resolve(__dirname, 'public/scripts/bundles/')
 let APP_DIR = path.resolve(__dirname, 'src/client/view')
 let STYLE_DIR = path.resolve(__dirname, 'src/client/styles')
 
@@ -18,7 +18,7 @@ let config = {
     },
     output: {
         path: BUILD_DIR,
-        publicPath: '/public/scripts/',
+        publicPath: '/public/scripts/bundles/',
         filename: '[name].bundle.js',
         chunkFilename: '[name].bundle.js'
     },
