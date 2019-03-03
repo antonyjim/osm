@@ -10,11 +10,12 @@
     "object-literal-sort-keys": false,
     "member-ordering": false,
     "no-console": false,
+    "linebreak-style": [true, "line-feed"],
     "indent": [true, "spaces", 2],
     "semicolon": false,
     "triple-equals": true,
     "curly": [true, "ignore-same-line"],
-    "linebreak-style": [true, "line-feed"],
-    "no-namespace": false
+    "no-namespace": false,
+    "interface-name": false
   }
 }
