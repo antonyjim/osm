@@ -1,6 +1,7 @@
 {
     "debug.node.autoAttach": "off",
     "tslint.alwaysShowRuleFailuresAsWarnings": true,
+    "prettier.tslintIntegration": false,
     "editor.formatOnSave": true,
     "javascript.format.enable": false
 }

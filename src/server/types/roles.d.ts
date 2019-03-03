@@ -1,38 +1,39 @@
 export namespace NavigationSettings {
-    // Reference `navigation` table
-    interface Links {
-        navId?: string;
-        navInnerText?: string;
-        navHref?: string;
-        navPathName?: string;
-        navQueryString?: string;
-        navHeader?: string;
-        navMenu?: string;
-        navActive?: any;
-        navPriv?: string;
-        navIsNotApi?: any;
-        navMethod?: string;
-    }
+  // Reference `navigation` table
+  interface ILinks {
+    navId?: string
+    navInnerText?: string
+    navHref?: string
+    navPathName?: string
+    navQueryString?: string
+    navHeader?: string
+    navMenu?: string
+    navActive?: any
+    navPriv?: string
+    navIsNotApi?: any
+    navMethod?: string
+  }
 
-    // Reference `navigationRoles` table
-    interface UserLinks {
-        nrRoleId: string;
-        nrLink: string;
-    }
+  // Reference `navigationRoles` table
+  interface IUserLinks {
+    nrRoleId: string
+    nrLink: string
+  }
 
-    // Output from SELECT DISTINCT navigation.navMenu FROM navigation;
-    interface Menus {
-        navMenu: string;
-        navHeaders: Array<string>;
-    }
+  // Output from SELECT DISTINCT navigation.navMenu FROM navigation;
+  interface IMenus {
+    navMenu: string
+    navHeaders: string[]
+  }
 
-    interface GUI {
-        menus: Array<Menus>;
-        links: Array<Links>
-    }
+  interface IGUI {
+    menus: IMenus[]
+    links: ILinks[]
+  }
 }
 
-export interface RolePermissions {
-    rpId?: string;
-    rpPriv?: string;
+export interface IRolePermissions {
+  rpId?: string
+  rpPriv?: string
+  authed?: boolean
 }

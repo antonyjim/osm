@@ -1,6 +1,6 @@
 # Code Name THQ
 
-This project contains the source code for a Node.js based API and a website that is driven from said API. The API/Server side code is written in 100% Typescript, while the client code is written in javascript using React and Bootstrap as the front end framework. 
+This project contains the source code for a Node.js based API and a website that is driven from said API. The API/Server side code is written in 100% Typescript, while the client code is written in javascript using React and Bootstrap as the front end framework.
 
 The source code for the server is located in `/src/server` and is further subdivided into `routes/`, `lib/` and `middleware/`. Most of the logic and functionality of the application and API are located in the `lib/` directory, while the routes (served by `express`) are located in the `routes/` directory. The `middleware/` directory is primarily used for middleware used in the `routes/` files (most notably the token validation).
 
@@ -13,8 +13,9 @@ npm run start
 ```
 
 To debug in VSCode:
- 1. Launch debugger
- 2. Run task "Launch via NPM"
+
+1.  Launch debugger
+2.  Run task "Launch via NPM"
 
 ###### FAIR USE STATEMENT
 

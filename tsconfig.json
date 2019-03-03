@@ -2,16 +2,16 @@
     "compilerOptions": {
         "outDir": "dist/",
         "sourceMap": true,
-        "rootDir" : "src/server",
+        "rootDir": "src/server",
         "removeComments": true,
         "allowJs": true,
         "typeRoots": ["./src/types"],
-        "lib" : [
+        "lib": [
             "es6",
             "esnext.asynciterable",
             "es2016"
         ],
-        "types" : [
+        "types": [
             "node",
             "express",
             "mysql",
@@ -19,11 +19,11 @@
             "bcrypt",
             "jsonwebtoken"
         ]
-    }, 
-    "include" : [
+    },
+    "include": [
         "src/server/**/*"
     ],
-    "exclude" : [
+    "exclude": [
         "node_modules",
         "src/client/**/*"
     ]

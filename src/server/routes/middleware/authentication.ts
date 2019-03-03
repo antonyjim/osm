@@ -12,7 +12,7 @@ import { sign, verify } from 'jsonwebtoken'
 
 // Local Modules
 import { validateEndpoint } from './../../lib/navigation/navigation'
-import { StatusMessage } from './../../types/server'
+import { IStatusMessage } from './../../types/server'
 import { UserTypes } from '../../types/users'
 import { jwtSecret } from '../../lib/connection'
 
@@ -23,7 +23,7 @@ import { jwtSecret } from '../../lib/connection'
  */
 export function tokenValidation() {
   return (req: Request, res: Response, next: NextFunction) => {
-    const anonToken: UserTypes.AuthToken = {
+    const anonToken: UserTypes.IAuthToken = {
       iA: false,
       u: null,
       r: null,
@@ -79,10 +79,10 @@ export function tokenValidation() {
       verify(
         tokenCookie,
         jwtSecret,
-        (err: Error, decoded: UserTypes.AuthToken) => {
+        (err: Error, decoded: UserTypes.IAuthToken) => {
           if (err) handleOnAuthError(err)
           if (decoded) {
-            const authToken: UserTypes.AuthToken = {
+            const authToken: UserTypes.IAuthToken = {
               iA: true,
               u: decoded.u,
               r: decoded.r,
@@ -119,7 +119,7 @@ export function tokenValidation() {
  */
 export function apiTokenValidation() {
   return (req: Request, res: Response, next: NextFunction) => {
-    const anonToken: UserTypes.AuthToken = {
+    const anonToken: UserTypes.IAuthToken = {
       iA: false,
       u: null,
       r: null,
@@ -181,10 +181,10 @@ export function apiTokenValidation() {
       verify(
         tokenCookie,
         jwtSecret,
-        (err: Error, decoded: UserTypes.AuthToken) => {
+        (err: Error, decoded: UserTypes.IAuthToken) => {
           if (err) handleOnAuthError(err)
           if (decoded) {
-            const authToken: UserTypes.AuthToken = {
+            const authToken: UserTypes.IAuthToken = {
               iA: true,
               u: decoded.u,
               r: decoded.r,
@@ -232,11 +232,11 @@ export function endpointAuthentication() {
     } else {
       validateEndpoint(req.method, req.originalUrl, req.auth.r)
         .then(
-          (onUserAuthorized: StatusMessage) => {
+          (onUserAuthorized: IStatusMessage) => {
             req.auth.iZ = onUserAuthorized.details.authorized
             next()
           },
-          (onUserUnAuthorized: StatusMessage) => {
+          (onUserUnAuthorized: IStatusMessage) => {
             req.auth.iZ = onUserUnAuthorized.details.authorized
             console.log('User is not authorized')
             return res.status(401).json({
@@ -245,7 +245,7 @@ export function endpointAuthentication() {
             })
           }
         )
-        .catch((error: StatusMessage) => {
+        .catch((error: IStatusMessage) => {
           console.error(error)
           req.auth.iZ = false
           return res.status(401).json({

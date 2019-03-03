@@ -140,7 +140,7 @@ CREATE PROCEDURE newUser (
                 sys_id,
                 userName,
                 userPass,
-                userEmail,
+                email,
                 userDefaultNonsig,
                 userIsLocked,
                 userIsConfirmed,
@@ -263,7 +263,7 @@ CREATE FUNCTION setForgotPassword(_userName VARCHAR(36), _userEmail VARCHAR(90),
         IF NOT ISNULL(_userName) THEN
             SELECT
                 sys_id,
-                userEmail
+                email
             INTO
                 _userId,
                 _resolvedEmail
@@ -274,14 +274,14 @@ CREATE FUNCTION setForgotPassword(_userName VARCHAR(36), _userEmail VARCHAR(90),
         ELSEIF NOT ISNULL(_userEmail) THEN
             SELECT
                 sys_id,
-                userEmail
+                email
             INTO
                 _userId,
                 _resolvedEmail
             FROM
                 sys_user
             WHERE
-                userEmail = _userEmail;
+                email = _userEmail;
         ELSE RETURN NULL;
 	END IF;
 

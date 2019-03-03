@@ -23,12 +23,11 @@ let config = {
         chunkFilename: '[name].bundle.js'
     },
     module: {
-        rules: [
-            {
+        rules: [{
                 test: /\.jsx?/,
                 include: APP_DIR,
                 loader: 'babel-loader'
-            }, 
+            },
             {
                 test: /\.scss$/,
                 include: STYLE_DIR,

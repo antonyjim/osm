@@ -12,7 +12,6 @@ import { Router, Request, Response } from 'express'
 
 // Local Modules
 import { tokenValidation } from './../middleware/authentication'
-import bodyParser = require('body-parser')
 import loginRoutes from './login'
 import verifyRoutes from './verification'
 import { getServerStatus } from '../../lib/utils'
@@ -28,60 +27,60 @@ uiRoutes.use('/verify', verifyRoutes)
 uiRoutes.get('/logout', (req: Request, res: Response) => {
   res.cookie('token', null)
   res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' })
-  let fileStream = createReadStream(
+  const fileStream = createReadStream(
     resolve(__dirname, '../../../static/login.html')
   )
-  fileStream.on('data', function(data) {
+  fileStream.on('data', (data) => {
     res.write(data)
   })
-  fileStream.on('end', function() {
+  fileStream.on('end', () => {
     res.end()
     return
   })
 })
 
-uiRoutes.get('/stats', function(req: Request, res: Response) {
+uiRoutes.get('/stats', (req: Request, res: Response) => {
   getServerStatus().then((stats) => {
     res.status(200).json(stats)
   })
 })
 
-uiRoutes.get('/wetty', function(req: Request, res: Response) {
+uiRoutes.get('/wetty', (req: Request, res: Response) => {
   res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' })
-  let fileStream = createReadStream(
+  const fileStream = createReadStream(
     resolve(__dirname, '../../../static/wettyError.html')
   )
-  fileStream.on('data', function(data) {
+  fileStream.on('data', (data) => {
     res.write(data)
   })
-  fileStream.on('end', function() {
+  fileStream.on('end', () => {
     res.end()
     return
   })
 })
 
-uiRoutes.get('*', function(req: Request, res: Response) {
+uiRoutes.get('*', (req: Request, res: Response) => {
   if (req.auth.iA && req.auth.u) {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' })
-    let fileStream = createReadStream(
+    const fileStream = createReadStream(
       resolve(__dirname, '../../../static/index.html')
     )
-    fileStream.on('data', function(data) {
+    fileStream.on('data', (data) => {
       res.write(data)
     })
-    fileStream.on('end', function() {
+    fileStream.on('end', () => {
       res.end()
       return
     })
   } else {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' })
-    let fileStream = createReadStream(
+    const fileStream = createReadStream(
       resolve(__dirname, '../../../static/login.html')
     )
-    fileStream.on('data', function(data) {
+    fileStream.on('data', (data) => {
       res.write(data)
     })
-    fileStream.on('end', function() {
+    fileStream.on('end', () => {
       res.end()
       return
     })

@@ -1,61 +1,158 @@
 /**
  * emails.ts
  * Send out a canned email to requested user or receipient
-*/
+ */
 
 // Node Modules
 
-
 // NPM Modules
-import { createTransport, Transporter } from 'nodemailer'
-import { sign } from 'jsonwebtoken';
+import { createTransport, Transporter, SendMailOptions } from 'nodemailer'
+import { sign } from 'jsonwebtoken'
 
 // Local Modules
-import { StatusMessage } from './../../types/server'
-import { transporterSettings, jwtSecret } from '../connection';
+import { jwtSecret, Querynator, simpleQuery } from '../connection'
+import { IEmailMessage } from '../../types/mailmessage'
 
 // Constants and global variables
-const transporter: Transporter = createTransport(transporterSettings)
 
-function sendConfirmation({userEmail, confirmationToken, action}, cb?) {
-      if (!userEmail || !confirmationToken && cb) {
-          cb(new Error('Missing email or token'))
+export default class Email extends Querynator {
+  private transporter: Transporter
+  private message: SendMailOptions
+
+  constructor(messageDetails: SendMailOptions) {
+    super()
+    this.tableName = 'email_message'
+    this.primaryKey = 'sys_id'
+    this.transporter = createTransport({
+      host: process.env.HOST || 'smtp.ethereal.email',
+      port: parseInt(process.env.SMTP_PORT, 10) || 587,
+      auth: {
+        user: process.env.SMTP_USER || '',
+        pass: process.env.SMTP_PASS || ''
       }
-      const token = sign({
-          t: confirmationToken,
-          action
-      },
-      jwtSecret,
-      {
-          expiresIn: '30d'
-      })
-      let message = {
-          from: 'Tire-HQ Signer <tirehq.helpdesk@goodyear.com>',
-          to: userEmail,
-          subject: 'Confirm Email',
-          html: `<a href="http://localhost:8085/verifyToken/?token=${token}">Click here to verify </a>`
+    })
+    this.message = messageDetails
+  }
+
+  private async findByFriendlyName(friendlyName) {
+    const query = 'SELECT ?? FROM ?? WHERE ?? = ?'
+    const params = [
+      'friendly_name',
+      this.tableName,
+      'friendly_name',
+      friendlyName
+    ]
+
+    return await simpleQuery(query, params)
+  }
+
+  private async sendMessage() {
+    this.transporter.sendMail(this.message, (err: Error, info) => {
+      if (err) throw err
+      return info
+    })
+  }
+
+  private interpolateParams(
+    interoplationString: string,
+    params: object
+  ): string {
+    const interpolationParams = interoplationString.match(/[^{}]+(?=\})/g)
+    for (const interpolationParam of interpolationParams) {
+      let paramToInterpolate = ''
+      if (params[interpolationParam]) {
+        paramToInterpolate = params[interpolationParam]
       }
-      transporter.sendMail(message, function(err: Error, info) {
-          if (err) cb(err)
-          let status: StatusMessage = {
-              error: false,
-              message: 'Email sent to ' + userEmail + ' with further instructions'
+      interoplationString.replace(`{${interpolationParam}}`, paramToInterpolate)
+    }
+    return interoplationString
+  }
+
+  /**
+   * Send a mailmessage interpolated with the provided values
+   * @param {string} friendlyName Friendly name of the email in the database
+   * @param {object} params Params to interpolate in the email
+   */
+  public async send(friendlyName?: string, params?: any) {
+    if (
+      this.message.to &&
+      this.message.from &&
+      this.message.subject &&
+      (this.message.html || this.message.text)
+    ) {
+      return await this.sendMessage()
+    } else if (friendlyName) {
+      const mailMessage: IEmailMessage[] | void = await this.findByFriendlyName(
+        friendlyName
+      ).catch((err) => console.error(err))
+      if (mailMessage && mailMessage.length > 0) {
+        const thisMessage: IEmailMessage = mailMessage.shift()
+        if (thisMessage.html) {
+          this.message = {
+            to: params.to,
+            from:
+              params.from ||
+              `${thisMessage.sender_name} <${thisMessage.sender_address}>`,
+            subject: params.subject || thisMessage.subject,
+            html: this.interpolateParams(thisMessage.body, params)
           }
-          if (cb) {
-            cb(null, status)
+        } else {
+          this.message = {
+            to: params.to,
+            from:
+              params.from ||
+              `${thisMessage.sender_name} <${thisMessage.sender_address}>`,
+            subject: params.subject || thisMessage.subject,
+            text: this.interpolateParams(thisMessage.body, params)
           }
-      })
+        }
+        return await this.sendMessage()
+      }
+    } else {
+      throw new Error('Missing required information to send email')
+    }
+  }
+}
+
+function sendConfirmation({ userEmail, confirmationToken, action }, cb?) {
+  if (!userEmail || (!confirmationToken && cb)) {
+    cb(new Error('Missing email or token'))
+  }
+  const token = sign(
+    {
+      t: confirmationToken,
+      action
+    },
+    jwtSecret,
+    {
+      expiresIn: '30d'
+    }
+  )
+  const message = {
+    from: 'Anthony Jund <thq@thq.anthonyjund.com>',
+    to: userEmail,
+    subject: 'Confirm Email',
+    html: `<a href="http://localhost:8085/verifyToken/?token=${token}">Click here to verify </a>`
+  }
+  new Email(message)
+    .send()
+    .then((onSent) => {
+      cb(null)
+    })
+    .catch((err) => {
+      cb(err)
+    })
 }
 
 function sendFailedPasswordReset(userEmail: string) {
-    if (!userEmail) {
-        return 1
-    }
-    let message = {
-        from: 'Tire-HQ Support <tirehq.helpdesk@goodyear.com>',
-        to: userEmail,
-        subject: 'Tire-HQ Password',
-        html: `
+  if (!userEmail) {
+    return 1
+  }
+  const message = {
+    from: 'Tire-HQ Support <tirehq.helpdesk@goodyear.com>',
+    to: userEmail,
+    subject: 'Tire-HQ Password',
+    html: `
         <!doctype html>
         <html>
           <head>
@@ -405,26 +502,30 @@ function sendFailedPasswordReset(userEmail: string) {
             </table>
           </body>
         </html>`
-    }
-    transporter.sendMail(message, function(err: Error, info) {
-        if (err) console.error(err)
-    })
+  }
+  new Email(message).send()
 }
 
 function sendPasswordReset(userEmail: string, token: string) {
-    if (!userEmail || !token) {
-        return 1
-    }
-    let message = {
-        from: 'Tire-HQ Support <tirehq.helpdesk@goodyear.com>',
-        to: userEmail,
-        subject: 'Password reset',
-        html: `<a href="http://localhost:8085/verifyToken/?token=${token}">Click here to verify </a>`
-    }
-    transporter.sendMail(message, function(err: Error, info) {
-        if (err) console.error(err)
+  if (!userEmail || !token) {
+    return 1
+  }
+  const message = {
+    from: 'Tire-HQ Support <tirehq.helpdesk@goodyear.com>',
+    to: userEmail,
+    subject: 'Password reset',
+    html: `<a href="http://localhost:8085/verifyToken/?token=${token}">Click here to verify </a>`
+  }
+  new Email(message)
+    .send()
+    .then((onSent) => {
+      console.log(
+        `Email successfully sent to ${userEmail} to verify account with ${token}`
+      )
+    })
+    .catch((err) => {
+      console.error(err)
     })
 }
 
 export { sendConfirmation, sendFailedPasswordReset, sendPasswordReset }
-

@@ -13,6 +13,8 @@
     "indent": [true, "spaces", 2],
     "semicolon": false,
     "triple-equals": true,
-    "curly": [true, "ignore-same-line"]
+    "curly": [true, "ignore-same-line"],
+    "linebreak-style": [true, "line-feed"],
+    "no-namespace": false
   }
 }

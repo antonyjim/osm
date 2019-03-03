@@ -103,6 +103,7 @@ CREATE TABLE sys_user (
     userConfirmation CHAR(36), -- Token used for confirmation and password reset
     userInvalidLoginAttempts INT(1),
     userDefaultNonsig CHAR(9) NOT NULL,
+    last_updated DATETIME DEFAULT CURRENT_TIMESTAMP(),
 
     PRIMARY KEY (sys_id),
 
@@ -543,6 +544,20 @@ CREATE TABLE sys_db_enum (
     INDEX(ref_id) -- Make searches on ref_id quick
 ) CHARSET = utf8;
 
+CREATE TABLE email_message (
+    PRIMARY KEY(sys_id),
+    sys_id CHAR(36),
+    friendly_name VARCHAR(40) NOT NULL,
+    sender_name VARCHAR(40),
+    sender_address VARCHAR(100) DEFAULT 'thq@thq.anthonyjund.com',
+    subject VARCHAR(100),
+    html BOOLEAN DEFAULT 1,
+    body TEXT,
+    last_updated DATETIME,
+
+    INDEX(friendly_name)
+) CHARSET = utf8;
+
 -- Store custom views
 
 /* Provide the list of users with their default nonsig information */
@@ -679,7 +694,7 @@ AS
         sys_user.userIsLocked,
         sys_user.userInvalidLoginAttempts,
         sys_user.userDefaultNonsig AS userNonsig,
-        sys_customer.nsIsActive,
+        sys_customer.active,
         sys_user_nsacl.nsaNonsig,
         sys_user_nsacl.nsaRole AS userRole,
         sys_user_nsacl.nsaUserId
@@ -688,7 +703,7 @@ AS
     INNER JOIN
         sys_customer
     ON
-        sys_customer.nsNonsig = sys_user.userDefaultNonsig
+        sys_customer.nonsig = sys_user.userDefaultNonsig
     INNER JOIN
         sys_user_nsacl
     ON
