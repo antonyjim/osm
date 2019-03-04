@@ -675,9 +675,9 @@ class Querynator extends EventEmitter {
       }
     })
     if (inserted.affectedRows === 0) {
-      returnObject.errors.push({ message: 'Record was not updated' })
+      returnObject.errors.push({ message: 'Record was not created' })
     } else {
-      returnObject.info.push({ message: 'Record was successfully updated' })
+      returnObject.info.push({ message: 'Record was successfully created' })
     }
 
     const updatedObj = await this.byId(id)
@@ -685,6 +685,7 @@ class Querynator extends EventEmitter {
     returnObject.data[this.tableName] = updatedObj.data.shift()
     returnObject.warnings = validatedFields.warnings
 
+    if (returnObject.errors.length === 0) delete returnObject.errors
     return returnObject
   }
 

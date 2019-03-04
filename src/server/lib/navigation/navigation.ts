@@ -47,14 +47,14 @@ export function getRoleAuthorizedNavigation(
           const role = navigation[0] ? navigation[0].rpId : 'No-Conf'
           resultSet.navs = navigation
           const queryPrivs = 'SELECT DISTINCT ?? FROM ?? WHERE ?? = ?'
-          const paramPrivs = ['rpPriv', schema.sys_role, 'rpId', role]
+          const paramPrivs = ['role_priv', schema.sys_role, 'rpId', role]
           return new Querynator().createQ(
             { query: queryPrivs, params: paramPrivs },
             'CALL'
           )
         })
         .then((authorizedPrivs) => {
-          resultSet.privs = authorizedPrivs.map((priv) => priv.rpPriv)
+          resultSet.privs = authorizedPrivs.map((priv) => priv.role_priv)
           resolve({
             error: false,
             message: 'Retrieved',

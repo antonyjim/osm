@@ -34,6 +34,6 @@ export namespace NavigationSettings {
 
 export interface IRolePermissions {
   rpId?: string
-  rpPriv?: string
+  role_priv?: string
   authed?: boolean
 }

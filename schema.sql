@@ -9,12 +9,15 @@ USE thq;
 -- +-----------------------------------------+
 
 CREATE TABLE sys_priv (
-	PRIMARY KEY (priv),
+	PRIMARY KEY (sys_id),
+    sys_id CHAR(36),
 	priv VARCHAR(36)
 );
 
 -- Store navigation through the site
 CREATE TABLE sys_navigation (
+    PRIMARY KEY (sys_id),
+    sys_id CHAR(36),
     navInnerText VARCHAR(40) NOT NULL, -- Inner text of the <a> element
     navMethod VARCHAR(6) NOT NULL DEFAULT 'GET', -- HTTP Request method
     navPathName VARCHAR(120) NOT NULL, -- Href of the <a> element
@@ -25,7 +28,6 @@ CREATE TABLE sys_navigation (
     navPriv VARCHAR(36), -- Priv associated with link
     navIsNotApi BOOLEAN NOT NULL, -- Whether or not the route is an api
 
-    PRIMARY KEY (navMethod, navPathName),
 
     FOREIGN KEY (navPriv)
 	REFERENCES sys_priv (priv)
@@ -35,11 +37,11 @@ CREATE TABLE sys_navigation (
 
 CREATE TABLE sys_role (
     rpId CHAR(9) NOT NULL, -- Role ID
-    rpPriv VARCHAR(36), -- Priviledge assigned to role
+    role_priv CHAR(36), -- Priviledge assigned to role
     
-    PRIMARY KEY (rpPriv, rpId),
+    PRIMARY KEY (role_priv, rpId),
 
-    FOREIGN KEY (rpPriv)
+    FOREIGN KEY (role_priv)
         REFERENCES sys_priv(priv)
         ON DELETE CASCADE
         ON UPDATE CASCADE
@@ -678,7 +680,7 @@ AS
     INNER JOIN
         sys_navigation
     ON
-        sys_navigation.navPriv = sys_role.rpPriv
+        sys_navigation.navPriv = sys_role.role_priv
     WHERE 
         navIsNotApi = 1
     AND

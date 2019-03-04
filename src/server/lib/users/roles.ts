@@ -33,13 +33,13 @@ export class Roles {
       let sql = ``
       if (role) {
         sql = `
-                    SELECT rpPriv
+                    SELECT role_priv
                     FROM sys_role
                     WHERE rpId = ${pool.escape(role)}
                 `
       } else {
         sql = `
-                    SELECT DISTINCT rpPriv
+                    SELECT DISTINCT role_priv
                     FROM sys_role
                 `
       }
@@ -151,10 +151,10 @@ export class Roles {
 
   public update(action): Promise<IStatusMessage> {
     return new Promise((resolve, reject) => {
-      if (!this.role.rpPriv || !this.role.rpId) {
+      if (!this.role.role_priv || !this.role.rpId) {
         reject({
           error: true,
-          message: 'Missing rpId or rpPriv'
+          message: 'Missing rpId or role_priv'
         })
       }
       const verRole = `
@@ -162,7 +162,7 @@ export class Roles {
                 FROM
                     sys_role
                 WHERE
-                    rpPriv = ${pool.escape(this.role.rpPriv)}
+                    role_priv = ${pool.escape(this.role.role_priv)}
                 AND
                     rpId = ${pool.escape(this.role.rpId)}
             `
@@ -179,7 +179,7 @@ export class Roles {
                             WHERE
                                 rpId = ${pool.escape(this.role.rpId)}
                             AND
-                                rpPriv = ${pool.escape(this.role.rpPriv)}
+                                role_priv = ${pool.escape(this.role.role_priv)}
                         `
             console.log(removeRole)
             pool.query(removeRole, (removeErr: Error, results) => {
@@ -188,7 +188,7 @@ export class Roles {
               }
               resolve({
                 error: false,
-                message: `Removed ${this.role.rpPriv} from ${this.role.rpId}`
+                message: `Removed ${this.role.role_priv} from ${this.role.rpId}`
               })
             })
           } else if (existingRoles.length !== 1 && action === 'delete') {
@@ -206,11 +206,11 @@ export class Roles {
                             INSERT INTO
                                 sys_role (
                                 rpId,
-                                rpPriv
+                                role_priv
                             ) VALUES (
                                 ${pool.escape([
                                   this.role.rpId.slice(0, 7),
-                                  this.role.rpPriv.slice(0, 36)
+                                  this.role.role_priv.slice(0, 36)
                                 ])}
                             )
                         `
@@ -220,7 +220,9 @@ export class Roles {
               }
               resolve({
                 error: false,
-                message: `Added ${this.role.rpPriv} to ${this.role.rpPriv}`
+                message: `Added ${this.role.role_priv} to ${
+                  this.role.role_priv
+                }`
               })
             })
           } else {

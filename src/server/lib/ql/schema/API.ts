@@ -120,8 +120,7 @@ export default class APICall extends Querynator {
               : this.response.body.warnings.push(rows.warnings) // Allow non-terminating errors to be passed in the response
           }
           if (rows.errors) {
-            const isArray = Array.isArray(rows.errors)
-            isArray
+            Array.isArray(rows.errors) && rows.errors.length > 0
               ? (this.response.body.errors = rows.errors)
               : this.response.body.errors.push(rows.errors)
             this.response.status = 400

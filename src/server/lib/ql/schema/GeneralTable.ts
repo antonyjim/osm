@@ -14,24 +14,45 @@ import { getTables } from './constructSchema'
 
 // Constants and global variables
 
-export function genericTableQuery(queryFields, args, context, pagination?) {
+export async function genericTableQuery(
+  queryFields,
+  args,
+  context,
+  pagination?
+) {
   if (context.req.params.id) {
-    return new GenericTable(context, queryFields).getById(args)
-  } else return new GenericTable(context, queryFields).where(args, pagination)
+    return await new GenericTable(context, queryFields).getById(args)
+  } else
+    return await new GenericTable(context, queryFields).where(args, pagination)
 }
 
-export function genericTableDelete(queryFields, args, context, pagination?) {
-  return new GenericTable(context, queryFields).delete(args)
+export async function genericTableDelete(
+  queryFields,
+  args,
+  context,
+  pagination?
+) {
+  return await new GenericTable(context, queryFields).delete(args)
 }
 
-export function genericTableUpdate(queryFields, args, context, pagination?) {
+export async function genericTableUpdate(
+  queryFields,
+  args,
+  context,
+  pagination?
+) {
   if (context.req.params.id) {
-    return new GenericTable(context, queryFields).update(args)
+    return await new GenericTable(context, queryFields).update(args)
   }
 }
 
-export function genericTableCreate(queryFields, args, context, pagination?) {
-  return new GenericTable(context, queryFields).create(args)
+export async function genericTableCreate(
+  queryFields,
+  args,
+  context,
+  pagination?
+) {
+  return await new GenericTable(context, queryFields).create(args)
 }
 
 class GenericTable extends Querynator {

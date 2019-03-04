@@ -124,7 +124,7 @@ export class Navigation {
   protected verPriv(priv: string): Promise<IStatusMessage> {
     return new Promise((resolve, reject) => {
       if (priv) {
-        const sql = `SELECT * FROM sys_role WHERE rpPriv = ${pool.escape(
+        const sql = `SELECT * FROM sys_role WHERE role_priv = ${pool.escape(
           priv
         )} `
         pool.query(sql, (err: Error, roles: IRolePermissions[]) => {

@@ -67,7 +67,7 @@ export default class Description extends Querynator {
           'auth_can_delete_own',
           'sys_authorization',
           'auth_priv',
-          'rpPriv',
+          'role_priv',
           'sys_role',
           'rpId',
           this.context.req.auth.r,

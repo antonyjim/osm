@@ -15,7 +15,7 @@ CREATE PROCEDURE thq.getNavigation (IN role CHAR(36))
         INNER JOIN
             sys_navigation
         ON
-            sys_navigation.navPriv = sys_role.rpPriv
+            sys_navigation.navPriv = sys_role.role_priv
         WHERE 
             navIsNotApi = 1
         AND
@@ -55,7 +55,7 @@ CREATE PROCEDURE thq.addNav(
 		);
 		INSERT INTO sys_role (
 			rpId,
-			rpPriv
+			role_priv
 		) VALUES (
 			'SiteAdm',
 			_navPriv
@@ -104,7 +104,7 @@ CREATE PROCEDURE thq.addNav(
                 INNER JOIN
                     sys_role
                 ON
-                    sys_navigation.navPriv = sys_role.rpPriv
+                    sys_navigation.navPriv = sys_role.role_priv
                 WHERE
                     navActive = 1
                 AND
@@ -394,7 +394,7 @@ BEGIN
                     sys_role
                 ON
                     sys_authorization.auth_priv
-                    = sys_role.rpPriv
+                    = sys_role.role_priv
                 WHERE
                     rpId = _role
                 AND
@@ -428,7 +428,7 @@ BEGIN
                     sys_role
                 ON
                     sys_authorization.auth_priv
-                    = sys_role.rpPriv
+                    = sys_role.role_priv
                 WHERE
                     rpId = _role
                 AND
@@ -462,7 +462,7 @@ BEGIN
                     sys_role
                 ON
                     sys_authorization.auth_priv
-                    = sys_role.rpPriv
+                    = sys_role.role_priv
                 WHERE
                     rpId = _role
                 AND
@@ -496,7 +496,7 @@ BEGIN
                     sys_role
                 ON
                     sys_authorization.auth_priv
-                    = sys_role.rpPriv
+                    = sys_role.role_priv
                 WHERE
                     rpId = _role
                 AND
