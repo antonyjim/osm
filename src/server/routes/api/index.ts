@@ -22,6 +22,7 @@ import { q } from './q'
 import bodyParser = require('body-parser')
 import { UserTypes } from '../../types/users'
 import useradminRoutes from './users'
+import descriptions from './descriptions'
 
 // Constants and global variables
 const apiRoutes = Router()
@@ -72,6 +73,7 @@ apiRoutes.get('/getToken', (req: Request, res: Response) => {
 })
 
 apiRoutes.use(apiTokenValidation())
+apiRoutes.use('/describe', descriptions)
 apiRoutes.use('/q', q) // q is for general api queries
 apiRoutes.use(endpointAuthentication())
 apiRoutes.use(bodyParser.json())

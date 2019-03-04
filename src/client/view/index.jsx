@@ -1,6 +1,6 @@
 import React, { Component, Suspense } from 'react'
 import { render } from 'react-dom'
-import "@babel/polyfill"
+import '@babel/polyfill'
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 import { Footer } from './common/footer.jsx'
 import { E404, ErrorBoundary } from './common/errors.jsx'
@@ -28,13 +28,13 @@ class App extends Component {
     }
     if (token) {
       if (window.sessionStorage) {
-          window.sessionStorage.setItem('token', token)
-          window.history.pushState({loaded: true}, 'Tire-HQ', '/')
+        window.sessionStorage.setItem('token', token)
+        window.history.pushState({ loaded: true }, 'Tire-HQ', '/')
       }
     } else {
       if (window.sessionStorage) {
         window.THQ.token = sessionStorage.getItem('token')
-        window.history.pushState({loaded: true}, 'Tire-HQ', '/')
+        window.history.pushState({ loaded: true }, 'Tire-HQ', '/')
         if (!window.THQ.token) {
           this.logout()
         }
@@ -44,9 +44,11 @@ class App extends Component {
   }
 
   qs(key) {
-    key = key.replace(/[*+?^$.\[\]{}()|\\\/]/g, "\\$&"); // escape RegEx meta chars
-    var match = location.search.match(new RegExp("[?&]"+key+"=([^&]+)(&|$)"));
-    return match && decodeURIComponent(match[1].replace(/\+/g, " "));
+    key = key.replace(/[*+?^$.\[\]{}()|\\\/]/g, '\\$&') // escape RegEx meta chars
+    var match = location.search.match(
+      new RegExp('[?&]' + key + '=([^&]+)(&|$)')
+    )
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '))
   }
 
   logout() {
@@ -59,11 +61,11 @@ class App extends Component {
       window.location.href = '/logout'
     } else {
       const details = JSON.parse(atob(token.split('.')[1]))
-      const diff = (details.exp * 1000) - new Date().getTime()
+      const diff = details.exp * 1000 - new Date().getTime()
       if (diff < 300000) {
         $.ajax('/api/refresh?token=' + token, {
           success: function(response) {
-          if (response.token && !response.error) {
+            if (response.token && !response.error) {
               window.THQ.token = response.token
               sessionStorage.setItem('token', response.token)
             } else {
@@ -82,24 +84,31 @@ class App extends Component {
     if (loadingInterval) {
       clearInterval(loadingInterval)
       const container = document.getElementById('loading-container')
-      container ? container.parentElement.removeChild(document.getElementById('loading-container')) : void 0
+      container
+        ? container.parentElement.removeChild(
+            document.getElementById('loading-container')
+          )
+        : void 0
     }
     return (
       <ErrorBoundary>
         <Router>
           <>
             <div className="fill">
-              <Navigation/>
+              <Navigation />
               <ErrorBoundary>
                 <Suspense fallback={SuspenseLoader}>
                   <Switch>
                     <Route exact path="/" component={Dashboard} />
                     <Route path="/profile" component={UserProfile} />
-                    <Route path="/admin/" component={props => <Admin {...props} />} />
+                    <Route
+                      path="/admin/"
+                      component={(props) => <Admin {...props} />}
+                    />
                     <Route path="/customer/:customer" component={Customer} />
                     <Route path="/t/:table" component={TableList} />
                     <Route path="/f/:table/:id" component={Form} />
-                    <Route component={E404}/>
+                    <Route component={E404} />
                   </Switch>
                 </Suspense>
               </ErrorBoundary>
@@ -112,4 +121,7 @@ class App extends Component {
   }
 }
 
-render(<App path={document.location.pathname} /> , document.querySelector('#root'))
+render(
+  <App path={document.location.pathname} />,
+  document.querySelector('#root')
+)

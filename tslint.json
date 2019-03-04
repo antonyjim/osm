@@ -16,6 +16,8 @@
     "triple-equals": true,
     "curly": [true, "ignore-same-line"],
     "no-namespace": false,
-    "interface-name": false
+    "interface-name": false,
+    "jsdoc-format": true,
+    "object-literal-shorthand": true
   }
 }

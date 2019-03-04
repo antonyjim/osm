@@ -43,6 +43,11 @@ let config = {
         splitChunks: {
             chunks: 'all'
         }
+    },
+    externals: {
+        jquery: 'jQuery',
+        react: 'React',
+        'react-dom': 'ReactDOM'
     }
 }
 

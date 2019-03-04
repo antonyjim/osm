@@ -1,15 +1,12 @@
-import React, { Component } from 'react';
-import Table from '../common/Table.jsx';
-
+import React, { Component } from 'react'
+import Table from '../common/Table.jsx'
 
 export default class UserAdministration extends Component {
-    constructor(props) {
-        super(props)
-    }
+  constructor(props) {
+    super(props)
+  }
 
-    render() {
-        return (
-            <Table table=
-        )
-    }
+  render() {
+    return <Table table="sys_user" />
+  }
 }

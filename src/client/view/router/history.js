@@ -7,13 +7,13 @@
 export function pathMatcher(e) {
   let test = []
   let regexp = pathtoRegexp(e.target.value, test)
-  console.log(regexp) 
+  console.log(regexp)
   console.log(test)
 }
 
 function handleHistoryUpdate(newPath) {
   window.history.pushState({}, '', newPath)
-  
+
 }
 
 var MATCHING_GROUP_REGEXP = /\((?!\?)/g;
@@ -84,13 +84,13 @@ function pathtoRegexp(path, keys, options) {
         offset: offset + extraOffset
       });
 
-      var result = ''
-        + (optional ? '' : slash)
-        + '(?:'
-        + format + (optional ? slash : '') + capture
-        + (star ? '((?:[\\/' + format + '].+?)?)' : '')
-        + ')'
-        + optional;
+      var result = '' +
+        (optional ? '' : slash) +
+        '(?:' +
+        format + (optional ? slash : '') + capture +
+        (star ? '((?:[\\/' + format + '].+?)?)' : '') +
+        ')' +
+        optional;
 
       extraOffset += result.length - match.length;
 

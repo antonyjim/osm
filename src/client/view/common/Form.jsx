@@ -1,9 +1,9 @@
-import React, { Component } from 'react';
+import React, { Component } from 'react'
 import API from './../lib/API.js'
-import Customer from '../admin/Customer.jsx';
-import UserProfile from '../home/UserProfile.jsx';
-import Column from '../admin/Column.jsx';
-import { TableModifier } from '../admin/TableMaint.jsx';
+import Customer from '../admin/Customer.jsx'
+import UserProfile from '../home/UserProfile.jsx'
+import Column from '../admin/Column.jsx'
+import { TableModifier } from '../admin/TableMaint.jsx'
 
 const specialForms = {
   sys_customer: Customer,
@@ -16,7 +16,7 @@ export default class Form extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      fields: {...props.values},
+      fields: { ...props.values },
       title: props.title,
       table: props.match.params.table,
       id: props.match.params.id
@@ -24,10 +24,12 @@ export default class Form extends Component {
   }
 
   handleChange(e) {
-    let _state = {...this.state}
+    let _state = { ...this.state }
     _state.fields[e.target.id] = e.target.value
-    if (e.target.type === 'checkbox') _state.fields[e.target.id] = e.target.checked 
-    if (!_state.modifiedFields.includes(e.target.id)) _state.modifiedFields.push(e.target.id)
+    if (e.target.type === 'checkbox')
+      _state.fields[e.target.id] = e.target.checked
+    if (!_state.modifiedFields.includes(e.target.id))
+      _state.modifiedFields.push(e.target.id)
     _state.saveDisabled = {}
     this.setState(_state)
   }
@@ -36,21 +38,21 @@ export default class Form extends Component {
     if (this.props.sys_id === 'new') {
       createNew()
     } else {
-      let body = {sys_id: this.state.sys_id}
-      this.state.modifiedFields.forEach(field => {
+      let body = { sys_id: this.state.sys_id }
+      this.state.modifiedFields.forEach((field) => {
         body[field] = this.state.fields[field]
       })
       API.put({
-        path: `${API.TABLE}${this.state.table}/${this.state.sys_id}`, 
-        body: body, 
-        query: {fields: this.props.fields.join(',')}
+        path: `${API.TABLE}${this.state.table}/${this.state.sys_id}`,
+        body: body,
+        query: { fields: this.props.fields.join(',') }
       })
-      .then(res => {
-        console.log(res)
-      })
-      .catch(err => {
-        this.props.handleErrorMessage(err)
-      })
+        .then((res) => {
+          console.log(res)
+        })
+        .catch((err) => {
+          this.props.handleErrorMessage(err)
+        })
     }
   }
 
@@ -62,12 +64,12 @@ export default class Form extends Component {
       },
       body: this.state.fields
     })
-    .then(res => {
-      console.log(res)
-    })
-    .catch(err => {
-      console.error(err)
-    })
+      .then((res) => {
+        console.log(res)
+      })
+      .catch((err) => {
+        console.error(err)
+      })
   }
 
   componentDidMount() {
@@ -87,11 +89,12 @@ export default class Form extends Component {
       const ThisForm = specialForms[this.state.table]
       return <ThisForm id={this.state.id} />
     }
-    if (!this.state.fields) throw new Error('No fields provided for form ' + this.state.table)
+    if (!this.state.fields)
+      throw new Error('No fields provided for form ' + this.state.table)
     let displayFields = []
-    this.state.fields.map(field => {
+    this.state.fields.map((field) => {
       const WrappedComponent = React.addons.cloneWithProps(field, {
-          onChange: this.handleChange.bind(this)
+        onChange: this.handleChange.bind(this)
       })
       field.prototype.onChange = this.handleChange.bind(this)
       displayFields.push(field)
@@ -99,10 +102,18 @@ export default class Form extends Component {
     return (
       <>
         <h4>{this.state.title}</h4>
-        <hr/>
+        <hr />
         <form className="form-row" name={'form' + ~~(Math.random() * 1000)}>
           {this.props.fields}
-          <button className="btn btn-primary btn-block submit" onClick={this.handleSubmit.bind(this)} data-form="info" type="button" {...this.state.saveDisabled}>Save</button>
+          <button
+            className="btn btn-primary btn-block submit"
+            onClick={this.handleSubmit.bind(this)}
+            data-form="info"
+            type="button"
+            {...this.state.saveDisabled}
+          >
+            Save
+          </button>
         </form>
       </>
     )

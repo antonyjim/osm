@@ -10,21 +10,10 @@ import { Router, Request, Response } from 'express'
 
 // Local Modules
 import API from '../../lib/ql/schema'
-import Description from '../../lib/ql/schema/descriptions'
 
 // Constants and global variables
 const q = Router()
 
-q.get('/describe/:table', (req: Request, res: Response) => {
-  new Description({ req, res }, req.params.table)
-    .verifyAndReturnFields()
-    .then((fields) => {
-      res.status(200).json(fields)
-    })
-    .catch((err) => {
-      console.error(err)
-    })
-})
 q.get('/:table', API())
 q.get('/:table/:id', API())
 q.post('/:table', API())

@@ -1,4 +1,10 @@
 {
-    "presets" : ["@babel/react", "@babel/env"],
-    "plugins": ["@babel/plugin-syntax-dynamic-import"]
+    "presets": [
+        "@babel/react",
+        "@babel/env",
+        "@babel/preset-typescript"
+    ],
+    "plugins": [
+        "@babel/plugin-syntax-dynamic-import"
+    ],
 }
