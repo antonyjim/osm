@@ -1,9 +1,9 @@
 import React, { Component } from 'react'
-import { fetchLogin } from './lib/getNavigation'
+import { fetchLogin } from '../lib/getNavigation'
 
 // React-Router
 import { Route, Link } from 'react-router-dom'
-import { pathMatcher } from './router/history'
+import { pathMatcher } from '../router/history'
 
 class NavigationHeading extends Component {
   constructor(props) {

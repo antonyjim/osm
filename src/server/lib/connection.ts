@@ -38,13 +38,8 @@ function getPool(): Pool {
 
 function simpleQuery(query: string, params?: any[]): Promise<any[]> {
   return new Promise((resolve) => {
-    getPool().getConnection((err, conn) => {
-      if (err) console.error(err)
-      console.log(conn.format(query, params).toString())
-      conn.release()
-    })
     getPool().query(query, params, (err: Error, results: any[]) => {
-      if (err) console.error(err)
+      if (err) throw err
       return resolve(results)
     })
   })
@@ -116,7 +111,7 @@ class Querynator extends EventEmitter {
         process.env.STATEMENT_LOGGING === 'true' ||
         process.env.STATEMENT_LOGGING
       ) {
-        new Log(conn.format('SELECT ?? (?) AS AUTHED', params)).info()
+        // new Log(conn.format('SELECT ?? (?) AS AUTHED', params)).info()
       }
       conn.query('SELECT ?? (?) AS AUTHED', params, (err, authed) => {
         if (err) {
@@ -152,14 +147,13 @@ class Querynator extends EventEmitter {
                 process.env.STATEMENT_LOGGING === 'true' ||
                 process.env.STATEMENT_LOGGING
               ) {
-                console.log(conn.format(query, params))
-                // new Log(conn.format(query, params)).info()
+                // console.log(conn.format(query, params))
               }
               conn.query(query, params, (qErr: Error, results: any[]) => {
                 if (qErr) {
                   conn.rollback()
                   conn.release()
-                  return reject(err)
+                  throw err
                 }
                 conn.commit((cErr) => {
                   conn.release()
@@ -167,7 +161,7 @@ class Querynator extends EventEmitter {
                     conn.rollback()
                     return reject(cErr)
                   }
-                  console.log(inspect(results))
+                  // console.log(inspect(results))
                   return resolve(results)
                 })
               })
@@ -472,9 +466,14 @@ class Querynator extends EventEmitter {
     const tableSchema = schema[this.tableName].columns
     delete providedFields[this.primaryKey] // Don't allow updates on primary keys
     if (!providedFields) throw new Error('Missing fields')
-    Object.keys(tableSchema).map(async (field) => {
+    Object.keys(providedFields).map(async (field: string) => {
       if (field.endsWith('_display')) return false // Return for joined fields.
-      if (!Object.keys(providedFields).includes(field)) return false
+      if (!(field in tableSchema)) {
+        return this.warnings.push({
+          message: `Field ${field} does not exist on table ${this.tableName}`,
+          field
+        })
+      }
 
       const validOrNot = await this.validateFieldIsValid(
         tableSchema[field],
@@ -642,7 +641,8 @@ class Querynator extends EventEmitter {
     const validatedFields = await this.validateNewFields(providedFields)
     const returnObject = {
       errors: [],
-      warnings: []
+      warnings: [],
+      info: []
     }
     let inserted
     if (validatedFields.errors.length > 0) {
@@ -659,8 +659,10 @@ class Querynator extends EventEmitter {
         warnings: this.warnings
       }
     })
-    if (inserted.changedRows === 0) {
+    if (inserted.affectedRows === 0) {
       returnObject.errors.push({ message: 'Record was not updated' })
+    } else {
+      returnObject.info.push({ message: 'Record was successfully updated' })
     }
     returnObject[this.tableName] = await this.byId(id)
     returnObject.warnings = validatedFields.warnings
@@ -671,7 +673,10 @@ class Querynator extends EventEmitter {
   protected async createUpdate(fields: any) {
     const query = 'UPDATE ?? SET ? WHERE ?? = ?'
     const validatedFields = await this.validateUpdatedFields(fields).catch(
-      (err) => console.log(err)
+      (err) => {
+        console.log(err)
+        throw err
+      }
     )
     let params = []
     let changedRows
@@ -680,7 +685,7 @@ class Querynator extends EventEmitter {
       warnings: [],
       data: {}
     }
-    if (!validatedFields) {
+    if (Object.keys(validatedFields.valid).length === 0) {
       return {
         errors: this.errors,
         warnings: this.warnings

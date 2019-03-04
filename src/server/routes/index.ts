@@ -14,7 +14,7 @@ import * as bodyParser from 'body-parser'
 import { apiRoutes } from './api/index'
 import { uiRoutes } from './ui/index'
 import { staticRoutes } from './static'
-import { Log } from '../lib/log'
+import { Log, RequestLog } from '../lib/log'
 
 // Constants and global variables
 const router = Router()
@@ -22,7 +22,7 @@ const router = Router()
 router.use('/public', staticRoutes)
 // Advanced logging
 router.use((req, res, next) => {
-  new Log(req.method + ' ' + req.originalUrl).info()
+  RequestLog(req.method, req.path)
   return next()
 })
 router.use(bodyParser.json())

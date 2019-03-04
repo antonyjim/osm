@@ -8,8 +8,7 @@
 // NPM Modules
 
 // Local Modules
-import { getPool, Querynator, simpleQuery } from './connection'
-import { resolve } from 'url'
+import { Querynator, simpleQuery } from './connection'
 
 // Constants and global variables
 
@@ -23,20 +22,21 @@ class Log {
     message: string,
     context?: { table: string; primaryKey: string }
   ) {
-    if (context && context.primaryKey && !context.table) {
+    if (context && !context.primaryKey && context.table) {
       console.error(
         'When a log table is supplied, a primary key must also be supplied'
       )
-    } else if (
-      context &&
-      context.table !== undefined &&
-      context.primaryKey !== undefined
-    ) {
+    } else if (!message) {
+      console.error('Any logging requires a message to be supplied')
+    } else if (context && context.table && context.primaryKey) {
+      console.log(`Context of ${context} supplied`)
       context.table.endsWith('_log')
         ? (this.tableName = context.table)
         : (this.tableName = context.table + '_log')
       this.requiresContext = true
       this.message = message
+    } else if (!message && !context) {
+      console.error('Any logging requires a message to be supplied')
     } else {
       this.tableName = 'sys_log'
       this.requiresContext = false
@@ -58,10 +58,12 @@ class Log {
     let query = ''
     if (this.requiresContext) {
       if (!objectId) {
-        throw new TypeError(
-          `Logging to ${this.tableName} requires a primary key of ${
-            this.primaryKey
-          }`
+        console.error(
+          new TypeError(
+            `Logging to ${this.tableName} requires a primary key of ${
+              this.primaryKey
+            }`
+          )
         )
       }
       query = 'INSERT INTO ?? (??, log_message, log_severity) VALUES (?, ?, 5)'
@@ -70,10 +72,10 @@ class Log {
     } else {
       query = 'INSERT INTO ?? (log_message, log_severity) VALUES (?, 5)'
     }
-    if (typeof this.message !== 'string') {
-      log = JSON.stringify(this.message).slice(0, 250)
+    if (this.message && typeof this.message !== 'string') {
+      log = JSON.stringify(this.message)
     } else if (typeof this.message === 'string') {
-      log = this.message.slice(0, 250)
+      log = this.message
     } else {
       console.error('Cannot log without a message')
     }
@@ -86,6 +88,7 @@ class Log {
   }
 
   public error(severity: number = 3, objectId?: string) {
+    if (!this.message) return null
     console.error(
       'ERROR(' +
         severity +
@@ -114,9 +117,9 @@ class Log {
       query = 'INSERT INTO ?? (log_message) VALUES (?)'
     }
     if (this.message && typeof this.message !== 'string') {
-      log = JSON.stringify(this.message).slice(0, 250)
+      log = JSON.stringify(this.message)
     } else if (this.message && typeof this.message === 'string') {
-      log = this.message.slice(0, 250)
+      log = this.message
     } else {
       console.error('Cannot log without a message')
     }
@@ -169,4 +172,18 @@ class Log {
   }
 }
 
-export { Log }
+function RequestLog(method: string, uri: string) {
+  const params: string[] = [
+    'sys_log_request',
+    'request_uri',
+    uri,
+    'request_method',
+    method
+  ]
+  const query: string = 'INSERT INTO ?? SET ?? = ?, ?? = ?'
+  simpleQuery(query, params).catch((err) => {
+    console.error(err)
+  })
+}
+
+export { Log, RequestLog }

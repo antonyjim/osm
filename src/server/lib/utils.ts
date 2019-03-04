@@ -22,6 +22,7 @@ export function LoginException(message: string, details?: Error) {
 export async function getServerStatus() {
   const cpuCount = cpus().length
   const architecture = arch()
+  const processMem = process.memoryUsage()
   const openMem = freemem()
   const totMem = totalmem()
   const host = hostname()
@@ -33,7 +34,8 @@ export async function getServerStatus() {
       openMem,
       totMem,
       host,
-      OS
+      OS,
+      processMem
     },
     db: {
       poolLimit: process.env.DB_POOL_LIMIT || '1',

@@ -264,7 +264,6 @@ export default class Column extends Component {
         'readonly',
         'base_url',
         'default_view',
-        'selectable',
         'nullable',
         'reference_id',
         'table_name_display',

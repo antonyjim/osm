@@ -29,6 +29,11 @@ let config = {
                 loader: 'babel-loader'
             },
             {
+                test: /\.tsx?/,
+                include: APP_DIR,
+                loader: 'ts-loader'
+            },
+            {
                 test: /\.scss$/,
                 include: STYLE_DIR,
                 use: [

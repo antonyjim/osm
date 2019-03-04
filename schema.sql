@@ -481,12 +481,15 @@ CREATE TABLE sys_log (
 	PRIMARY KEY(log_key),
     log_key INT AUTO_INCREMENT,
 	log_time DATETIME DEFAULT CURRENT_TIMESTAMP(),
-	log_message VARCHAR(100),
+	log_message TEXT,
 	log_severity INT(1) DEFAULT 3
 );
 
 CREATE TABLE sys_log_user LIKE sys_log;
 ALTER TABLE sys_log_user ADD COLUMN log_user CHAR(36) NOT NULL;
+CREATE TABLE sys_log_request LIKE sys_log;
+ALTER TABLE sys_log_request ADD COLUMN request_method VARCHAR(6) DEFAULT 'GET';
+ALTER TABLE sys_log_request ADD COLUMN request_uri VARCHAR(100) DEFAULT '/';
 
 CREATE TABLE sys_authorization (
     PRIMARY KEY(auth_priv, auth_table),

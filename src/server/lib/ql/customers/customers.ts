@@ -4,12 +4,11 @@ class Customer extends Querynator {
   constructor(context, queryFields) {
     super(context, queryFields)
     this.tableName = 'sys_customer'
-    this.primaryKey = 'nsNonsig'
+    this.primaryKey = 'nonsig'
     this.emit('init')
   }
 
   public async getById(nsNonsig) {
-    console.log(nsNonsig)
     return await this.byId(nsNonsig)
   }
 

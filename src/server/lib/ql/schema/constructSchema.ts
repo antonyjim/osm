@@ -57,16 +57,17 @@ export function sqlToJsType(type: string) {
 }
 
 export default async function constructSchema() {
-  if (tables) return Promise.resolve(tables)
+  if (tables) return tables
   tables = {}
   const tableConstructorEmitter = new EventEmitter()
-  const gotTables: any[] =
-    (await simpleQuery('SELECT ??, ?? FROM ??', [
-      'sys_id',
-      'name',
-      SYS_DB_OBJECT
-    ]).catch((e) => console.error(e))) || []
-  if (gotTables.length === 0) throw new Error('No tables found')
+  const gotTables: any[] | void = await simpleQuery('SELECT ??, ?? FROM ??', [
+    'sys_id',
+    'name',
+    SYS_DB_OBJECT
+  ])
+  if (!Array.isArray(gotTables)) {
+    return new Error('No tables found')
+  }
   gotTables.map((tableInfo, i) => {
     ;(async () => {
       const tableName: string = tableInfo.name
@@ -119,9 +120,8 @@ export default async function constructSchema() {
           refTable: col.reference_id_table_name_display,
           label: col.label
         }
-        if (col.default_view) {
+        if (col.default_view)
           tables[tableName].defaultFields.push(col.column_name)
-        }
         if (col.reference_id_display) {
           references.push({
             col: col.column_name,
@@ -146,7 +146,7 @@ export default async function constructSchema() {
    * Wait for all of the normal field to be populated in the
    * table object, then add in all of the reference columns.
    */
-  tableConstructorEmitter.on('done', () => {
+  tableConstructorEmitter.once('done', () => {
     references.map((ref) => {
       const colName = ref.col + '_display'
       const colTable = ref.table
@@ -165,6 +165,7 @@ export default async function constructSchema() {
         tables[colTable].defaultFields.push(colName)
       }
     })
-    Promise.resolve(tables)
+    console.log(inspect(tables), 5)
+    return tables
   })
 }

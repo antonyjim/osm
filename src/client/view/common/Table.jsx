@@ -19,8 +19,8 @@ class TableRow extends Component {
       cells.push(
         <td key={Math.floor(Math.random() * 10000)}>
           <input
-            className="position-static"
-            type="checkbox"
+            className='position-static'
+            type='checkbox'
             value={this.props.cells && this.props.cells[this.props.id]}
           />
         </td>
@@ -36,7 +36,7 @@ class TableRow extends Component {
           cells.push(
             <td key={Math.floor(Math.random() * 1000000)}>
               <a
-                href="#"
+                href='#'
                 data-key={this.props.cells[this.props.id]}
                 onClick={this.props.onSelectKey}
               >
@@ -149,7 +149,8 @@ export default class Table extends Component {
       query: {
         args: args,
         limit: this.state.field.limit,
-        offset: 0
+        offset: 0,
+        fields: Object.keys(this.state.cols).join(',')
       }
     })
       .then((response) => {
@@ -211,7 +212,8 @@ export default class Table extends Component {
             if (
               (response.defaultFields &&
                 response.defaultFields.indexOf(col) > -1) ||
-              this.props.cols.indexOf(col) > -1
+              (this.props.cols && this.props.cols.indexOf(col) > -1) ||
+              response.primaryKey === col
             )
               allowedCols[col] = colObj
 
@@ -241,7 +243,7 @@ export default class Table extends Component {
           throw new Error(response.errors[0].message)
         }
         return API.get({
-          path: `/api/q/${this.state.table}`,
+          path: '/api/q/' + this.state.table,
           query: {
             args: this.state.args,
             limit: this.state.field.limit,
@@ -364,8 +366,9 @@ export default class Table extends Component {
   componentDidUpdate(prevProps, prevState) {
     if (prevProps.table !== this.props.table) {
       console.log('Received new table')
-      this.setState({ table: this.props.table })
-      this.getCols()
+      this.setState({ table: this.props.table }, () => {
+        this.getCols()
+      })
     } else {
       console.log(`Table ${prevProps.table} is the same as ${this.props.table}`)
     }
@@ -387,17 +390,17 @@ export default class Table extends Component {
 
     if (!this.state.hideActions) {
       headers.push(
-        <th scope="col" key={'header-' + ~~(Math.random() * 10000)}>
-          <input className="position-static" type="checkbox" />
+        <th scope='col' key={'header-' + ~~(Math.random() * 10000)}>
+          <input className='position-static' type='checkbox' />
         </th>
       )
     }
     if (this.state.cols) {
-      let headerTitles = Object.keys(this.state.cols)
-      for (let col of headerTitles) {
+      for (const col in this.state.cols) {
+        if (col === this.state.id) continue
         headers.push(
           <th
-            scope="col"
+            scope='col'
             data-bind={col}
             key={'col-' + Math.floor(Math.random() * 10000)}
           >
@@ -428,39 +431,39 @@ export default class Table extends Component {
         {this.state.loaded && (
           <>
             {this.props.showSearch && (
-              <div className="row">
-                <div className="col">
-                  <div className="form-group mr-a">
-                    <div className="input-group">
-                      <div className="input-group-prepend">
+              <div className='row'>
+                <div className='col'>
+                  <div className='form-group mr-a'>
+                    <div className='input-group'>
+                      <div className='input-group-prepend'>
                         <select
-                          className="custom-select"
+                          className='custom-select'
                           onChange={this.handleChange.bind(this)}
                           value={this.state.field.col}
-                          id="col"
+                          id='col'
                         >
                           {this.state.fieldSearchSelections}
                         </select>
                       </div>
                       <input
-                        id="searchQ"
-                        className="form-control"
+                        id='searchQ'
+                        className='form-control'
                         onChange={this.handleChange.bind(this)}
                         value={this.state.field.stringQ}
                         onKeyDown={this.handleSearchKeyDown.bind(this)}
-                        type="text"
+                        type='text'
                       />
                     </div>
                   </div>
                 </div>
-                <div className="col">
-                  <div className="form-group">
-                    <div className="input-group">
+                <div className='col'>
+                  <div className='form-group'>
+                    <div className='input-group'>
                       <select
-                        className="custom-select"
+                        className='custom-select'
                         onChange={this.handleSetCount.bind(this)}
                         value={this.state.field.limit}
-                        id="limit"
+                        id='limit'
                       >
                         <option value={15}>15</option>
                         <option value={25}>25</option>
@@ -469,17 +472,17 @@ export default class Table extends Component {
                         <option value={75}>75</option>
                         <option value={100}>100</option>
                       </select>
-                      <div className="input-group-append">
-                        <label className="input-group-text" htmlFor="limit">
+                      <div className='input-group-append'>
+                        <label className='input-group-text' htmlFor='limit'>
                           Results / Page
                         </label>
                       </div>
                     </div>
                   </div>
                 </div>
-                <div className="col-1">
+                <div className='col-1'>
                   <Link
-                    className="btn btn-primary"
+                    className='btn btn-primary'
                     to={`/f/${this.state.table.slice(0, -5)}/new`}
                   >
                     New
@@ -487,11 +490,11 @@ export default class Table extends Component {
                 </div>
               </div>
             )}
-            <div className="row">
-              <div className="col">
-                <div className="table-responsive">
-                  <table className="table table-striped table-hover table-sm">
-                    <thead className="thead-dark">
+            <div className='row'>
+              <div className='col'>
+                <div className='table-responsive'>
+                  <table className='table table-striped table-hover table-sm'>
+                    <thead className='thead-dark'>
                       <tr>{headers}</tr>
                     </thead>
                     <tbody>
@@ -512,22 +515,22 @@ export default class Table extends Component {
               </div>
             </div>
 
-            <div className="row">
+            <div className='row'>
               {!this.state.hideActions && (
-                <div className="col mx-3">
-                  <select className="form-control">
-                    <option value="">Action on selected rows</option>
+                <div className='col mx-3'>
+                  <select className='form-control'>
+                    <option value=''>Action on selected rows</option>
                     {this.props.actions !== undefined && this.props.actions}
                   </select>
                 </div>
               )}
-              <div className="col" />
+              <div className='col' />
               {!this.state.hidePagination && (
-                <div className="col-lg-6 col-md-10 col-sm-12">
+                <div className='col-lg-6 col-md-10 col-sm-12'>
                   <button
                     {...prevPage}
                     className={'btn btn-secondary m-1'}
-                    data-page="-2"
+                    data-page='-2'
                     onClick={this.handlePage.bind(this)}
                   >
                     &laquo;
@@ -535,12 +538,12 @@ export default class Table extends Component {
                   <button
                     {...prevPage}
                     className={'btn btn-secondary m-1'}
-                    data-page="-1"
+                    data-page='-1'
                     onClick={this.handlePage.bind(this)}
                   >
                     &lsaquo;
                   </button>
-                  <span className="mx-1">
+                  <span className='mx-1'>
                     {this.state.from +
                       ' - ' +
                       this.state.nextOffset +
@@ -550,7 +553,7 @@ export default class Table extends Component {
                   <button
                     {...nextPage}
                     className={'btn btn-secondary m-1'}
-                    data-page="1"
+                    data-page='1'
                     onClick={this.handlePage.bind(this)}
                   >
                     &rsaquo;
@@ -558,7 +561,7 @@ export default class Table extends Component {
                   <button
                     {...nextPage}
                     className={'btn btn-secondary m-1'}
-                    data-page="2"
+                    data-page='2'
                     onClick={this.handlePage.bind(this)}
                   >
                     &raquo;

@@ -11,10 +11,7 @@ export default class Customer extends Component {
       error: false,
       errorMessage: '',
       loaded: false,
-      fields: {
-        nsNonsig: '',
-        nsTradestyle: ''
-      },
+      fields: {},
       modifiedFields: [],
       customer: props.id
     }
@@ -26,7 +23,7 @@ export default class Customer extends Component {
       path: '/api/q/sys_customer/' + this.state.customer,
       query: {
         fields:
-          'nsNonsig,nsTradeStyle,nsAddr1,nsAddr2,nsState,nsCity,nsPostalCode,nsCountry,nsIsActive,nsIsActiveTHQ,nsType'
+          'nonsig,nsTradeStyle,nsAddr1,nsAddr2,nsState,nsCity,nsPostalCode,nsCountry,active,active_thq,nsType'
       }
     })
       .then((response) => {
@@ -63,87 +60,87 @@ export default class Customer extends Component {
         body: (
           <>
             <button
-              className="btn btn-primary float-right"
+              className='btn btn-primary float-right'
               onClick={this.handleSubmit}
             >
               Save
             </button>
             <h4>General Information</h4>
             <hr />
-            <form className="form-row" name="generalInformation">
+            <form className='form-row' name='generalInformation'>
               <Field
-                id="nsNonsig"
-                value={this.state.fields.nsNonsig}
-                label="Nonsig"
-                className="col-lg-6 col-md-12"
+                id='nonsig'
+                value={this.state.fields.nonsig}
+                label='Nonsig'
+                className='col-lg-6 col-md-12'
                 onChange={this.handleChange.bind(this)}
               />
               <Field
-                id="nsTradeStyle"
+                id='nsTradeStyle'
                 value={this.state.fields.nsTradeStyle}
-                label="Tradestyle"
-                className="col-lg-6 col-md-12"
+                label='Tradestyle'
+                className='col-lg-6 col-md-12'
                 onChange={this.handleChange.bind(this)}
               />
               <Field
-                id="nsAddr1"
+                id='nsAddr1'
                 value={this.state.fields.nsAddr1}
-                label="Address"
-                className="col-lg-6 col-md-12"
+                label='Address'
+                className='col-lg-6 col-md-12'
                 onChange={this.handleChange.bind(this)}
               />
               <Field
-                id="nsAddr2"
+                id='nsAddr2'
                 value={this.state.fields.nsAddr2}
-                label="Address (2)"
-                className="col-lg-6 col-md-12"
+                label='Address (2)'
+                className='col-lg-6 col-md-12'
                 onChange={this.handleChange.bind(this)}
               />
               <Field
-                id="nsCity"
+                id='nsCity'
                 value={this.state.fields.nsCity}
-                label="City"
-                className="col-lg-6 col-md-12"
+                label='City'
+                className='col-lg-6 col-md-12'
                 onChange={this.handleChange.bind(this)}
               />
               <Field
-                id="nsState"
+                id='nsState'
                 value={this.state.fields.nsState}
-                label="State"
-                className="col-lg-6 col-md-12"
+                label='State'
+                className='col-lg-6 col-md-12'
                 onChange={this.handleChange.bind(this)}
               />
               <Field
-                id="nsPostalCode"
+                id='nsPostalCode'
                 value={this.state.fields.nsPostalCode}
-                label="Postal Code"
-                className="col-lg-6 col-md-12"
+                label='Postal Code'
+                className='col-lg-6 col-md-12'
                 onChange={this.handleChange.bind(this)}
               />
               <Field
-                id="nsCountry"
+                id='nsCountry'
                 value={this.state.fields.nsCountry}
-                label="Country"
-                className="col-lg-6 col-md-12"
+                label='Country'
+                className='col-lg-6 col-md-12'
                 onChange={this.handleChange.bind(this)}
               />
               <Field
-                id="nsType"
+                id='nsType'
                 value={this.state.fields.nsType}
-                label="Type"
-                className="col-lg-6 col-md-12"
+                label='Type'
+                className='col-lg-6 col-md-12'
                 onChange={this.handleChange.bind(this)}
               />
               <Checkbox
-                id="nsIsActive"
+                id='nsIsActive'
                 checked={this.state.fields.nsIsActive}
-                label="Active"
+                label='Active'
                 onChange={this.handleChange.bind(this)}
               />
               <Checkbox
-                id="nsIsActiveTHQ"
+                id='nsIsActiveTHQ'
                 checked={this.state.fields.nsIsActiveTHQ}
-                label="Active in Tire-HQ"
+                label='Active in Tire-HQ'
                 onChange={this.handleChange.bind(this)}
               />
             </form>
@@ -159,7 +156,7 @@ export default class Customer extends Component {
             <hr />
             <p> View users associated with this customer. </p>
             <Table
-              table="sys_user_list"
+              table='sys_user_list'
               args={{ userDefaultNonsig: this.state.customer }}
               cols={[
                 'sys_id',
