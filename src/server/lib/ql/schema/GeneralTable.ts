@@ -22,8 +22,9 @@ export async function genericTableQuery(
 ) {
   if (context.req.params.id) {
     return await new GenericTable(context, queryFields).getById(args)
-  } else
+  } else {
     return await new GenericTable(context, queryFields).where(args, pagination)
+  }
 }
 
 export async function genericTableDelete(

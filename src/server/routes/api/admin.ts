@@ -126,10 +126,10 @@ adminRoutes.post('/updateRoute', (req: Request, res: Response) => {
 
 adminRoutes.post('/roles/:action', (req: Request, res: Response) => {
   const rpId = req.query.rpId
-  const role_priv = req.query.rpPriv
+  const rolePriv = req.query.rpPriv
   const action = req.params.action
   if (action === 'remove' || action === 'add') {
-    new Roles({ rpId, role_priv })
+    new Roles({ rpId, role_priv: rolePriv })
       .update(action)
       .then(
         (onChanged: IStatusMessage) => {
