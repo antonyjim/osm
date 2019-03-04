@@ -34,7 +34,7 @@ export class ColumnGeneralInformation extends Component {
       this.state.modifiedFields.forEach((field) => {
         body[field] = this.state.fields[field]
       })
-      API.put({
+      API.patch({
         path: '/api/q/sys_db_dictionary/' + this.state.sys_id,
         body: body,
         query: { fields: this.props.fields.join(',') }
@@ -75,127 +75,146 @@ export class ColumnGeneralInformation extends Component {
       <>
         <h4> General Information </h4>
         <hr />
-        <form className="form-row" name="info">
-          <input type="hidden" id="sys_id" value={this.state.sys_id} />
+        <form className='form-row' name='info'>
+          <input type='hidden' id='sys_id' value={this.state.sys_id} />
           <Field
-            id="column_name"
-            label="Column Name"
+            id='column_name'
+            label='Column Name'
             value={this.state.fields.column_name}
             onChange={this.handleChange.bind(this)}
-            className="col-lg-6 col-md-12"
+            className='col-lg-6 col-md-12'
             attributes={colNameReadonly}
           />
           <Field
-            id="label"
-            label="Label"
+            id='label'
+            label='Label'
             value={this.state.fields.label}
             onChange={this.handleChange.bind(this)}
-            className="col-lg-6 col-md-12"
+            className='col-lg-6 col-md-12'
           />
           <Field
-            id="table_name"
-            label="Table"
+            id='table_name'
+            label='Table'
             value={this.state.fields.table_name}
             display={this.state.fields.table_name_display}
             onChange={this.handleChange.bind(this)}
-            className="col-lg-6 col-md-12"
-            type="text"
-            references="sys_db_object"
+            className='col-lg-6 col-md-12'
+            type='text'
+            references='sys_db_object'
           />
           <Field
-            id="hint"
-            label="Hint"
+            id='hint'
+            label='Hint'
             value={this.state.fields.hint}
             onChange={this.handleChange.bind(this)}
-            className="col-lg-6 col-md-12"
-            type="text"
+            className='col-lg-6 col-md-12'
+            type='text'
           />
           <SelectField
-            id="type"
-            label="Data Type"
+            id='type'
+            label='Data Type'
             value={this.state.fields.type}
             onChange={this.handleChange.bind(this)}
-            className="col-lg-6 col-md-12"
+            className='col-lg-6 col-md-12'
             opts={dataTypes}
           />
           <Field
-            id="len"
-            label="Length"
+            id='len'
+            label='Length'
             value={this.state.fields.len}
             onChange={this.handleChange.bind(this)}
             attributes={length}
-            className="col-lg-6 col-md-12"
-            type="number"
+            className='col-lg-6 col-md-12'
+            type='number'
           />
           <Field
-            id="base_url"
-            label="Base URL"
-            value={this.state.fields.base_url}
-            onChange={this.handleChange.bind(this)}
-            className="col-lg-6 col-md-12"
-            type="text"
-          />
-          <Field
-            id="reference_id"
-            label="References"
+            id='reference_id'
+            label='References'
             value={this.state.fields.reference_id}
             display={this.state.fields.reference_id_display}
             onChange={this.handleChange.bind(this)}
-            className="col-lg-6 col-md-12"
-            type="text"
-            references="sys_db_dictionary"
+            className='col-lg-6 col-md-12'
+            type='text'
+            references='sys_db_dictionary'
           />
           <Field
-            id="enum"
-            label="Enum"
+            id='enum'
+            label='Enum'
             value={this.state.fields.enum}
             onChange={this.handleChange.bind(this)}
-            className="col-lg-6 col-md-12"
-            type="text"
+            className='col-lg-6 col-md-12'
+            type='text'
           />
           <Field
-            id="col_order"
-            label="Col Order"
+            id='col_order'
+            label='Col Order'
             value={this.state.fields.col_order}
             onChange={this.handleChange.bind(this)}
-            className="col-lg-6 col-md-12"
-            type="number"
+            className='col-lg-6 col-md-12'
+            type='number'
           />
           <Checkbox
-            id="readonly"
-            label="Readonly"
+            id='readonly'
+            label='Readonly'
             checked={this.state.fields.readonly}
             onChange={this.handleChange.bind(this)}
+            className='col-lg-6 col-md-12'
           />
           <Checkbox
-            id="nullable"
-            label="Nullable"
+            id='nullable'
+            label='Nullable'
             checked={this.state.fields.nullable}
             onChange={this.handleChange.bind(this)}
+            className='col-lg-6 col-md-12'
           />
           <Checkbox
-            id="update_key"
-            label="Primary Key"
+            id='update_key'
+            label='Primary Key'
             checked={this.state.fields.update_key}
             onChange={this.handleChange.bind(this)}
+            className='col-lg-6 col-md-12'
           />
           <Checkbox
-            id="default_view"
-            label="Show as Default"
+            id='default_view'
+            label='Show as Default'
             checked={this.state.fields.default_view}
             onChange={this.handleChange.bind(this)}
+            className='col-lg-6 col-md-12'
           />
           <Checkbox
-            id="admin_view"
-            label="View as Admin"
-            checked={this.state.fields.admin_view}
+            id='visible'
+            label='Show On Forms'
+            checked={this.state.fields.visible}
             onChange={this.handleChange.bind(this)}
+            className='col-lg-6 col-md-12'
+          />
+          <Checkbox
+            id='require_on_create'
+            label='Require For Creation'
+            checked={this.state.fields.require_on_create}
+            onChange={this.handleChange.bind(this)}
+            className='col-lg-6 col-md-12'
+          />
+          <Checkbox
+            id='require_on_update'
+            label='Require For Update'
+            checked={this.state.fields.require_on_update}
+            onChange={this.handleChange.bind(this)}
+            className='col-lg-6 col-md-12'
+          />
+          <Checkbox
+            id='display_field'
+            label='Display As Link'
+            value={this.state.fields.display_field}
+            onChange={this.handleChange.bind(this)}
+            className='col-lg-6 col-md-12'
+            checked={this.state.fields.display_field}
           />
           <button
-            className="btn btn-primary btn-block submit"
+            className='btn btn-primary btn-block submit'
             onClick={this.handleSubmit.bind(this)}
-            data-form="info"
-            type="button"
+            data-form='info'
+            type='button'
             {...this.state.saveDisabled}
           >
             Save
@@ -226,7 +245,7 @@ class ColumnTables extends Component {
   render() {
     return (
       <Table
-        table="sys_db_dictionary_list"
+        table='sys_db_dictionary_list'
         args={{ reference_id: this.state.sys_id }}
       />
     )
@@ -262,12 +281,13 @@ export default class Column extends Component {
         'type',
         'len',
         'readonly',
-        'base_url',
         'default_view',
         'nullable',
         'reference_id',
         'table_name_display',
-        'reference_id_display'
+        'reference_id_display',
+        'required_on_update',
+        'required_on_create'
       ]
     }
 

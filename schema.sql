@@ -435,7 +435,7 @@ CREATE TABLE sys_db_dictionary (
     default_value VARCHAR(40),
 	table_name CHAR(36),
     update_key BOOLEAN NOT NULL DEFAULT 0,
-    base_url VARCHAR(40),
+    display_field BOOLEAN DEFAULT 0,
 
 	FOREIGN KEY(table_name)
 		REFERENCES sys_db_object (sys_id)
@@ -492,7 +492,8 @@ ALTER TABLE sys_log_request ADD COLUMN request_method VARCHAR(6) DEFAULT 'GET';
 ALTER TABLE sys_log_request ADD COLUMN request_uri VARCHAR(100) DEFAULT '/';
 
 CREATE TABLE sys_authorization (
-    PRIMARY KEY(auth_priv, auth_table),
+    PRIMARY KEY(sys_id),
+    sys_id CHAR(36),
     auth_priv VARCHAR(36) NOT NULL,
     auth_table VARCHAR(40),
     auth_can_create BOOLEAN,

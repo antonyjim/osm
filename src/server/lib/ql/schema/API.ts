@@ -12,6 +12,13 @@ import { Querynator } from '../../connection'
 import { Log } from '../../log'
 import { rootQueries } from './queries'
 import rootMutations from './mutations'
+import { getTables } from './constructSchema'
+import {
+  genericTableQuery,
+  genericTableDelete,
+  genericTableUpdate,
+  genericTableCreate
+} from './GeneralTable'
 
 // Constants and global variables
 
@@ -66,14 +73,17 @@ export default class APICall extends Querynator {
         this.context.res.status(500).send(this.response.body)
       }
     }
-    let message = ''
+    let message = null
 
     if (Array.isArray(err)) {
       this.response.body.errors = this.response.body.errors.concat(err)
-    } else {
+    } else if (err && err.message) {
       if (typeof err === 'string') message = err
       else if (err && err.message) message = err.message
       this.response.body.errors.push({ message })
+    } else {
+      console.log('No errors found')
+      return 0
     }
 
     if (terminatingError) {
@@ -90,25 +100,38 @@ export default class APICall extends Querynator {
   public create() {
     // rootQueries[queryTable](fields, this.context.req.params.id, this.context)
     const queryTable = this.context.req.params.table
+    let handler
     if (rootMutations.create[queryTable]) {
-      rootMutations.create[queryTable](
+      handler = rootMutations.create[queryTable]
+    } else if (queryTable in getTables()) {
+      handler = genericTableCreate
+    }
+    if (handler) {
+      handler(
         this.context.req.query.fields,
         this.context.req.body,
         this.context
       )
         .then((rows) => {
+          if (!rows) rows = {}
           if (rows.warnings) {
             Array.isArray(rows.warnings)
               ? this.response.body.warnings.concat(rows.warnings)
               : this.response.body.warnings.push(rows.warnings) // Allow non-terminating errors to be passed in the response
           }
           if (rows.errors) {
-            return this.handleError(rows.errors, true)
+            const isArray = Array.isArray(rows.errors)
+            isArray
+              ? (this.response.body.errors = rows.errors)
+              : this.response.body.errors.push(rows.errors)
+            this.response.status = 400
+            return this.sendResponse()
+          }
+          if (Array.isArray(rows.info)) {
+            this.response.body.info = this.response.body.info.concat(rows.info)
           }
           if (rows.data) {
-            this.response.body.data[queryTable] = rows.data[0]
-          } else {
-            this.response.body.data[queryTable] = rows[0]
+            this.response.body.data[queryTable] = rows.data[queryTable]
           }
           this.response.status = 201
           return this.sendResponse()
@@ -133,27 +156,45 @@ export default class APICall extends Querynator {
     const id = this.context.req.params.id
     const updateBody = this.context.req.body
     const queryFields = this.context.req.query.fields
-
+    let handler
+    if (rootMutations.update[queryTable]) {
+      handler = rootMutations.update[queryTable]
+    } else if (queryTable in getTables()) {
+      handler = genericTableUpdate
+    }
     /* Update the table by calling on the resolver function */
-    if (rootMutations.update[queryTable] && id) {
-      rootMutations.update[queryTable](queryFields, updateBody, this.context)
-        .then((rows) => {
-          if (rows.warnings) this.response.body.warnings.push(rows.warnings) // Allow non-terminating errors to be passed in the response
-          if (rows.info) this.response.body.info.push(rows.info)
-          if (
-            (Array.isArray(rows.errors) && rows.errors.length > 0) ||
-            rows.errors.message
-          )
-            return this.handleError(rows.errors, true)
+    if (handler && id) {
+      handler(queryFields, updateBody, this.context)
+        .then(
+          (rows) => {
+            if (rows && rows.warnings) {
+              console.log('Warnings received in the update for resource %s', id)
+              console.log(rows.warnings)
+              this.response.body.warnings.push(rows.warnings) // Allow non-terminating errors to be passed in the response
+            }
+            if (rows && rows.info) this.response.body.info.push(rows.info)
+            if (
+              (rows && Array.isArray(rows.errors) && rows.errors.length > 0) ||
+              (rows && rows.errors && rows.errors.message)
+            ) {
+              return this.handleError(rows.errors, true)
+            }
 
-          if (rows.data) {
-            this.response.body.data[queryTable] = rows.data[0]
-          } else {
-            this.response.body.data[queryTable] = rows[0]
+            if (rows && rows.data) {
+              this.response.body.data[queryTable] = rows.data[0]
+            } else {
+              this.response.body.data[queryTable] = rows[0]
+            }
+            this.response.status = 204
+            return this.sendResponse()
+          },
+          (onRejection) => {
+            this.response.status = 401
+            this.response.body.errors.push({ message: onRejection })
+            this.sendResponse()
+            console.error(onRejection)
           }
-          this.response.status = 204
-          return this.sendResponse()
-        })
+        )
         .catch((err) => {
           console.error(err)
           return this.handleError(err, true)
@@ -182,9 +223,15 @@ export default class APICall extends Querynator {
     const queryTable = this.context.req.params.table
     const id = this.context.req.params.id
     const queryFields = this.context.req.query.fields
-    if (rootMutations.delete[queryTable] && id) {
-      /* Pass the query fields, null for the body and context */
-      rootMutations.delete[queryTable](queryFields, null, this.context)
+    let handler
+    if (rootMutations.delete[queryTable]) {
+      handler = rootMutations.delete[queryTable]
+    } else if (queryTable in getTables()) {
+      handler = genericTableDelete
+    }
+    if (handler && id) {
+      /* Pass the query fields, id and context */
+      handler(queryFields, id, this.context)
         .then((rows) => {
           if (rows.errors) this.response.body.errors.push(rows.errors) // Allow non-terminating errors to be passed in the response
           if (rows.warnings) this.response.body.warnings.push(rows.warnings)
@@ -225,12 +272,21 @@ export default class APICall extends Querynator {
   public query(): void {
     const queryTable: string = this.context.req.params.table
     const queryId: string = this.context.req.params.id || false
-    const handler = rootQueries[queryTable]
     const rawArgs: string = this.context.req.query.args
     const fields: string = this.context.req.query.fields
     const order: { by?: string; direction?: 'ASC' | 'DESC' } = {}
     let queryFields: string[] = []
     let args: any = null
+    let handler
+    if (rootQueries[queryTable]) {
+      handler = rootQueries[queryTable]
+    } else if (
+      (queryTable.endsWith('_list') &&
+        queryTable.slice(0, -5) in getTables()) ||
+      queryTable in getTables()
+    ) {
+      handler = genericTableQuery
+    }
 
     /* Optionally provide a fields argument */
     if (fields) {
@@ -251,13 +307,9 @@ export default class APICall extends Querynator {
       order.by = this.context.req.query.order_by
       order.direction = this.context.req.query.order_direction || 'ASC'
     }
-    if (queryTable && queryId && handler) {
+    if (queryTable && !queryTable.endsWith('_list') && queryId && handler) {
       /* If both the ID and table is provided, query the single record */
-      rootQueries[queryTable](
-        queryFields,
-        this.context.req.params.id,
-        this.context
-      )
+      handler(queryFields, this.context.req.params.id, this.context)
         .then(
           (rows) => {
             if (rows.errors) this.response.body.errors.push(rows.errors) // Allow non-terminating errors to be passed in the response

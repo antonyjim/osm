@@ -382,9 +382,14 @@ BEGIN
             (
                 SELECT
                     sys_authorization.auth_can_read,
-                    sys_role.*
+                    sys_role.*,
+                    sys_db_object.name
                 FROM
                     sys_authorization
+                INNER JOIN
+                    sys_db_object
+                ON
+                    sys_authorization.auth_table = sys_db_object.sys_id
                 INNER JOIN
                     sys_role
                 ON
@@ -393,7 +398,12 @@ BEGIN
                 WHERE
                     rpId = _role
                 AND
-                    auth_table = _table
+                    sys_db_object.name = _table
+                ORDER BY
+                    sys_authorization.auth_can_read_own,
+                    sys_authorization.auth_can_read
+                DESC
+                LIMIT 1
             ) 
             AS authed
         INTO
@@ -406,9 +416,14 @@ BEGIN
             (
                 SELECT
                     sys_authorization.auth_can_create,
-                    sys_role.*
+                    sys_role.*,
+                    sys_db_object.name
                 FROM
                     sys_authorization
+                INNER JOIN
+                    sys_db_object
+                ON
+                    sys_authorization.auth_table = sys_db_object.sys_id
                 INNER JOIN
                     sys_role
                 ON
@@ -417,7 +432,12 @@ BEGIN
                 WHERE
                     rpId = _role
                 AND
-                    auth_table = _table
+                    sys_db_object.name = _table
+                ORDER BY
+                    sys_authorization.auth_can_create_own,
+                    sys_authorization.auth_can_create
+                DESC
+                LIMIT 1
             ) 
             AS authed
         INTO
@@ -430,9 +450,14 @@ BEGIN
             (
                 SELECT
                     sys_authorization.auth_can_edit,
-                    sys_role.*
+                    sys_role.*,
+                    sys_db_object.name
                 FROM
                     sys_authorization
+                INNER JOIN
+                    sys_db_object
+                ON
+                    sys_authorization.auth_table = sys_db_object.sys_id
                 INNER JOIN
                     sys_role
                 ON
@@ -441,7 +466,12 @@ BEGIN
                 WHERE
                     rpId = _role
                 AND
-                    auth_table = _table
+                    sys_db_object.name = _table
+                ORDER BY
+                    sys_authorization.auth_can_edit_own,
+                    sys_authorization.auth_can_edit
+                DESC
+                LIMIT 1
             ) 
             AS authed
         INTO
@@ -454,9 +484,14 @@ BEGIN
             (
                 SELECT
                     sys_authorization.auth_can_delete,
-                    sys_role.*
+                    sys_role.*,
+                    sys_db_object.name
                 FROM
                     sys_authorization
+                INNER JOIN
+                    sys_db_object
+                ON
+                    sys_authorization.auth_table = sys_db_object.sys_id
                 INNER JOIN
                     sys_role
                 ON
@@ -465,7 +500,12 @@ BEGIN
                 WHERE
                     rpId = _role
                 AND
-                    auth_table = _table
+                    sys_db_object.name = _table
+                ORDER BY
+                    sys_authorization.auth_can_delete_own,
+                    sys_authorization.auth_can_delete
+                DESC
+                LIMIT 1
             ) 
             AS authed
         INTO

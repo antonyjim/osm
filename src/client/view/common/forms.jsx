@@ -46,28 +46,28 @@ class Field extends Component {
             id={'cont-' + this.props.id}
           >
             <input
-              type="hidden"
+              type='hidden'
               id={this.props.id}
               value={this.props.value || ''}
               onChange={this.props.onChange}
             />{' '}
             {/* Store the actual value */}
             <label htmlFor={this.props.id}>{this.props.label}</label>
-            <div className="input-group">
+            <div className='input-group'>
               <input
                 {...this.props.attributes}
                 type={this.props.type}
-                className="form-control"
+                className='form-control'
                 id={this.props.id + '_display'}
                 value={this.props.display}
                 onChange={this.handleChange}
               />
-              <div className="input-group-append">
+              <div className='input-group-append'>
                 <button
-                  className="btn btn-outline-secondary"
-                  type="button"
+                  className='btn btn-outline-secondary'
+                  type='button'
                   id={this.props.id + '_search'}
-                  data-toggle="modal"
+                  data-toggle='modal'
                   data-target={'#' + this.props.references + '_search_modal'}
                 >
                   Search
@@ -92,8 +92,9 @@ class Field extends Component {
             <input
               {...this.props.attributes}
               type={this.props.type}
-              className="form-control"
+              className='form-control'
               id={this.props.id}
+              name={this.props.id}
               value={this.props.value || ''}
               onChange={this.props.onChange}
             />
@@ -118,10 +119,11 @@ class Checkbox extends Component {
         >
           <input
             {...this.props.attributes}
-            type="checkbox"
+            type='checkbox'
             id={this.props.id}
+            name={this.props.name || this.props.id}
             checked={!!this.props.checked}
-            value={!!this.props.checked}
+            value={this.props.value}
             onChange={this.props.onChange}
           />
           <label htmlFor={this.props.id}>{this.props.label}</label>
@@ -179,7 +181,7 @@ class SelectField extends Component {
     if (this.props.otherField) {
       options.push(
         <option
-          value="otherSelection"
+          value='otherSelection'
           key={Math.floor(Math.random() * 1000000)}
         >
           Other
@@ -191,7 +193,8 @@ class SelectField extends Component {
         <div className={'form-group ' + this.props.className}>
           <label htmlFor={this.props.id}>{this.props.label}</label>
           <select
-            className="form-control"
+            className='form-control'
+            name={this.props.id}
             id={this.state.selectId}
             onChange={(e) => {
               this.handleOnChange(e)
@@ -204,8 +207,8 @@ class SelectField extends Component {
           {this.state.otherField && (
             <input
               id={this.state.id}
-              type="text"
-              className="form-control mt-3"
+              type='text'
+              className='form-control mt-3'
               onChange={this.props.onChange}
             />
           )}

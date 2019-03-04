@@ -4,12 +4,14 @@ import Customer from '../admin/Customer.jsx'
 import UserProfile from '../home/UserProfile.jsx'
 import Column from '../admin/Column.jsx'
 import { TableModifier } from '../admin/TableMaint.jsx'
+import Authorization from '../admin/Authorization.jsx'
 
 const specialForms = {
   sys_customer: Customer,
   sys_user: UserProfile,
   sys_db_dictionary: Column,
-  sys_db_object: TableModifier
+  sys_db_object: TableModifier,
+  sys_authorization: Authorization
 }
 
 export default class Form extends Component {
@@ -22,6 +24,8 @@ export default class Form extends Component {
       id: props.match.params.id
     }
   }
+
+  getFormDetails() {}
 
   handleChange(e) {
     let _state = { ...this.state }
@@ -42,7 +46,7 @@ export default class Form extends Component {
       this.state.modifiedFields.forEach((field) => {
         body[field] = this.state.fields[field]
       })
-      API.put({
+      API.patch({
         path: `${API.TABLE}${this.state.table}/${this.state.sys_id}`,
         body: body,
         query: { fields: this.props.fields.join(',') }
@@ -72,14 +76,9 @@ export default class Form extends Component {
       })
   }
 
-  componentDidMount() {
-    console.log('Component Mounted')
-  }
-
   componentDidUpdate(prevProps) {
-    console.log('component updated')
-    console.log(prevProps)
-    if (prevProps.match.params !== this.props.match.params) {
+    if (prevProps.match.params.table !== this.props.match.params.table) {
+      console.log('Updated forms')
       this.render()
     }
   }
@@ -103,13 +102,13 @@ export default class Form extends Component {
       <>
         <h4>{this.state.title}</h4>
         <hr />
-        <form className="form-row" name={'form' + ~~(Math.random() * 1000)}>
+        <form className='form-row' name={'form' + ~~(Math.random() * 1000)}>
           {this.props.fields}
           <button
-            className="btn btn-primary btn-block submit"
+            className='btn btn-primary btn-block submit'
             onClick={this.handleSubmit.bind(this)}
-            data-form="info"
-            type="button"
+            data-form='info'
+            type='button'
             {...this.state.saveDisabled}
           >
             Save

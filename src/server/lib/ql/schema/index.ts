@@ -16,7 +16,7 @@ import APICall from './API'
 export default function API() {
   return (req: Request, res: Response) => {
     switch (req.method) {
-      case 'PUT': {
+      case 'PATCH': {
         new APICall({ req, res }).update()
         break
       }
@@ -32,7 +32,7 @@ export default function API() {
         new APICall({ req, res }).delete()
       }
       default: {
-        new APICall({ req, res }).query()
+        res.status(501).send()
       }
     }
   }

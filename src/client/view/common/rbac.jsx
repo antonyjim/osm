@@ -6,9 +6,11 @@ class Can extends Component {
     this.state = {
       privs: window.THQ.user.privs || []
     }
-    document.addEventListener('thq.receivedNav', (e) => {
-      this.setState({ privs: window.THQ.user.privs })
-    })
+    if (this.state.privs.length === 0) {
+      document.addEventListener('thq.receivedNav', (e) => {
+        this.setState({ privs: window.THQ.user.privs })
+      })
+    }
   }
 
   validate() {
@@ -26,11 +28,10 @@ class Can extends Component {
   }
 
   render() {
-    let shouldRender = this.validate()
-    if (shouldRender) {
+    if (this.validate()) {
       return <>{this.props.children}</>
     } else {
-      return null
+      return <></>
     }
   }
 }

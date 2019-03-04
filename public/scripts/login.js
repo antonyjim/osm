@@ -20,8 +20,8 @@ function passLogin() {
       "Accept": "Application/JSON"
     },
     success: function (authenticationResults) {
-      if (authenticationResults.message === 'Success' && authenticationResults.details && authenticationResults.details.token) {
-        window.location.href = '/?token=' + authenticationResults.details.token
+      if (!authenticationResults.errors && authenticationResults.data && authenticationResults.data.token) {
+        window.location.href = '/?token=' + authenticationResults.data.token
       } else {
         $('#passwordError').text(authenticationResults.message)
         $('#passwordError').show()

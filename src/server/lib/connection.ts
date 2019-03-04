@@ -15,6 +15,7 @@ import { Pool, PoolConfig, createPool, PoolConnection } from 'mysql'
 import constructSchema from './ql/schema/constructSchema'
 import { Log } from './log'
 import { isBoolean } from './validation'
+import { IResponseMessage } from '../types/server'
 
 // Constants and global variables
 const poolConfig: PoolConfig = {
@@ -48,6 +49,7 @@ function simpleQuery(query: string, params?: any[]): Promise<any[]> {
 class Querynator extends EventEmitter {
   protected pool: Pool
   protected tableName: string
+  protected deleteByDate?: boolean
   protected primaryKey: string
   protected context: any
   protected baseParams: any[]
@@ -111,11 +113,10 @@ class Querynator extends EventEmitter {
         process.env.STATEMENT_LOGGING === 'true' ||
         process.env.STATEMENT_LOGGING
       ) {
-        // new Log(conn.format('SELECT ?? (?) AS AUTHED', params)).info()
+        new Log(conn.format('SELECT ?? (?) AS AUTHED', params)).info()
       }
       conn.query('SELECT ?? (?) AS AUTHED', params, (err, authed) => {
         if (err) {
-          conn.release()
           new Log(err.message).error(1)
           throw err
         }
@@ -147,12 +148,13 @@ class Querynator extends EventEmitter {
                 process.env.STATEMENT_LOGGING === 'true' ||
                 process.env.STATEMENT_LOGGING
               ) {
-                // console.log(conn.format(query, params))
+                console.log(conn.format(query, params))
               }
               conn.query(query, params, (qErr: Error, results: any[]) => {
                 if (qErr) {
                   conn.rollback()
                   conn.release()
+                  console.error(qErr)
                   throw err
                 }
                 conn.commit((cErr) => {
@@ -166,10 +168,15 @@ class Querynator extends EventEmitter {
                 })
               })
             } else {
-              return reject('User unauthorized to perform that action.')
+              throw new Error('User unauthorized to perform that action.')
             }
           })
           .catch((qErr) => {
+            try {
+              conn.release()
+            } catch (err) {
+              console.error(err)
+            }
             return reject(qErr.message)
           })
       })
@@ -183,6 +190,7 @@ class Querynator extends EventEmitter {
       nullable: boolean
       reference: string
       tableRef: string
+      maxLength: number
     },
     fieldValue: string | boolean | number
   ) {
@@ -212,7 +220,8 @@ class Querynator extends EventEmitter {
         throw new Error('Expected boolean')
       }
     } else if (fieldInfo.type === 'string' && typeof fieldValue === 'string') {
-      return fieldValue
+      if (fieldInfo.maxLength) return fieldValue.slice(0, fieldInfo.maxLength)
+      else return fieldValue
     } else if (fieldInfo.type === 'number') {
       if (typeof fieldInfo === 'number') return fieldInfo
       else if (
@@ -300,8 +309,9 @@ class Querynator extends EventEmitter {
 
     fieldArr.map((qField) => {
       const refCol = tableCols[qField]
+      if (validFields.includes(qField)) return false // Prevent duplicate fields in queries
       if (refCol) {
-        if (!refCol.reference && !tableAliases[this.tableName]) {
+        if (!refCol.localRef && !tableAliases[this.tableName]) {
           tableAliases[this.tableName] = `t${tableAliasIndex}` // Add the table to aliases
           fromStatement += ' ?? ?? ' // Provide for table alias e.g. `sys_user` `t1`
           tableParams.push(this.tableName, `t${tableAliasIndex}`) // Add params to field substution
@@ -317,14 +327,14 @@ class Querynator extends EventEmitter {
 
           fromStatement += leftJoin // Add the join statement, which requires 6 params
           /*
-                        Params required for joins:
-                         1. Name of the table that is being joined
-                         2. Alias of the table being joined
-                         3. Alias of the table on the left of the join
-                         4. Column from the table on the left of the join
-                         5. Alias of table being joined (same as 2)
-                         6. Column of the table being joined
-                    */
+            Params required for joins:
+              1. Name of the table that is being joined
+              2. Alias of the table being joined
+              3. Alias of the table on the left of the join
+              4. Column from the table on the left of the join
+              5. Alias of table being joined (same as 2)
+              6. Column of the table being joined
+          */
           tableParams.push(
             refCol.tableRef,
             alias,
@@ -334,11 +344,11 @@ class Querynator extends EventEmitter {
             refCol.reference
           )
           /*
-                        Params required for the select part of the query:
-                         1. table alias of table being joined
-                         2. column from joined table
-                         3. alias for this column
-                    */
+            Params required for the select part of the query:
+              1. table alias of table being joined
+              2. column from joined table
+              3. alias for this column
+          */
           validFields.push(alias, refCol.displayAs, qField)
           fieldPlaceholders.push('??.?? AS ??')
         } else {
@@ -422,30 +432,32 @@ class Querynator extends EventEmitter {
     const schema = await constructSchema().catch((e) => console.error(e))
     const tableSchema = schema[this.tableName].columns
     if (!providedFields) throw new Error('Missing fields')
-    Object.keys(tableSchema).map(async (field) => {
-      if (field.endsWith('_display')) return false // Return for joined fields.
-      if (!Object.keys(providedFields).includes(field)) return false
+    for (const field in tableSchema) {
+      if (field.endsWith('_display')) continue // Return for joined fields.
+      if (!Object.keys(providedFields).includes(field)) continue
 
       const validOrNot = await this.validateFieldIsValid(
         tableSchema[field],
         providedFields[field]
       ).catch((err) => {
-        if (tableSchema[field].nullable) {
-          this.warnings.push({
+        if (tableSchema[field].nullable && !tableSchema[field].requiredCreate) {
+          returnVal.warnings.push({
             message: err.message,
             field
           })
         } else {
-          this.errors.push({
+          console.log({
+            message: err.message,
+            field
+          })
+          returnVal.errors.push({
             message: err.message,
             field
           })
         }
       })
-
       returnVal.valid[field] = validOrNot
-    })
-
+    }
     return returnVal
   }
 
@@ -498,7 +510,7 @@ class Querynator extends EventEmitter {
     return returnVal
   }
 
-  protected async byId(reqId: string): Promise<any> {
+  protected async byId(reqId: string): Promise<IResponseMessage> {
     if (typeof reqId !== 'string') {
       throw new TypeError(this.primaryKey + ' must be in string format')
     }
@@ -632,8 +644,10 @@ class Querynator extends EventEmitter {
       data: await this.createQ(queryParams)
     }
   }
-  protected async insert(providedFields: any, id?: string) {
-    id = this.primaryKey === 'sys_id' ? (id = uuid()) : (id = id)
+
+  protected async insert(providedFields: any) {
+    let id
+    if (this.primaryKey === 'sys_id') id = uuid()
     providedFields[this.primaryKey] = id
 
     const query = 'INSERT INTO ?? SET ?'
@@ -642,17 +656,18 @@ class Querynator extends EventEmitter {
     const returnObject = {
       errors: [],
       warnings: [],
-      info: []
+      info: [],
+      data: {}
     }
     let inserted
-    if (validatedFields.errors.length > 0) {
+    if (validatedFields.errors && validatedFields.errors.length > 0) {
       return {
         errors: validatedFields.errors,
         warnings: validatedFields.warnings
       }
     }
     params.push(validatedFields.valid)
-    inserted = this.createQ({ query, params }).catch((err) => {
+    inserted = await this.createQ({ query, params }).catch((err) => {
       this.errors.push(err)
       return {
         errors: this.errors,
@@ -664,7 +679,10 @@ class Querynator extends EventEmitter {
     } else {
       returnObject.info.push({ message: 'Record was successfully updated' })
     }
-    returnObject[this.tableName] = await this.byId(id)
+
+    const updatedObj = await this.byId(id)
+
+    returnObject.data[this.tableName] = updatedObj.data.shift()
     returnObject.warnings = validatedFields.warnings
 
     return returnObject
@@ -714,7 +732,7 @@ class Querynator extends EventEmitter {
       this.context.req.params.id
     ]
     changedRows = await this.createQ({ query, params })
-    if (changedRows.changedRows === 0) {
+    if (changedRows.affectedRows === 0) {
       returnObject.errors.push({ message: 'Record was not updated' })
     }
     returnObject.data[this.tableName] = await this.byId(
@@ -723,6 +741,19 @@ class Querynator extends EventEmitter {
     returnObject.warnings = this.warnings
 
     return returnObject
+  }
+
+  protected async deleteRecord(id) {
+    const permanentDeleteQuery = 'DELETE FROM ?? WHERE ?? = ?'
+    const setDeleteDateQuery = 'UPDATE ?? SET ? WHERE ?? = ?'
+    const permanentDeleteParams = [this.tableName, this.primaryKey, id]
+
+    return await this.createQ({
+      query: permanentDeleteQuery,
+      params: permanentDeleteParams
+    }).catch((err) => {
+      console.log(err)
+    })
   }
 }
 

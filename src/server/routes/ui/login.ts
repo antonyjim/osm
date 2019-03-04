@@ -58,9 +58,8 @@ loginRoutes.post('/', (req: Request, res: Response) => {
           }
           const token = getToken(tokenPayload)
           responseBody = {
-            error: false,
-            message: 'Success',
-            details: {
+            info: [{ message: 'Success' }],
+            data: {
               token
             }
           }
@@ -68,8 +67,7 @@ loginRoutes.post('/', (req: Request, res: Response) => {
         },
         (onUserNotAuthenticated: IStatusMessage) => {
           responseBody = {
-            error: true,
-            message: onUserNotAuthenticated.message
+            errors: [{ message: onUserNotAuthenticated.message }]
           }
           res.status(200).json(responseBody)
         }
@@ -77,8 +75,7 @@ loginRoutes.post('/', (req: Request, res: Response) => {
       .catch((err: Error) => {
         new Log(err.message).error(2)
         responseBody = {
-          error: true,
-          errorMessage: err.message
+          errors: [{ message: err.message }]
         }
         if (!res.headersSent) {
           res.status(200).json(responseBody)
@@ -86,8 +83,7 @@ loginRoutes.post('/', (req: Request, res: Response) => {
       })
   } else {
     responseBody = {
-      error: true,
-      message: 'Invalid username or password'
+      errors: [{ message: 'Invalid username or password' }]
     }
     res.status(200).json(responseBody)
   }

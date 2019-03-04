@@ -9,7 +9,7 @@
 
 // Local Modules
 import constructSchema, { sqlToJsType } from './constructSchema'
-import { Querynator } from '../../connection'
+import { Querynator, simpleQuery } from '../../connection'
 
 // Constants and global variables
 
@@ -48,6 +48,54 @@ export default class Description extends Querynator {
           ]
         })
       }
+      const userAuthPermissions = {
+        create: false,
+        edit: false,
+        read: false,
+        delete: false
+      }
+      const usersPermissions = await simpleQuery(
+        'SELECT ??, ??, ??, ??, ??, ??, ??, ?? FROM ?? WHERE ?? IN (SELECT ?? FROM ?? WHERE ?? = ?) ORDER BY ??, ??, ??, ??, ??, ??, ??, ?? DESC;',
+        [
+          'auth_can_read',
+          'auth_can_edit',
+          'auth_can_create',
+          'auth_can_delete',
+          'auth_can_read_own',
+          'auth_can_edit_own',
+          'auth_can_create_own',
+          'auth_can_delete_own',
+          'sys_authorization',
+          'auth_priv',
+          'rpPriv',
+          'sys_role',
+          'rpId',
+          this.context.req.auth.r,
+          'auth_can_create_own',
+          'auth_can_edit',
+          'auth_can_create',
+          'auth_can_read',
+          'auth_can_delete',
+          'auth_can_read_own',
+          'auth_can_edit_own',
+          'auth_can_delete_own'
+        ]
+      )
+      usersPermissions.map((perm) => {
+        if (perm.auth_can_create || perm.auth_can_create_own) {
+          userAuthPermissions.create = true
+        }
+        if (perm.auth_can_edit || perm.auth_can_edit_own) {
+          userAuthPermissions.edit = true
+        }
+        if (perm.auth_can_delete || perm.auth_can_delete_own) {
+          userAuthPermissions.delete = true
+        }
+        if (perm.auth_can_read || perm.auth_can_read_own) {
+          userAuthPermissions.read = true
+        }
+      })
+
       Object.keys(thisTable.columns).map((col) => {
         if (col.endsWith('_display')) return false
         const thisCol = thisTable.columns[col]
@@ -57,11 +105,13 @@ export default class Description extends Querynator {
           reference: boolean
           boundTo: string
           refTable?: string
+          maxLength?: number
         } = { type: 'string', readonly: true, reference: false, boundTo: null }
         colDetails.type = thisCol.type
         colDetails.readonly = !!thisCol.readonly
         colDetails.reference = thisCol.reference
         colDetails.boundTo = col
+        colDetails.maxLength = thisCol.maxLength
 
         if (thisCol.reference) {
           const displayCol = thisTable.columns[col + '_display']
@@ -70,7 +120,10 @@ export default class Description extends Querynator {
         }
         formattedFields[thisCol.label] = colDetails
       })
-      return resolve({ ...schema[this.tableName] })
+      return resolve({
+        ...schema[this.tableName],
+        permissions: userAuthPermissions
+      })
     })
   }
 }

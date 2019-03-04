@@ -1,7 +1,9 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
-import API from '../lib/API.js'
+import API, { TowelRecord } from '../lib/API.js'
 import { E404 } from './errors.jsx'
+import Can from './rbac.jsx'
+import { Checkbox } from './forms.jsx'
 
 class TableRow extends Component {
   constructor(props) {
@@ -10,7 +12,6 @@ class TableRow extends Component {
 
   handleValReturn(e) {
     e.preventDefault()
-    console.log(e.target.href, ' ', e.target.innerText)
   }
 
   render() {
@@ -73,14 +74,32 @@ class TableRow extends Component {
           </td>
         )
       } else if (type && type.toLowerCase() === 'boolean') {
-        cells.push(
-          <td
-            key={'table-data-' + ~~(Math.random() * 100000)}
-            style={{ textAlign: 'center', fontSize: '20px' }}
-          >
-            {val === true || (val === 1 && '×') || ''}
-          </td>
-        )
+        if (this.props.permissions && this.props.permissions.edit) {
+          cells.push(
+            <td
+              key={'table-data-' + ~~(Math.random() * 100000)}
+              style={{ textAlign: 'center', fontSize: '20px' }}
+            >
+              <Checkbox
+                id={col + ~~(Math.random() * 100000)}
+                name={col}
+                value={this.props.cells[this.props.id]}
+                onChange={this.props.handleInlineUpdate}
+                label=''
+                checked={val === true || val === 1}
+              />
+            </td>
+          )
+        } else {
+          cells.push(
+            <td
+              key={'table-data-' + ~~(Math.random() * 100000)}
+              style={{ textAlign: 'center', fontSize: '20px' }}
+            >
+              {val === true || (val === 1 && '×') || ''}
+            </td>
+          )
+        }
       } else {
         cells.push(
           <td key={'table-data-' + ~~(Math.random() * 100000)}>
@@ -128,7 +147,8 @@ export default class Table extends Component {
         searchQ: '',
         limit: 25
       },
-      shownColumns: []
+      shownColumns: [],
+      permissions: {}
     }
     if (this.props.args) {
       let flatArgs = ''
@@ -150,7 +170,7 @@ export default class Table extends Component {
         args: args,
         limit: this.state.field.limit,
         offset: 0,
-        fields: Object.keys(this.state.cols).join(',')
+        fields: Object.keys(this.state.cols).join(',') + ',' + this.state.id
       }
     })
       .then((response) => {
@@ -199,6 +219,7 @@ export default class Table extends Component {
   handleHeaderClick(e) {}
 
   getCols() {
+    let stateToBe = {}
     API.get({ path: `/api/describe/${this.state.table}` })
       .then((response) => {
         if (response.columns) {
@@ -232,13 +253,15 @@ export default class Table extends Component {
             0,
             -5
           )
-          this.setState({
+
+          stateToBe = {
             cols: allowedCols,
             id: response.primaryKey,
             fieldSearchSelections,
             field: fields,
-            allCols: response.columns
-          })
+            allCols: response.columns,
+            permissions: response.permissions
+          }
         } else {
           throw new Error(response.errors[0].message)
         }
@@ -247,7 +270,7 @@ export default class Table extends Component {
           query: {
             args: this.state.args,
             limit: this.state.field.limit,
-            fields: Object.keys(this.state.cols).join(',')
+            fields: Object.keys(stateToBe.cols).join(',')
           }
         })
       })
@@ -259,6 +282,7 @@ export default class Table extends Component {
           response.meta
         ) {
           this.setState({
+            ...stateToBe,
             rows: response.data[this.state.table],
             loaded: true,
             count: response.meta.count,
@@ -272,6 +296,7 @@ export default class Table extends Component {
           response.data[this.state.table]
         ) {
           this.setState({
+            ...stateToBe,
             rows: response.data[this.state.table],
             loaded: true,
             count: response.data[this.state.table].length
@@ -305,6 +330,45 @@ export default class Table extends Component {
     }
   }
 
+  updateRowById(id, col, val) {
+    let updated = false
+    let count = 0
+    for (const row of this.state.rows) {
+      const thisId = row[this.state.id]
+      if (thisId === id) {
+        if (col in row) {
+          let futureRows = Array.from(this.state.rows)
+          row[col] = val
+          futureRows.splice(count, 1, row)
+          this.setState({ rows: futureRows })
+          updated = true
+          break
+        }
+      }
+      count++
+    }
+    return updated
+  }
+
+  handleInlineUpdate(e) {
+    const updateId = e.target.value
+    const key = e.target.name
+    const checked = e.target.checked
+    const body = {}
+    body[key] = checked
+    new TowelRecord(this.state.table)
+      .update(updateId, body)
+      .then((res) => {
+        if (res.info && res.info[0].message) {
+          console.log(res.info[0].message)
+        }
+        this.updateRowById(updateId, key, checked)
+      })
+      .catch((err) => {
+        console.error(err)
+      })
+  }
+
   handlePage(e) {
     let dir = parseInt(e.target.getAttribute('data-page')) // Get the pagination value from the element
     let nextOffset = 0
@@ -320,7 +384,7 @@ export default class Table extends Component {
       nextOffset = this.state.count - this.state.field.limit
     } else {
       // Next page
-      nextOffset = this.state.offset + this.state.field.limit
+      nextOffset = this.state.field.limit
     }
 
     API.get({
@@ -328,7 +392,8 @@ export default class Table extends Component {
       query: {
         args: this.state.args,
         offset: nextOffset,
-        limit: this.state.field.limit
+        limit: this.state.field.limit,
+        fields: Object.keys(this.state.cols).join(',')
       }
     })
       .then((response) => {
@@ -397,7 +462,8 @@ export default class Table extends Component {
     }
     if (this.state.cols) {
       for (const col in this.state.cols) {
-        if (col === this.state.id) continue
+        if (col === this.state.id && this.state.id !== this.state.displayField)
+          continue
         headers.push(
           <th
             scope='col'
@@ -419,8 +485,11 @@ export default class Table extends Component {
             showSelect={!this.state.hideActions}
             cells={row}
             cols={this.state.cols}
+            table={this.state.table}
             id={this.state.id}
             onSelectKey={this.props.onSelectKey}
+            handleInlineUpdate={this.handleInlineUpdate.bind(this)}
+            permissions={this.state.permissions}
           />
         )
       }
@@ -480,14 +549,18 @@ export default class Table extends Component {
                     </div>
                   </div>
                 </div>
-                <div className='col-1'>
-                  <Link
-                    className='btn btn-primary'
-                    to={`/f/${this.state.table.slice(0, -5)}/new`}
-                  >
-                    New
-                  </Link>
-                </div>
+                <Can
+                  if={this.state.permissions && this.state.permissions.create}
+                >
+                  <div className='col-1'>
+                    <Link
+                      className='btn btn-primary'
+                      to={`/f/${this.state.table.slice(0, -5)}/new`}
+                    >
+                      New
+                    </Link>
+                  </div>
+                </Can>
               </div>
             )}
             <div className='row'>

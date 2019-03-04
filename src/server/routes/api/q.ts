@@ -17,7 +17,7 @@ const q = Router()
 q.get('/:table', API())
 q.get('/:table/:id', API())
 q.post('/:table', API())
-q.put('/:table/:id', API())
+q.patch('/:table/:id', API())
 q.delete('/:table/:id', API())
 q.all('*', (req: Request, res: Response) => {
   res.status(404).json({

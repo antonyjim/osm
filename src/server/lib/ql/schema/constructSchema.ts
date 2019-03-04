@@ -79,15 +79,18 @@ export default async function constructSchema() {
       }
       /* Find the column name, reference field, selectablility, table_name, table_display_name */
       const statement =
-        'SELECT `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t2`.?? AS ??, `t3`.?? AS ??, `t4`.?? AS ?? FROM ?? `t1` LEFT JOIN ?? `t2` ON `t1`.?? = `t2`.?? INNER JOIN ?? `t3` ON `t1`.?? = `t3`.?? LEFT JOIN ?? `t4` ON `t2`.?? = `t4`.?? WHERE `t3`.?? = ? ORDER BY `t1`.??'
+        'SELECT `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t2`.?? AS ??, `t3`.?? AS ??, `t4`.?? AS ?? FROM ?? `t1` LEFT JOIN ?? `t2` ON `t1`.?? = `t2`.?? INNER JOIN ?? `t3` ON `t1`.?? = `t3`.?? LEFT JOIN ?? `t4` ON `t2`.?? = `t4`.?? WHERE `t3`.?? = ? ORDER BY `t1`.??'
       const params = [
         'column_name',
-        'base_url',
+        'display_field',
         'nullable',
         'label',
         'type',
+        'required_on_update',
+        'required_on_create',
         'default_view',
         'update_key',
+        'len',
         'readonly',
         'visible',
         'column_name',
@@ -116,12 +119,17 @@ export default async function constructSchema() {
           type: sqlToJsType(col.type),
           nullable: col.nullable,
           readonly: col.readonly,
+          maxLength: col.len,
           reference: col.reference_id_display || false,
           refTable: col.reference_id_table_name_display,
-          label: col.label
+          label: col.label,
+          visible: col.visible || false,
+          requiredUpdate: col.required_on_update,
+          requiredCreate: col.required_on_create
         }
-        if (col.default_view)
+        if (col.default_view) {
           tables[tableName].defaultFields.push(col.column_name)
+        }
         if (col.reference_id_display) {
           references.push({
             col: col.column_name,
@@ -131,9 +139,8 @@ export default async function constructSchema() {
           })
         }
 
-        if (col.base_url) {
+        if (col.display_field) {
           tables[tableName].displayField = col.column_name
-          tables[tableName].columns[col.column_name].baseURL = col.base_url
         }
         if (col.update_key) tables[tableName].primaryKey = col.column_name
       })
@@ -168,4 +175,9 @@ export default async function constructSchema() {
     console.log(inspect(tables), 5)
     return tables
   })
+}
+
+export function getTables() {
+  if (tables) return tables
+  else constructSchema()
 }

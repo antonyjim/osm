@@ -20,10 +20,10 @@ export interface IQueryResponse {
 }
 
 export interface IResponseMessage {
-  error: boolean
-  errorMessage?: string
-  message?: string
-  details?: any
+  errors?: IFieldError[]
+  warnings?: IFieldError[]
+  info?: IFieldError[]
+  data?: any
 }
 
 declare global {

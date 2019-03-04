@@ -41,12 +41,13 @@ class TableGeneralInformation extends Component {
   }
 
   submitChange(e) {
+    e.preventDefault()
     let apiRoute = '/api/q/sys_db_object'
     let apiQuery
     if (this.state.sys_id === 'new') {
       apiQuery = API.post({ path: apiRoute, body: { ...this.state.fields } })
     } else {
-      apiQuery = API.put({
+      apiQuery = API.patch({
         path: apiRoute + '/' + this.state.sys_id,
         body: { ...this.state.fields }
       })
@@ -65,25 +66,38 @@ class TableGeneralInformation extends Component {
       <>
         {this.state.loaded && (
           <>
-            <Field
-              label="Label"
-              value={this.state.fields.label}
-              id="label"
-              onChange={this.handleChange.bind(this)}
-            />
-            <Field
-              label="Name"
-              value={this.state.fields.name}
-              id="name"
-              onChange={this.handleChange.bind(this)}
-              readOnly="readonly"
-            />
-            <button
-              className="btn btn-primary btn-block"
-              onClick={this.submitChange.bind(this)}
-            >
-              Save
-            </button>
+            <h4> General Information </h4>
+            <hr />
+            <form className='form-row' name='info'>
+              <Field
+                label='Label'
+                value={this.state.fields.label}
+                id='label'
+                onChange={this.handleChange.bind(this)}
+                className='col-lg-6 col-md-12'
+              />
+              <Field
+                label='Name'
+                value={this.state.fields.name}
+                id='name'
+                onChange={this.handleChange.bind(this)}
+                readOnly='readonly'
+                className='col-lg-6 col-md-12'
+              />
+              <Field
+                label='Description'
+                value={this.state.fields.description}
+                id='description'
+                onChange={this.handleChange.bind(this)}
+                className='col-lg-12'
+              />
+              <button
+                className='btn btn-primary btn-block'
+                onClick={this.submitChange.bind(this)}
+              >
+                Save
+              </button>
+            </form>
           </>
         )}
       </>
@@ -111,7 +125,7 @@ export class TableModifier extends Component {
         label: 'Fields',
         body: (
           <Table
-            table="sys_db_dictionary_list"
+            table='sys_db_dictionary_list'
             args={{ table_name: this.state.sys_id }}
             showSearch={true}
           />
@@ -119,19 +133,5 @@ export class TableModifier extends Component {
       }
     }
     return <Pills pills={pills} />
-  }
-}
-
-class Column extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      cols
-    }
-  }
-
-  render() {
-    const pills = {}
-    return <Pills />
   }
 }

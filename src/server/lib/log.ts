@@ -27,12 +27,15 @@ class Log {
         'When a log table is supplied, a primary key must also be supplied'
       )
     } else if (!message) {
-      console.error('Any logging requires a message to be supplied')
+      console.error(
+        new TypeError('Any logging requires a message to be supplied')
+      )
     } else if (context && context.table && context.primaryKey) {
       console.log(`Context of ${context} supplied`)
       context.table.endsWith('_log')
         ? (this.tableName = context.table)
         : (this.tableName = context.table + '_log')
+      this.primaryKey = context.primaryKey
       this.requiresContext = true
       this.message = message
     } else if (!message && !context) {
@@ -67,7 +70,7 @@ class Log {
         )
       }
       query = 'INSERT INTO ?? (??, log_message, log_severity) VALUES (?, ?, 5)'
-      params.push(this.primaryKey)
+      params.push([this.tableName.slice(0, -4), this.primaryKey].join('_'))
       params.push(objectId)
     } else {
       query = 'INSERT INTO ?? (log_message, log_severity) VALUES (?, 5)'

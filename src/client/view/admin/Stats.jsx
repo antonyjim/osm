@@ -27,35 +27,35 @@ export default class Stats extends Component {
     return (
       <>
         {this.state.loaded && (
-          <div className="row m-5">
-            <div className="col" />
-            <div className="col-lg-6 col-md-8 col-sm-11">
+          <div className='row m-5'>
+            <div className='col' />
+            <div className='col-lg-6 col-md-8 col-sm-11'>
               <h2>Server Status</h2>
               <hr />
               <Field
-                id="cpuCount"
+                id='cpuCount'
                 value={this.state.stats.os.host}
-                label="Node Hostname"
-                type="text"
+                label='Node Hostname'
+                type='text'
                 attributes={{ readOnly: 'readonly' }}
               />
               <Field
                 value={this.state.stats.os.OS}
-                label="Operating System"
-                type="text"
+                label='Operating System'
+                type='text'
                 attributes={{ readOnly: 'readonly' }}
               />
               <Field
                 value={this.state.stats.os.cpuCount}
-                label="CPU Count"
-                type="text"
+                label='CPU Count'
+                type='text'
                 attributes={{ readOnly: 'readonly' }}
               />
               <Field
-                id="architecture"
+                id='architecture'
                 value={this.state.stats.os.architecture}
-                label="Architecture"
-                type="text"
+                label='Architecture'
+                type='text'
                 attributes={{ readOnly: 'readonly' }}
               />
               <Field
@@ -69,20 +69,34 @@ export default class Stats extends Component {
                   ) +
                   '%)'
                 }
-                type="text"
+                type='text'
                 attributes={{ readOnly: 'readonly' }}
               />
               <Field
-                id="openMem"
+                value={~~(this.state.stats.os.processMem.rss / 1e6)}
+                label={
+                  'Memory Used By Node (' +
+                  ~~(
+                    (~~(this.state.stats.os.processMem.rss / 1e6) /
+                      ~~(this.state.stats.os.totMem / 1e6)) *
+                    100
+                  ) +
+                  '%)'
+                }
+                type='text'
+                attributes={{ readOnly: 'readonly' }}
+              />
+              <Field
+                id='openMem'
                 value={~~(this.state.stats.os.totMem / 1e6)}
-                label="Total Memory (MB)"
-                type="text"
+                label='Total Memory (MB)'
+                type='text'
                 attributes={{ readOnly: 'readonly' }}
               />
               <Field
                 value={this.state.stats.db.NODE_ENV}
-                label="Node Environment"
-                type="text"
+                label='Node Environment'
+                type='text'
                 attributes={{ readOnly: 'readonly' }}
               />
 
@@ -90,24 +104,24 @@ export default class Stats extends Component {
               <hr />
               <Field
                 value={this.state.stats.db.version[0].VERSION}
-                label="Version"
-                type="text"
+                label='Version'
+                type='text'
                 attributes={{ readOnly: 'readonly' }}
               />
               <Field
                 value={this.state.stats.db.poolLimit}
-                label="Pool Limit"
-                type="text"
+                label='Pool Limit'
+                type='text'
                 attributes={{ readOnly: 'readonly' }}
               />
               <Field
                 value={this.state.stats.db.dbName}
-                label="Database Name"
-                type="text"
+                label='Database Name'
+                type='text'
                 attributes={{ readOnly: 'readonly' }}
               />
             </div>
-            <div className="col" />
+            <div className='col' />
           </div>
         )}
       </>
