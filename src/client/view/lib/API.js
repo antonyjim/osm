@@ -191,7 +191,12 @@ const API = {
           method: 'PATCH',
           statusCode: {
             204: (res) => {
-              resolve(res)
+              resolve({
+                statusCode: 204,
+                okay: () => {
+                  return true
+                }
+              })
             },
             201: (res) => {
               resolve(res)

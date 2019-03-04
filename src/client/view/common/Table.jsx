@@ -5,6 +5,100 @@ import { E404 } from './errors.jsx'
 import Can from './rbac.jsx'
 import { Checkbox } from './forms.jsx'
 
+class TableSearch extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      limit: props.limit || 25,
+      options: props.options,
+      table: props.table,
+      searchQ: '',
+      col: ''
+    }
+
+    if (props.options && props.options.length > 0) {
+      this.state.col = props.options[0].props.value
+    }
+  }
+
+  handleChange(e) {
+    let state = { ...this.state }
+    state[e.target.id] = e.target.value
+    this.setState(state)
+  }
+
+  handleKeyDown(e) {
+    if (e.keyCode && e.keyCode === 13) {
+      this.props.onSearchKeyDown(this.state.col, this.state.searchQ)
+    }
+  }
+
+  render() {
+    return (
+      <div className='row'>
+        <div className='col'>
+          <div className='form-group mr-a'>
+            <div className='input-group'>
+              <div className='input-group-prepend'>
+                <select
+                  className='custom-select'
+                  onChange={this.handleChange.bind(this)}
+                  value={this.state.col}
+                  id='col'
+                >
+                  {this.state.options}
+                </select>
+              </div>
+              <input
+                id='searchQ'
+                className='form-control'
+                onChange={this.handleChange.bind(this)}
+                value={this.state.searchQ}
+                onKeyDown={this.handleKeyDown.bind(this)}
+                type='text'
+              />
+            </div>
+          </div>
+        </div>
+        <div className='col'>
+          <div className='form-group'>
+            <div className='input-group'>
+              <select
+                className='custom-select'
+                onChange={this.props.onSetCount}
+                value={this.state.limit}
+                id='limit'
+              >
+                <option value={15}>15</option>
+                <option value={25}>25</option>
+                <option value={35}>35</option>
+                <option value={50}>50</option>
+                <option value={75}>75</option>
+                <option value={100}>100</option>
+              </select>
+              <div className='input-group-append'>
+                <label className='input-group-text' htmlFor='limit'>
+                  Results / Page
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <Can if={this.props.permissions && this.props.permissions.create}>
+          <div className='col-1'>
+            <Link
+              className='btn btn-primary'
+              to={`/f/${this.state.table.slice(0, -5)}/new`}
+            >
+              New
+            </Link>
+          </div>
+        </Can>
+      </div>
+    )
+  }
+}
+
 class TableRow extends Component {
   constructor(props) {
     super(props)
@@ -18,7 +112,7 @@ class TableRow extends Component {
     let cells = []
     if (this.props.showSelect) {
       cells.push(
-        <td key={Math.floor(Math.random() * 10000)}>
+        <td key={Math.floor(Math.random() * 10000)} className='align-middle'>
           <input
             className='position-static'
             type='checkbox'
@@ -33,16 +127,26 @@ class TableRow extends Component {
       let val = this.props.cells[col]
       let type = thisCol.type
       if (thisCol.reference || thisCol.display) {
-        if (this.props.onSelectKey) {
+        if (this.props.onSelectKey && thisCol.display) {
           cells.push(
             <td key={Math.floor(Math.random() * 1000000)}>
               <a
                 href='#'
                 data-key={this.props.cells[this.props.id]}
                 onClick={this.props.onSelectKey}
+                className='align-middle'
               >
                 {val || ''}
               </a>
+            </td>
+          )
+        } else if (this.props.onSelectKey && thisCol.reference) {
+          cells.push(
+            <td
+              key={Math.floor(Math.random() * 1000000)}
+              className='align-middle'
+            >
+              {val || ''}
             </td>
           )
         } else if (thisCol.display) {
@@ -51,6 +155,7 @@ class TableRow extends Component {
               <Link
                 to={`/f/${thisCol.display}/${this.props.cells[this.props.id] ||
                   '#'}`}
+                className='align-middle'
               >
                 {val || ''}
               </Link>
@@ -61,7 +166,11 @@ class TableRow extends Component {
           let refTab = refCol ? refCol.tableRef : '#'
           cells.push(
             <td key={Math.floor(Math.random() * 1000000)}>
-              <Link to={`/f/${refTab}/${val || '#'}`}>
+              <Link
+                to={`/f/${refTab}/${val || '#'}`}
+                title={this.props.cols[col].label}
+                className='align-middle'
+              >
                 {this.props.cells[col + '_display'] || ''}
               </Link>
             </td>
@@ -69,7 +178,10 @@ class TableRow extends Component {
         }
       } else if (type && type.toLowerCase() === 'date') {
         cells.push(
-          <td key={'table-data-' + ~~(Math.random() * 100000)}>
+          <td
+            key={'table-data-' + ~~(Math.random() * 100000)}
+            className='align-middle'
+          >
             {new Date(val).toDateString() || ''}
           </td>
         )
@@ -86,6 +198,7 @@ class TableRow extends Component {
                 value={this.props.cells[this.props.id]}
                 onChange={this.props.handleInlineUpdate}
                 label=''
+                title={this.props.cols[col].label}
                 checked={val === true || val === 1}
               />
             </td>
@@ -95,6 +208,7 @@ class TableRow extends Component {
             <td
               key={'table-data-' + ~~(Math.random() * 100000)}
               style={{ textAlign: 'center', fontSize: '20px' }}
+              className='align-middle'
             >
               {val === true || (val === 1 && '×') || ''}
             </td>
@@ -102,7 +216,10 @@ class TableRow extends Component {
         }
       } else {
         cells.push(
-          <td key={'table-data-' + ~~(Math.random() * 100000)}>
+          <td
+            key={'table-data-' + ~~(Math.random() * 100000)}
+            className='align-middle'
+          >
             {typeof val === 'string' ? val : ''}
           </td>
         )
@@ -209,11 +326,9 @@ export default class Table extends Component {
       })
   }
 
-  handleSearchKeyDown(e) {
-    if (e.keyCode && e.keyCode === 13) {
-      let args = `${this.state.field.col}=lk|${this.state.field.searchQ}`
-      this.getData({ args })
-    }
+  handleSearchKeyDown(column, query) {
+    let args = `${column}=lk|${query}`
+    this.getData({ args })
   }
 
   handleHeaderClick(e) {}
@@ -359,8 +474,8 @@ export default class Table extends Component {
     new TowelRecord(this.state.table)
       .update(updateId, body)
       .then((res) => {
-        if (res.info && res.info[0].message) {
-          console.log(res.info[0].message)
+        if (res.okay()) {
+          console.log('Updated')
         }
         this.updateRowById(updateId, key, checked)
       })
@@ -500,68 +615,13 @@ export default class Table extends Component {
         {this.state.loaded && (
           <>
             {this.props.showSearch && (
-              <div className='row'>
-                <div className='col'>
-                  <div className='form-group mr-a'>
-                    <div className='input-group'>
-                      <div className='input-group-prepend'>
-                        <select
-                          className='custom-select'
-                          onChange={this.handleChange.bind(this)}
-                          value={this.state.field.col}
-                          id='col'
-                        >
-                          {this.state.fieldSearchSelections}
-                        </select>
-                      </div>
-                      <input
-                        id='searchQ'
-                        className='form-control'
-                        onChange={this.handleChange.bind(this)}
-                        value={this.state.field.stringQ}
-                        onKeyDown={this.handleSearchKeyDown.bind(this)}
-                        type='text'
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className='col'>
-                  <div className='form-group'>
-                    <div className='input-group'>
-                      <select
-                        className='custom-select'
-                        onChange={this.handleSetCount.bind(this)}
-                        value={this.state.field.limit}
-                        id='limit'
-                      >
-                        <option value={15}>15</option>
-                        <option value={25}>25</option>
-                        <option value={35}>35</option>
-                        <option value={50}>50</option>
-                        <option value={75}>75</option>
-                        <option value={100}>100</option>
-                      </select>
-                      <div className='input-group-append'>
-                        <label className='input-group-text' htmlFor='limit'>
-                          Results / Page
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <Can
-                  if={this.state.permissions && this.state.permissions.create}
-                >
-                  <div className='col-1'>
-                    <Link
-                      className='btn btn-primary'
-                      to={`/f/${this.state.table.slice(0, -5)}/new`}
-                    >
-                      New
-                    </Link>
-                  </div>
-                </Can>
-              </div>
+              <TableSearch
+                table={this.state.table}
+                options={this.state.fieldSearchSelections}
+                onSearchKeyDown={this.handleSearchKeyDown.bind(this)}
+                onSetCount={this.handleSetCount.bind(this)}
+                permissions={this.state.permissions}
+              />
             )}
             <div className='row'>
               <div className='col'>

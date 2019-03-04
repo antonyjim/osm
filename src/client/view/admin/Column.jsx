@@ -189,16 +189,16 @@ export class ColumnGeneralInformation extends Component {
             className='col-lg-6 col-md-12'
           />
           <Checkbox
-            id='require_on_create'
+            id='required_on_create'
             label='Require For Creation'
-            checked={this.state.fields.require_on_create}
+            checked={this.state.fields.required_on_create}
             onChange={this.handleChange.bind(this)}
             className='col-lg-6 col-md-12'
           />
           <Checkbox
-            id='require_on_update'
+            id='required_on_update'
             label='Require For Update'
-            checked={this.state.fields.require_on_update}
+            checked={this.state.fields.required_on_update}
             onChange={this.handleChange.bind(this)}
             className='col-lg-6 col-md-12'
           />

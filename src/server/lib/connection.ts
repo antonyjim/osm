@@ -12,7 +12,7 @@ import uuid = require('uuid/v4')
 import { Pool, PoolConfig, createPool, PoolConnection } from 'mysql'
 
 // Local Modules
-import constructSchema from './ql/schema/constructSchema'
+import constructSchema, { getTables } from './ql/schema/constructSchema'
 import { Log } from './log'
 import { isBoolean } from './validation'
 import { IResponseMessage } from '../types/server'
@@ -39,6 +39,11 @@ function getPool(): Pool {
 
 function simpleQuery(query: string, params?: any[]): Promise<any[]> {
   return new Promise((resolve) => {
+    getPool().getConnection((err, conn) => {
+      if (err) conn.release()
+      console.log(conn.format(query, params))
+      conn.release()
+    })
     getPool().query(query, params, (err: Error, results: any[]) => {
       if (err) throw err
       return resolve(results)
@@ -291,7 +296,7 @@ class Querynator extends EventEmitter {
   protected async queryBuilder(
     fields: string[] | string = this.queryFieldsArr
   ) {
-    const schema = await constructSchema().catch((e) => console.error(e))
+    const schema = getTables()
     const tableCols = schema[this.tableName].columns
     const validFields = []
     const fieldPlaceholders = []
@@ -380,7 +385,7 @@ class Querynator extends EventEmitter {
   ): Promise<
     Array<{ validField: string[]; placeHolder: string; originalField: string }>
   > {
-    const schema = await constructSchema().catch((e) => console.error(e))
+    const schema = getTables()
     const validFields: Array<{
       validField: string[]
       placeHolder: string
@@ -429,7 +434,7 @@ class Querynator extends EventEmitter {
       warnings: [],
       valid: {}
     }
-    const schema = await constructSchema().catch((e) => console.error(e))
+    const schema = getTables()
     const tableSchema = schema[this.tableName].columns
     if (!providedFields) throw new Error('Missing fields')
     for (const field in tableSchema) {
@@ -474,7 +479,7 @@ class Querynator extends EventEmitter {
       warnings: [],
       valid: {}
     }
-    const schema = await constructSchema().catch((e) => console.error(e))
+    const schema = getTables()
     const tableSchema = schema[this.tableName].columns
     delete providedFields[this.primaryKey] // Don't allow updates on primary keys
     if (!providedFields) throw new Error('Missing fields')
@@ -701,8 +706,7 @@ class Querynator extends EventEmitter {
     let changedRows
     const returnObject = {
       errors: [],
-      warnings: [],
-      data: {}
+      warnings: []
     }
     if (Object.keys(validatedFields.valid).length === 0) {
       return {
@@ -736,9 +740,6 @@ class Querynator extends EventEmitter {
     if (changedRows.affectedRows === 0) {
       returnObject.errors.push({ message: 'Record was not updated' })
     }
-    returnObject.data[this.tableName] = await this.byId(
-      this.context.req.params.id
-    )
     returnObject.warnings = this.warnings
 
     return returnObject

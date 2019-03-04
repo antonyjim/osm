@@ -8,7 +8,7 @@
 // NPM Modules
 
 // Local Modules
-import constructSchema, { sqlToJsType } from './constructSchema'
+import constructSchema, { sqlToJsType, getTables } from './constructSchema'
 import { Querynator, simpleQuery } from '../../connection'
 
 // Constants and global variables
@@ -37,7 +37,7 @@ export default class Description extends Querynator {
                 one or more of: ['READ', 'UPDATE', 'DELETE', 'CREATE'] */
       const privs: string[] = []
 
-      const schema = await constructSchema()
+      const schema = getTables()
       const thisTable = schema[this.tableName]
       if (!thisTable) {
         return resolve({

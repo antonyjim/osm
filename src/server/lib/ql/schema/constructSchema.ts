@@ -172,12 +172,16 @@ export default async function constructSchema() {
         tables[colTable].defaultFields.push(colName)
       }
     })
-    console.log(inspect(tables), 5)
     return tables
   })
 }
 
 export function getTables() {
-  if (tables) return tables
-  else constructSchema()
+  if (tables) {
+    if (process.env.NODE_ENV === 'development') constructSchema()
+    return tables
+  } else {
+    constructSchema()
+    throw new Error('Tables missing. Please try again now.')
+  }
 }

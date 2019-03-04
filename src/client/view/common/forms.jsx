@@ -126,7 +126,9 @@ class Checkbox extends Component {
             value={this.props.value}
             onChange={this.props.onChange}
           />
-          <label htmlFor={this.props.id}>{this.props.label}</label>
+          <label htmlFor={this.props.id} {...this.props}>
+            {this.props.label}
+          </label>
         </div>
       )
     )
