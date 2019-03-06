@@ -1,7 +1,7 @@
 export namespace NavigationSettings {
   // Reference `navigation` table
   interface ILinks {
-    navId?: string
+    sys_id?: string
     navInnerText?: string
     navHref?: string
     navPathName?: string

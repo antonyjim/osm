@@ -416,6 +416,7 @@ CREATE TABLE sys_db_object (
     sys_id CHAR(36),
 	name VARCHAR(40) NOT NULL, -- Name of the table
 	label VARCHAR(40) NOT NULL, -- Friendly name
+    plural VARCHAR(40),
 	description VARCHAR(80) -- Short Description
 ) CHARSET = utf8;
 
@@ -562,6 +563,20 @@ CREATE TABLE email_message (
     last_updated DATETIME,
 
     INDEX(friendly_name)
+) CHARSET = utf8;
+
+CREATE TABLE sys_db_hook (
+    PRIMARY KEY(sys_id),
+    sys_id CHAR(36),
+    description VARCHAR(40) NOT NULL,
+    hook_table CHAR(36) NOT NULL,
+    hook VARCHAR(40) NOT NULL,
+    code TEXT,
+
+    FOREIGN KEY(hook_table)
+        REFERENCES sys_db_object(sys_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
 ) CHARSET = utf8;
 
 -- Store custom views

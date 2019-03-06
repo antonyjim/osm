@@ -19,9 +19,9 @@ class ExistingRoute extends Component {
   render() {
     return (
       <tr>
-        <th scope="col">
+        <th scope='col'>
           <a
-            href="#"
+            href='#'
             onClick={(e) => {
               this.props.onChoice(e, this.props)
               this.setNav()
@@ -30,13 +30,13 @@ class ExistingRoute extends Component {
             {this.props.navInnerText}
           </a>
         </th>
-        <th scope="col">{this.props.navMethod}</th>
-        <th scope="col">{this.props.navHref}</th>
-        <th scope="col">{this.props.navPriv}</th>
-        <th scope="col">{this.props.navMenu}</th>
-        <th scope="col">{this.props.navHeader}</th>
-        <th scope="col">{this.props.navActive}</th>
-        <th scope="col">{this.props.navIsNotApi}</th>
+        <th scope='col'>{this.props.navMethod}</th>
+        <th scope='col'>{this.props.navHref}</th>
+        <th scope='col'>{this.props.navPriv}</th>
+        <th scope='col'>{this.props.navMenu}</th>
+        <th scope='col'>{this.props.navHeader}</th>
+        <th scope='col'>{this.props.navActive}</th>
+        <th scope='col'>{this.props.navIsNotApi}</th>
       </tr>
     )
   }
@@ -71,36 +71,36 @@ class ExistingRoutes extends Component {
   render() {
     return (
       <div
-        id="existinglinks"
-        className="modal fade"
-        tabIndex="-1"
-        role="dialog"
+        id='existinglinks'
+        className='modal fade'
+        tabIndex='-1'
+        role='dialog'
       >
-        <div className="modal-dialog modal-xl" role="document">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">Navigation</h5>
+        <div className='modal-dialog modal-xl' role='document'>
+          <div className='modal-content'>
+            <div className='modal-header'>
+              <h5 className='modal-title'>Navigation</h5>
               <button
-                type="button"
-                className="close"
-                data-dismiss="modal"
-                aria-label="Close"
+                type='button'
+                className='close'
+                data-dismiss='modal'
+                aria-label='Close'
               >
-                <span aria-hidden="true">&times;</span>
+                <span aria-hidden='true'>&times;</span>
               </button>
             </div>
-            <div className="modal-body">
-              <table className="table">
-                <thead className="thead-dark">
+            <div className='modal-body'>
+              <table className='table'>
+                <thead className='thead-dark'>
                   <tr>
-                    <th scope="col">Inner Text</th>
-                    <th scope="col">Method</th>
-                    <th scope="col">Href</th>
-                    <th scope="col">Privilege</th>
-                    <th scope="col">Menu</th>
-                    <th scope="col">Heading</th>
-                    <th scope="col">Active</th>
-                    <th scope="col">UI</th>
+                    <th scope='col'>Inner Text</th>
+                    <th scope='col'>Method</th>
+                    <th scope='col'>Href</th>
+                    <th scope='col'>Privilege</th>
+                    <th scope='col'>Menu</th>
+                    <th scope='col'>Heading</th>
+                    <th scope='col'>Active</th>
+                    <th scope='col'>UI</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -145,7 +145,7 @@ class Routes extends Component {
         navMenu: '',
         navPriv: '',
         navInnerText: '',
-        navId: ''
+        sys_id: ''
       }
     }
   }
@@ -161,8 +161,8 @@ class Routes extends Component {
         let roleOpts = []
         roles.details.forEach((role) => {
           roleOpts.push({
-            value: role.rpPriv,
-            text: role.rpPriv
+            value: role.role_priv,
+            text: role.role_priv
           })
         })
         this.setState({ roles: roleOpts })
@@ -330,13 +330,13 @@ class Routes extends Component {
   render() {
     if (this.state.unAuthorized) {
       return (
-        <div id="navLinkForm" className={this.props.className + ' m-3'}>
+        <div id='navLinkForm' className={this.props.className + ' m-3'}>
           <E401 />
         </div>
       )
     } else {
       return (
-        <div id="navLinkForm" className={this.props.className + ' m-3'}>
+        <div id='navLinkForm' className={this.props.className + ' m-3'}>
           <ExistingRoutes onChoice={this.setLink.bind(this)} />
           {this.state.message && (
             <Alert
@@ -344,24 +344,24 @@ class Routes extends Component {
               alertType={this.state.message.type}
             />
           )}
-          <input type="hidden" id="navId" value={this.state.link.navId} />
+          <input type='hidden' id='sys_id' value={this.state.link.sys_id} />
           <Field
-            id="navInnerText"
-            type="text"
-            label="Inner Text of <a> tag"
+            id='navInnerText'
+            type='text'
+            label='Inner Text of <a> tag'
             value={this.state.link.navInnerText}
             onChange={this.handleChange.bind(this)}
           />
           <Field
-            id="navHref"
-            type="text"
-            label="Full Path"
+            id='navHref'
+            type='text'
+            label='Full Path'
             value={this.state.link.navHref}
             onChange={this.handleChange.bind(this)}
           />
           <SelectField
-            id="navMethod"
-            label="Method"
+            id='navMethod'
+            label='Method'
             value={this.state.link.navMethod}
             onChange={this.handleChange.bind(this)}
             opts={[
@@ -376,8 +376,8 @@ class Routes extends Component {
             ]}
           />
           <SelectField
-            id="navIsNotApi"
-            label="Link Type"
+            id='navIsNotApi'
+            label='Link Type'
             value={this.state.link.navIsNotApi}
             opts={[
               {
@@ -397,32 +397,32 @@ class Routes extends Component {
           />
           <Field
             isHidden={this.state.hideNav}
-            id="navMenu"
-            label="Root Menu"
-            type="text"
+            id='navMenu'
+            label='Root Menu'
+            type='text'
             value={this.state.link.navMenu}
             onChange={this.handleChange.bind(this)}
           />
           <Field
             isHidden={this.state.hideNav}
-            id="navHeader"
-            label="SubHeading"
-            type="text"
+            id='navHeader'
+            label='SubHeading'
+            type='text'
             value={this.state.link.navHeader}
             onChange={this.handleChange.bind(this)}
           />
           <SelectField
-            id="navPriv"
-            label="Privilege"
+            id='navPriv'
+            label='Privilege'
             opts={this.state.roles}
             otherField={true}
             value={this.state.link.navPriv}
             onChange={this.handleChange.bind(this)}
           />
           <SelectField
-            id="navActive"
-            value="true"
-            label="Active"
+            id='navActive'
+            value='true'
+            label='Active'
             value={this.state.link.navActive}
             onChange={this.handleChange.bind(this)}
             opts={[
@@ -437,8 +437,8 @@ class Routes extends Component {
             ]}
           />
           <button
-            id="updateButton"
-            className="btn btn-primary"
+            id='updateButton'
+            className='btn btn-primary'
             style={{ display: 'none' }}
             onClick={() => {
               this.submitUpdate()
@@ -447,8 +447,8 @@ class Routes extends Component {
             Update
           </button>
           <button
-            id="submitButton"
-            className="btn btn-primary"
+            id='submitButton'
+            className='btn btn-primary'
             onClick={() => {
               this.submitAdd()
             }}
@@ -456,9 +456,9 @@ class Routes extends Component {
             Submit
           </button>
           <button
-            className="btn btn-secondary ml-2"
-            data-toggle="modal"
-            data-target="#existinglinks"
+            className='btn btn-secondary ml-2'
+            data-toggle='modal'
+            data-target='#existinglinks'
           >
             Existing
           </button>
@@ -495,12 +495,12 @@ class PrivTable extends Component {
     this.props.privs[0] !== null &&
       this.props.privs.map((priv) => {
         rows.push(
-          <tr scope="row" key={Math.floor(Math.random() * 10000)}>
+          <tr scope='row' key={Math.floor(Math.random() * 10000)}>
             <td>{this.props.rpId}</td>
             <td>{priv}</td>
             <td>
               <a
-                href="javascript:void(0)"
+                href='javascript:void(0)'
                 onClick={this.props.onDelete}
                 data-target={priv}
               >
@@ -511,29 +511,29 @@ class PrivTable extends Component {
         )
       })
     return (
-      <table className="table">
-        <thead className="thead-dark">
+      <table className='table'>
+        <thead className='thead-dark'>
           <tr>
-            <th scope="col">Role</th>
-            <th scope="col">Priv</th>
-            <th scope="col">Mod</th>
+            <th scope='col'>Role</th>
+            <th scope='col'>Priv</th>
+            <th scope='col'>Mod</th>
           </tr>
         </thead>
         <tbody>
           {rows}
-          <tr scope="row">
+          <tr scope='row'>
             <td>{this.props.rpId}</td>
-            <td className="p-0">
+            <td className='p-0'>
               <SelectField
                 opts={unUsed}
-                id="newPriv"
+                id='newPriv'
                 onChange={this.props.onChange}
                 value={this.props.newPrivValue}
               />
             </td>
             <td>
               <a
-                href="javascript:void(0)"
+                href='javascript:void(0)'
                 onClick={this.props.onAdd}
                 data-for={this.props.rpId}
               >
@@ -736,9 +736,9 @@ class Roles extends Component {
             alertType={this.state.error ? 'danger' : 'success'}
           />
         )}
-        <input type="hidden" id="oldrpId" value={this.state.oldrpId} />
+        <input type='hidden' id='oldrpId' value={this.state.oldrpId} />
         <SelectField
-          id="rpId"
+          id='rpId'
           opts={this.state.roles}
           value={this.state.rpId}
           onChange={this.handleChange.bind(this)}

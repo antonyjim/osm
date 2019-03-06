@@ -13,7 +13,6 @@ import { getPool, Querynator } from './../connection'
 import { IStatusMessage } from '../../types/server'
 import { IRolePermissions } from '../../types/roles'
 import { Log } from '../log'
-import schema from '../tables.config'
 
 // Constants and global variables
 const pool = getPool()
@@ -32,10 +31,10 @@ export function getRoleAuthorizedNavigation(
       const query =
         'SELECT * FROM ?? WHERE ?? = (SELECT ?? FROM ?? WHERE ?? = ? AND ?? = ?)'
       const params = [
-        schema.sys_navigation_list,
+        'uiNavigation',
         'rpId',
         'nsaRole',
-        schema.sys_user_nsacl,
+        'sys_user_nsacl',
         'nsaUserId',
         userId,
         'nsaNonsig',
@@ -47,7 +46,7 @@ export function getRoleAuthorizedNavigation(
           const role = navigation[0] ? navigation[0].rpId : 'No-Conf'
           resultSet.navs = navigation
           const queryPrivs = 'SELECT DISTINCT ?? FROM ?? WHERE ?? = ?'
-          const paramPrivs = ['role_priv', schema.sys_role, 'rpId', role]
+          const paramPrivs = ['role_priv', 'sys_role', 'rpId', role]
           return new Querynator().createQ(
             { query: queryPrivs, params: paramPrivs },
             'CALL'

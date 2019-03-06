@@ -49,6 +49,9 @@ const API = {
           method: 'POST',
           data: JSON.stringify(body),
           success: (res) => {
+            res.ok = () => {
+              return true
+            }
             resolve(res)
           },
           error: (err) => {
@@ -174,6 +177,9 @@ const API = {
         data: JSON.stringify(body),
         method: 'PATCH',
         success: (res) => {
+          if (res) res.okay = () => {
+            return true
+          }
           cb(null, res)
         },
         error: (err) => {
@@ -219,7 +225,7 @@ export function TowelRecord(table) {
 TowelRecord.prototype.update = async function (sysId, body) {
   return new Promise(resolve => {
     this.id = sysId
-    if (this.tableName.endsWith('_list')) this.tableName = this.tableName.slice(0, -5)
+    if (this.tableName && this.tableName.endsWith('_list')) this.tableName = this.tableName.slice(0, -5)
 
     if (!sysId) {
       throw new Error('Missing id to update record')

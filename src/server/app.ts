@@ -14,7 +14,9 @@ import * as express from 'express'
 import { router } from './routes/index'
 import { Log } from './lib/log'
 import { getPool } from './lib/connection'
-import constructSchema from './lib/ql/schema/constructSchema'
+import constructSchema, { getTables } from './lib/ql/schema/constructSchema'
+import { constructForms } from './lib/ql/schema/constructForms'
+import generateHooks from './lib/ql/hooks/generateHooks'
 
 export default function routes() {
   if (process.env.NODE_ENV === 'production') {
@@ -52,6 +54,19 @@ export default function routes() {
     app.listen(port, () => {
       new Log(`Listening at port ${port} on process ${process.pid}`).info()
       constructSchema()
+        .then((tables) => {
+          console.log('Completed bulding schema')
+          constructForms()
+          generateHooks()
+        })
+        .catch((err) => {
+          console.error(
+            `[CONSTRUCT_SCHEMA] CRITICAL ERROR WHEN STARTING SERVER ${
+              err.message
+            }`
+          )
+          getPool().end()
+        })
     })
   }
 }

@@ -1,138 +1,129 @@
-import React, { Component } from 'react'
+import React, { Component, useState } from 'react'
 import SearchModal from './SearchModal.jsx'
 
-class Field extends Component {
-  constructor(props) {
-    super(props)
-
-    this.state = {
-      validReference: '',
-      fields: {},
-      openSearch: false,
-      name: props.display || ''
-    }
+function Field(props) {
+  const handleChange = (e) => {
+    let id = e.target.name || e.target.id
+    let val = {}
+    val[id] = e.target.value
+    if (props.setValue) props.setValue(val)
+    else
+      props.onChange({
+        target: {
+          id: e.target.id,
+          value: e.target.value,
+          name: e.target.name
+        }
+      })
   }
 
-  handleChange(e) {
-    this.props.onChange({
+  const handleSelection = (e) => {
+    props.onChange({
       target: {
-        id: e.target.id,
-        value: e.target.value
+        id: props.name,
+        value: e.target.getAttribute('data-key'),
+        name: props.name
+      }
+    })
+    props.onChange({
+      target: {
+        id: props.id + '_display',
+        value: e.target.innerText,
+        name: props.name + '_display'
       }
     })
   }
 
-  handleSelection(e) {
-    this.props.onChange({
-      target: {
-        id: this.props.id,
-        value: e.target.getAttribute('data-key')
-      }
-    })
-    this.props.onChange({
-      target: {
-        id: this.props.id + '_display',
-        value: e.target.innerText
-      }
-    })
-  }
-
-  render() {
-    if (this.props.references) {
-      return (
-        <>
-          <div
-            className={'form-group ' + this.props.className}
-            id={'cont-' + this.props.id}
-          >
-            <input
-              type='hidden'
-              id={this.props.id}
-              value={this.props.value || ''}
-              onChange={this.props.onChange}
-            />{' '}
-            {/* Store the actual value */}
-            <label htmlFor={this.props.id}>{this.props.label}</label>
-            <div className='input-group'>
-              <input
-                {...this.props.attributes}
-                type={this.props.type}
-                className='form-control'
-                id={this.props.id + '_display'}
-                value={this.props.display}
-                onChange={this.handleChange}
-              />
-              <div className='input-group-append'>
-                <button
-                  className='btn btn-outline-secondary'
-                  type='button'
-                  id={this.props.id + '_search'}
-                  data-toggle='modal'
-                  data-target={'#' + this.props.references + '_search_modal'}
-                >
-                  Search
-                </button>
-              </div>
-            </div>
-          </div>
-          <SearchModal
-            table={this.props.references}
-            handleSelectKey={this.handleSelection.bind(this)}
-          />
-        </>
-      )
-    } else {
-      return (
-        !this.props.isHidden && (
-          <div
-            className={'form-group ' + this.props.className || ''}
-            id={'cont-' + this.props.id}
-          >
-            <label htmlFor={this.props.id}>{this.props.label}</label>
-            <input
-              {...this.props.attributes}
-              type={this.props.type}
-              className='form-control'
-              id={this.props.id}
-              name={this.props.id}
-              value={this.props.value || ''}
-              onChange={this.props.onChange}
-            />
-          </div>
-        )
-      )
-    }
-  }
-}
-
-class Checkbox extends Component {
-  constructor(props) {
-    super(props)
-  }
-
-  render() {
+  if (props.references) {
     return (
-      !this.props.isHidden && (
+      <>
         <div
-          className={'form-checkbox ' + this.props.className}
-          id={'check-' + this.props.id}
+          className={'form-group ' + props.className}
+          id={'cont-' + props.id}
         >
           <input
-            {...this.props.attributes}
-            type='checkbox'
-            id={this.props.id}
-            name={this.props.name || this.props.id}
-            checked={!!this.props.checked}
-            value={this.props.value}
-            onChange={this.props.onChange}
+            type='hidden'
+            id={props.id}
+            name={props.name || props.id}
+            value={props.value || ''}
+            onChange={props.onChange}
+          />{' '}
+          {/* Store the actual value */}
+          <label htmlFor={props.id}>{props.label}</label>
+          <div className='input-group'>
+            <input
+              {...props.attributes}
+              type={props.type}
+              className='form-control'
+              id={props.id + '_display'}
+              name={props.name + '_display' || props.id + '_display'}
+              value={props.display}
+              onChange={handleChange.bind(this)}
+            />
+            <div className='input-group-append'>
+              <button
+                className='btn btn-outline-secondary'
+                type='button'
+                id={props.id + '_search'}
+                data-toggle='modal'
+                data-target={'#' + props.references + '_search_modal'}
+              >
+                Search
+              </button>
+            </div>
+          </div>
+        </div>
+        <SearchModal
+          table={props.references}
+          handleSelectKey={handleSelection.bind(this)}
+        />
+      </>
+    )
+  } else {
+    return (
+      !props.isHidden && (
+        <div
+          className={'form-group ' + props.className || ''}
+          id={'cont-' + props.id}
+        >
+          <label htmlFor={props.id}>{props.label}</label>
+          <input
+            {...props.attributes}
+            type={props.type}
+            className='form-control'
+            id={props.id}
+            name={props.id}
+            value={props.value || ''}
+            onChange={props.onChange}
           />
-          <label htmlFor={this.props.id} {...this.props}>
-            {this.props.label}
-          </label>
         </div>
       )
     )
   }
+}
+
+function Checkbox(props) {
+  return (
+    !props.isHidden && (
+      <div
+        className={'form-checkbox ' + props.className}
+        id={'check-' + props.id}
+      >
+        <input
+          {...props.attributes}
+          type='checkbox'
+          id={props.id}
+          name={props.name || props.id}
+          checked={!!props.checked}
+          value={props.value}
+          onChange={props.onChange}
+        />
+        <label className='ml-2' htmlFor={props.id}>
+          {props.label}
+        </label>
+      </div>
+    )
+  )
 }
 
 class SelectField extends Component {
@@ -140,7 +131,7 @@ class SelectField extends Component {
     super(props)
     this.state = {
       otherField: false,
-      selectId: this.props.id
+      selectId: props.id
     }
   }
 
@@ -197,7 +188,7 @@ class SelectField extends Component {
           <select
             className='form-control'
             name={this.props.id}
-            id={this.state.selectId}
+            id={this.props.selectId}
             onChange={(e) => {
               this.handleOnChange(e)
               this.props.onChange(e)

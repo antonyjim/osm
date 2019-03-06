@@ -48,7 +48,7 @@ export class Navigation {
           linkSearch.navQueryString = href[1]
         }
         const sanitizedSearch = new Validation(linkSearch).updateFields([
-          'navId',
+          'sys_id',
           'navMethod',
           'navPathName',
           'navQueryString'
@@ -90,7 +90,7 @@ export class Navigation {
     return new Promise((resolve, reject) => {
       const sql = `
                 SELECT 
-                 navId,
+                 sys_id,
                  navInnerText,
                  navMethod,
                  CONCAT(navPathName, '?', IFNULL(navQueryString, '')) AS navHref,
@@ -309,7 +309,7 @@ export class Navigation {
     return new Promise((resolve, reject) => {
       if (this.links.length === 1) {
         const link = this.links[0]
-        if (!link.navId) {
+        if (!link.sys_id) {
           reject({
             error: true,
             message: 'No link id provided'
@@ -321,7 +321,7 @@ export class Navigation {
             link.navQueryString = href[1]
           }
           const sanitizedUpdate = new Validation(link).updateFields([
-            'navId',
+            'sys_id',
             'navInnerText',
             'navMethod',
             'navPathName',
@@ -333,8 +333,8 @@ export class Navigation {
             'navIsNotApi'
           ])
 
-          const findNav = `SELECT * FROM sys_navigation WHERE navId = ${pool.escape(
-            sanitizedUpdate.navId
+          const findNav = `SELECT * FROM sys_navigation WHERE sys_id = ${pool.escape(
+            sanitizedUpdate.sys_id
           )}`
           if (
             sanitizedUpdate.navIsNotApi &&
@@ -363,10 +363,10 @@ export class Navigation {
                 if (results.length === 1) {
                   console.log(JSON.stringify(sanitizedUpdate))
                   if (sanitizedUpdate.navPriv) {
-                    const updateStatement = `UPDATE sys_navigation SET ? WHERE navId = ?`
+                    const updateStatement = `UPDATE sys_navigation SET ? WHERE sys_id = ?`
                     pool.query(
                       updateStatement,
-                      [sanitizedUpdate, sanitizedUpdate.navId],
+                      [sanitizedUpdate, sanitizedUpdate.sys_id],
                       (updateErr: Error) => {
                         if (updateErr) {
                           throw {
@@ -384,10 +384,10 @@ export class Navigation {
                       }
                     )
                   } else {
-                    const updateStatement = `UPDATE sys_navigation SET ? WHERE navId = ?`
+                    const updateStatement = `UPDATE sys_navigation SET ? WHERE sys_id = ?`
                     pool.query(
                       updateStatement,
-                      [sanitizedUpdate, sanitizedUpdate.navId],
+                      [sanitizedUpdate, sanitizedUpdate.sys_id],
                       (updateErr: Error) => {
                         if (updateErr) {
                           throw {

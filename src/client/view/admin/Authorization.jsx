@@ -69,6 +69,7 @@ export default class Authorization extends Component {
           />
           <Field
             id='auth_table'
+            name='auth_table'
             label='Table'
             value={this.state.fields.auth_table}
             display={this.state.fields.auth_table_display}
@@ -79,6 +80,7 @@ export default class Authorization extends Component {
           />
           <Field
             id='auth_priv'
+            name='auth_priv'
             label='Role'
             className='col-lg-6 col-md-12'
             value={this.state.fields.auth_priv}

@@ -22,7 +22,8 @@ const router = Router()
 router.use('/public', staticRoutes)
 // Advanced logging
 router.use((req, res, next) => {
-  RequestLog(req.method, req.path)
+  console.log(req.method, req.path)
+  // RequestLog(req.method, req.path)
   return next()
 })
 router.use(bodyParser.json())

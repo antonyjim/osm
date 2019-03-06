@@ -5,14 +5,13 @@
 
 // Node Modules
 import { EventEmitter } from 'events'
-import { inspect } from 'util'
 
 // NPM Modules
 import uuid = require('uuid/v4')
 import { Pool, PoolConfig, createPool, PoolConnection } from 'mysql'
 
 // Local Modules
-import constructSchema, { getTables } from './ql/schema/constructSchema'
+import { getTables } from './ql/schema/constructSchema'
 import { Log } from './log'
 import { isBoolean } from './validation'
 import { IResponseMessage } from '../types/server'
@@ -52,23 +51,25 @@ function simpleQuery(query: string, params?: any[]): Promise<any[]> {
 }
 
 class Querynator extends EventEmitter {
-  protected pool: Pool
+  private pool: Pool
   protected tableName: string
   protected deleteByDate?: boolean
   protected primaryKey: string
   protected context: any
   protected baseParams: any[]
   protected queryFields: string
-  private queryFieldsArr: string[]
+  protected queryFieldsArr: string[]
   protected warnings: any[]
   protected errors: any[]
+  private worker?: boolean
+  protected tableSchema?: any
 
   /**
    * Create an interface for graphql to query from, with authorization included
    * @param context Context from the GQL query
    * @param queryFields Info from the GQL query
    */
-  constructor(context?: any, queryFields?: string[]) {
+  constructor(context?: any, queryFields?: string[], worker?: boolean) {
     super()
     this.pool = getPool()
     this.queryFieldsArr = queryFields
@@ -77,6 +78,8 @@ class Querynator extends EventEmitter {
     this.tableName = ''
     this.warnings = []
     this.errors = []
+    this.worker = worker
+    this.tableSchema = getTables()[this.tableName]
     this.once('init', () => {
       if (this.queryFieldsArr && Array.isArray(this.queryFieldsArr)) {
         const fieldPlaceholders: string[] = []
@@ -107,7 +110,7 @@ class Querynator extends EventEmitter {
     actionOverride?: string
   ) {
     return new Promise((resolve) => {
-      if (actionOverride === 'CALL') {
+      if (actionOverride === 'CALL' || this.worker) {
         return resolve(true)
       }
       const validationFunction = 'tbl_validation'
@@ -118,7 +121,8 @@ class Querynator extends EventEmitter {
         process.env.STATEMENT_LOGGING === 'true' ||
         process.env.STATEMENT_LOGGING
       ) {
-        new Log(conn.format('SELECT ?? (?) AS AUTHED', params)).info()
+        console.log(conn.format('SELECT ?? (?) AS AUTHED', params))
+        // new Log(conn.format('SELECT ?? (?) AS AUTHED', params)).info()
       }
       conn.query('SELECT ?? (?) AS AUTHED', params, (err, authed) => {
         if (err) {
@@ -379,6 +383,11 @@ class Querynator extends EventEmitter {
     // return await simpleQuery(`${baseStatement} ${fieldPlaceholders.join(', ')} ${fromStatement}`, Array.prototype.concat(validFields, tableParams))
   }
 
+  /**
+   * Validate that the fields that are being queried are real fields
+   * @param fields Object containing the fields to be validated against
+   * @param aliases Table aliases received from this.queryBuilder
+   */
   protected async validateFieldsExist(
     fields: string[],
     aliases?: any
@@ -563,6 +572,10 @@ class Querynator extends EventEmitter {
             col.placeHolder + ' ' + parsedField.operator + ' ?'
           queryParams.params = queryParams.params.concat(col.validField)
           queryParams.params.push(parsedField.value)
+        } else if (Array.isArray(fields[col.originalField])) {
+          queryParams.query += col.placeHolder + ' IN ?'
+          queryParams.params = queryParams.params.concat(col.validField)
+          queryParams.params.push(fields[col.originalField])
         } else {
           queryParams.query += col.placeHolder + ' = ?'
           queryParams.params = queryParams.params.concat(col.validField)
