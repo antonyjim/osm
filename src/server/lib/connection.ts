@@ -15,6 +15,8 @@ import { getTables } from './ql/schema/constructSchema'
 import { Log } from './log'
 import { isBoolean } from './validation'
 import { IResponseMessage } from '../types/server'
+import { resolve } from 'path'
+import loadModule from './ql/hooks/loadHook'
 
 // Constants and global variables
 const poolConfig: PoolConfig = {
@@ -26,6 +28,7 @@ const poolConfig: PoolConfig = {
 }
 
 const jwtSecret = process.env.JWT_KEY || 'secret'
+const HOOKS_DIR = resolve(__dirname, './hooks')
 
 let pool: Pool
 function getPool(): Pool {
@@ -37,7 +40,7 @@ function getPool(): Pool {
 }
 
 function simpleQuery(query: string, params?: any[]): Promise<any[]> {
-  return new Promise((resolve) => {
+  return new Promise((resolveQuery) => {
     getPool().getConnection((err, conn) => {
       if (err) conn.release()
       console.log(conn.format(query, params))
@@ -45,7 +48,7 @@ function simpleQuery(query: string, params?: any[]): Promise<any[]> {
     })
     getPool().query(query, params, (err: Error, results: any[]) => {
       if (err) throw err
-      return resolve(results)
+      return resolveQuery(results)
     })
   })
 }
@@ -109,9 +112,9 @@ class Querynator extends EventEmitter {
     query: string,
     actionOverride?: string
   ) {
-    return new Promise((resolve) => {
+    return new Promise((resolveAuthorized) => {
       if (actionOverride === 'CALL' || this.worker) {
-        return resolve(true)
+        return resolveAuthorized(true)
       }
       const validationFunction = 'tbl_validation'
       const role = this.context.req.auth.r || 'No-Conf'
@@ -130,9 +133,9 @@ class Querynator extends EventEmitter {
           throw err
         }
         if (authed[0]) {
-          return resolve(authed[0].AUTHED || false)
+          return resolveAuthorized(authed[0].AUTHED || false)
         } else {
-          return resolve(authed[0])
+          return resolveAuthorized(authed[0])
         }
       })
     })
@@ -147,7 +150,7 @@ class Querynator extends EventEmitter {
     { query, params }: { query: string; params?: any },
     action?: string
   ): Promise<any[] | any> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolveQuery, reject) => {
       this.pool.getConnection((err: Error, conn: PoolConnection) => {
         if (err) return reject(err)
         this.validate(conn, query, action !== null ? action : null)
@@ -173,7 +176,7 @@ class Querynator extends EventEmitter {
                     return reject(cErr)
                   }
                   // console.log(inspect(results))
-                  return resolve(results)
+                  return resolveQuery(results)
                 })
               })
             } else {
@@ -668,9 +671,36 @@ class Querynator extends EventEmitter {
     if (this.primaryKey === 'sys_id') id = uuid()
     providedFields[this.primaryKey] = id
 
+    const createHook = 'onBeforeUpdate'
+    const hookHandle = loadModule(this.tableName, createHook)
+    let insertFields = { ...providedFields }
+    // Execute hook handle
+    if (hookHandle) {
+      try {
+        console.log(
+          '[HOOK_LOADER] RUNNING ' + createHook + ' ON ' + this.tableName
+        )
+        insertFields = hookHandle(
+          providedFields[this.primaryKey],
+          providedFields
+        ).fields
+      } catch (err) {
+        console.log(
+          '[HOOK_LOADER] ENCOUNTERED ERROR AT ' +
+            createHook +
+            ' ON ' +
+            this.tableName
+        )
+        console.error(err)
+        insertFields = providedFields
+      }
+    } else {
+      insertFields = providedFields
+    }
+
     const query = 'INSERT INTO ?? SET ?'
     const params = [this.tableName]
-    const validatedFields = await this.validateNewFields(providedFields)
+    const validatedFields = await this.validateNewFields(insertFields)
     const returnObject = {
       errors: [],
       warnings: [],
@@ -708,13 +738,39 @@ class Querynator extends EventEmitter {
   }
 
   protected async createUpdate(fields: any) {
-    const query = 'UPDATE ?? SET ? WHERE ?? = ?'
-    const validatedFields = await this.validateUpdatedFields(fields).catch(
-      (err) => {
-        console.log(err)
-        throw err
+    // Search for update hook handler for this table
+    const updateHook = 'onBeforeUpdate'
+    const hookHandle = loadModule(this.tableName, updateHook)
+    let updateFields = {}
+    // Execute hook handle
+    if (hookHandle) {
+      try {
+        console.log(
+          '[HOOK_LOADER] RUNNING ' + updateHook + ' ON ' + this.tableName
+        )
+        updateFields = hookHandle(fields[this.primaryKey], fields).fields
+      } catch (err) {
+        console.log(
+          '[HOOK_LOADER] ENCOUNTERED ERROR AT ' +
+            updateHook +
+            ' ON ' +
+            this.tableName
+        )
+        console.error(err)
+        updateFields = fields
       }
-    )
+    } else {
+      updateFields = fields
+    }
+
+    const query = 'UPDATE ?? SET ? WHERE ?? = ?'
+    const validatedFields = await this.validateUpdatedFields(
+      updateFields
+    ).catch((err) => {
+      console.log(err)
+      throw err
+    })
+
     let params = []
     let changedRows
     const returnObject = {
@@ -752,8 +808,27 @@ class Querynator extends EventEmitter {
     changedRows = await this.createQ({ query, params })
     if (changedRows.affectedRows === 0) {
       returnObject.errors.push({ message: 'Record was not updated' })
+    } else {
+      const afterUpdateHook = 'onAfterUpdated'
+      const handle = loadModule(this.tableName, afterUpdateHook)
+      if (handle) {
+        ;(async () => {
+          try {
+            handle(this.context.req.params.id, validatedFields.valid)
+          } catch (err) {
+            console.error(err)
+            console.log(
+              '[HOOK_LOADER] ENCOUNTERED ERROR AT ' +
+                afterUpdateHook +
+                ' ON ' +
+                this.tableName
+            )
+          }
+        })()
+      }
     }
-    returnObject.warnings = this.warnings
+
+    if (this.warnings.length > 0) returnObject.warnings = this.warnings
 
     return returnObject
   }
@@ -772,4 +847,4 @@ class Querynator extends EventEmitter {
   }
 }
 
-export { getPool, jwtSecret, Querynator, simpleQuery }
+export { getPool, jwtSecret, Querynator, simpleQuery, HOOKS_DIR }

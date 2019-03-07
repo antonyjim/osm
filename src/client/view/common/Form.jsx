@@ -6,6 +6,7 @@ import Column from '../admin/Column.jsx'
 import { TableModifier } from '../admin/TableMaint.jsx'
 import Authorization from '../admin/Authorization.jsx'
 import { Checkbox, Field } from './forms.jsx'
+import Pills from './PillLayout.jsx'
 const Hook = React.lazy(() => import('../admin/Hook.jsx'))
 
 const specialForms = {
@@ -54,6 +55,8 @@ export default class Form extends Component {
                 this.setState({ form: res, loaded: true })
                 console.error(err)
               })
+          } else {
+            this.setState({ form: res, loaded: true })
           }
         }
       })
@@ -173,6 +176,7 @@ export default class Form extends Component {
     let pills = {}
     for (const tab of this.state.form.tabs) {
       /* If the tab has a fields property, map out the form control boxes */
+      const name = tab.name
       if (tab.fields) {
         pills[name] = {
           id: name,
@@ -205,13 +209,15 @@ export default class Form extends Component {
           <>
             <button
               className='btn btn-primary float-right'
-              onClick={this.handleSubmit}
+              onClick={this.handleSubmit.bind(this)}
             >
               Save
             </button>
             <h4>{tab.title || 'General Information'}</h4>
             <hr />
-            <form className='form-row' name='generalInformation' />
+            <form className='form-row' name='generalInformation'>
+              {displayFields}
+            </form>
           </>
         )
       } else if (tab.table) {
@@ -220,20 +226,7 @@ export default class Form extends Component {
     }
     return (
       <>
-        <h4>{this.state.form.tabs[0].title}</h4>
-        <hr />
-        <form className='form-row' name={'form' + ~~(Math.random() * 1000)}>
-          {displayFields}
-          <button
-            className='btn btn-primary btn-block submit'
-            onClick={this.handleSubmit.bind(this)}
-            data-form='info'
-            type='button'
-            {...this.state.saveDisabled}
-          >
-            Save
-          </button>
-        </form>
+        <Pills pills={pills} />
       </>
     )
   }

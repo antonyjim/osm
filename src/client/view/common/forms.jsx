@@ -18,9 +18,16 @@ function Field(props) {
   }
 
   const handleSelection = (e) => {
+    console.log({
+      target: {
+        id: props.id,
+        value: e.target.getAttribute('data-key'),
+        name: props.name
+      }
+    })
     props.onChange({
       target: {
-        id: props.name,
+        id: props.id,
         value: e.target.getAttribute('data-key'),
         name: props.name
       }
@@ -34,7 +41,7 @@ function Field(props) {
     })
   }
 
-  if (props.references) {
+  if (props.references || props.refTable) {
     return (
       <>
         <div

@@ -13,8 +13,9 @@
 // NPM Modules
 
 // Local Modules
-import { Querynator } from './connection'
+import { Querynator, simpleQuery } from './connection'
 import { getTables } from './ql/schema/constructSchema'
+import generateHooks from './ql/hooks/generateHooks'
 
 // Constants and global variables
 
@@ -39,6 +40,26 @@ export default class Towel extends Querynator {
     } else {
       this.primaryKey = this.tableSchema.primaryKey
     }
+
+    console.log('New Towel instantiated')
+  }
+
+  public static refreshHooks(): void {
+    generateHooks()
+    console.log('[TOWEL] Regenerating Hooks')
+  }
+
+  public static async rawQuery(query, params?) {
+    return new Promise((resolve) => {
+      simpleQuery(query, params)
+        .then((rows) => {
+          resolve(rows)
+        })
+        .catch((err) => {
+          console.error('[TOWEL] ERROR OCCURRED AT RAW QUERY')
+          console.error('[TOWEL] \n' + err.message)
+        })
+    })
   }
 
   public async get(args?: { id?: string | string[] }) {

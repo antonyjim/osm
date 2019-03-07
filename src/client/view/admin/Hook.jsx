@@ -13,7 +13,7 @@ import 'monaco-editor/esm/vs/editor/contrib/rename/rename.js'
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js'
 import 'monaco-editor/esm/vs/basic-languages/javascript/javascript.contribution'
 import 'monaco-editor/esm/vs/language/typescript/monaco.contribution'
-import React, { Component } from 'react'
+import React, { Component, useState } from 'react'
 
 import { Field } from '../common/forms.jsx'
 import { TowelRecord } from '../lib/API.js'
@@ -47,6 +47,11 @@ export default class Hook extends Component {
         if (res && res.data && res.data[this.state.table]) {
           let state = { ...this.state }
           for (let field in res.data[this.state.table]) {
+            if (field === 'code') {
+              monaco.editor
+                .getModels()[0]
+                .setValue(res.data[this.state.table][field])
+            }
             state[field] = res.data[this.state.table][field]
           }
           this.setState(state)
@@ -60,6 +65,8 @@ export default class Hook extends Component {
   handleChange(e) {
     let state = { ...this.state }
     state[e.target.name] = e.target.value
+
+    console.log(state)
     this.setState(state)
   }
 
@@ -95,8 +102,7 @@ export default class Hook extends Component {
 
   componentDidMount() {
     monaco.editor.create(document.getElementById('monaco'), {
-      value: `
-#!/bin/env/node
+      value: `#!/bin/env/node
 /**
  * Script hook for {HOOK GOES HERE} on table {TABLE NAME GOES HERE}
  * 
@@ -118,7 +124,7 @@ export default class Hook extends Component {
  * 
  * @returns {status: string, confirmedFields: object, warnings: object | object[]}
  */
-var Towel = require('towel')
+var Towel = require('./../towel')
 
 module.exports = function(sysId, action, incomingFields) {
   this.status = 'OK'
@@ -169,6 +175,7 @@ module.exports = function(sysId, action, incomingFields) {
               value={this.state.hook_table}
               display={this.state.hook_table_display}
               onChange={this.handleChange.bind(this)}
+              setValue={this.setFormFields}
               className='col-lg-6 col-md-12'
               type='text'
               references='sys_db_object'
