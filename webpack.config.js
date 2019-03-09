@@ -7,7 +7,7 @@ let STYLE_DIR = path.resolve(__dirname, 'src/client/styles')
 let config = {
     watch: true,
     entry: {
-        "main": APP_DIR + '/index.jsx',
+        "main": APP_DIR + '/index.tsx',
         "editor.worker": 'monaco-editor/esm/vs/editor/editor.worker.js',
         "json.worker": 'monaco-editor/esm/vs/language/json/json.worker',
         "css.worker": 'monaco-editor/esm/vs/language/css/css.worker',
@@ -36,7 +36,7 @@ let config = {
             {
                 test: /\.tsx?/,
                 include: APP_DIR,
-                loader: 'ts-loader'
+                loader: 'awesome-typescript-loader'
             },
             {
                 test: /\.css$/,
@@ -52,6 +52,9 @@ let config = {
                 ]
             }
         ]
+    },
+    resolve: {
+        extensions: ['.js', '.jsx', '.ts', '.tsx']
     },
     optimization: {
         splitChunks: {

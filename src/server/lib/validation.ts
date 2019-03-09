@@ -88,7 +88,7 @@ export class Validation {
     }
   }
 
-  public truncate(fields: Array<{ field: string; length: number }>): any {
+  public truncate(fields: { field: string; length: number }[]): any {
     for (const field of fields) {
       const fieldInQuestion = this.providedFields[field.field]
       if (field.field && fieldInQuestion) {

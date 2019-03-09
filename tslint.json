@@ -18,6 +18,9 @@
     "no-namespace": false,
     "interface-name": false,
     "jsdoc-format": true,
-    "object-literal-shorthand": true
+    "object-literal-shorthand": true,
+    "array-type": [true, "array"],
+    "trailing-comma": true,
+    "no-bitwise": false
   }
 }

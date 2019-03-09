@@ -395,14 +395,14 @@ class Querynator extends EventEmitter {
     fields: string[],
     aliases?: any
   ): Promise<
-    Array<{ validField: string[]; placeHolder: string; originalField: string }>
+    { validField: string[]; placeHolder: string; originalField: string }[]
   > {
     const schema = getTables()
-    const validFields: Array<{
+    const validFields: {
       validField: string[]
       placeHolder: string
       originalField: string
-    }> = []
+    }[] = []
 
     fields.map((field) => {
       if (schema[this.tableName] && schema[this.tableName].columns[field]) {
