@@ -65,7 +65,8 @@
         </div>
         <script id="loadingScript">
             window.THQ = {
-                loadingInterval: setInterval(showMessage, 2000)
+                loadingInterval: setInterval(showMessage, 2000),
+                pageLoad: performance.now()
             }
 
             function showMessage() {

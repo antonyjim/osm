@@ -1,9 +1,7 @@
 import * as React from 'react'
 import { Component } from 'react'
 import { fetchLogin } from '../lib/getNavigation'
-import Can from './rbac'
-
-// React-Router
+import { Can } from './Can'
 import { Link } from 'react-router-dom'
 
 interface INavigationLink {
@@ -20,8 +18,13 @@ function NavigationHeading(props: INavigationHeadingProps) {
   const links = []
   let key = 0
   for (const navLink of props.links) {
+    const uniqueKey = key + 10 * Date.now()
     links.push(
-      <Link className='dropdown-item' to={navLink.href} key={'nav-link' + key}>
+      <Link
+        className='dropdown-item'
+        to={navLink.href}
+        key={'nav-link-unique-' + uniqueKey.toString()}
+      >
         {navLink.innerText}
       </Link>
     )
@@ -36,7 +39,7 @@ function NavigationHeading(props: INavigationHeadingProps) {
 }
 
 function NavigationDropdown(props) {
-  const randId = 'dropDown' + Math.floor(Math.random() * 1000000)
+  const randId = 'dropDown' + Math.random() * Date.now()
   const subHeadings = []
   let key = 0
 
@@ -45,7 +48,7 @@ function NavigationDropdown(props) {
       <NavigationHeading
         header={heading}
         links={props.navHeading[heading]}
-        key={'nav-header' + key}
+        key={'nav-header' + (key + 10 * Date.now())}
       />
     )
     key++
@@ -88,7 +91,6 @@ export default class Navigation extends Component<any, any> {
         this.setState({ nav: navigation, loaded: true })
       })
       .catch((err) => {
-        console.log('Error occurred')
         console.error(err)
         this.setState({ nav: 'Error', loaded: true })
       })
@@ -103,16 +105,14 @@ export default class Navigation extends Component<any, any> {
       return null
     } else {
       const menus = []
-      let key = 0
-      Object.keys(this.state.nav).map((menu) => {
+      Object.keys(this.state.nav).map((menu, key) => {
         menus.push(
           <NavigationDropdown
             navHeading={this.state.nav[menu]}
             navTitle={menu}
-            key={key}
+            key={'nav-dropdown-' + key}
           />
         )
-        key++
       })
       return (
         <nav className='navbar navbar-expand-lg navbar-dark bg-goodyear'>
@@ -136,7 +136,7 @@ export default class Navigation extends Component<any, any> {
               {menus}
             </ul>
             <ul className='navbar-nav'>
-              <li className='nav-item dropdown'>
+              <li className='nav-item dropdown' key='user-menu'>
                 <a
                   className='dropdown-toggle pl-3 nav-item ml-auto'
                   data-toggle='dropdown'
@@ -154,21 +154,21 @@ export default class Navigation extends Component<any, any> {
                   aria-labelledby='account'
                 >
                   <Link className='dropdown-item' to='/changeCustomer'>
-                    Change Customer
+                    {'Change Customer'}
                   </Link>
                   <Can role={'User-Admin'}>
                     <Link className='dropdown-item' to='/userAdministration'>
-                      User Administration
+                      {'User Administration'}
                     </Link>
                   </Can>
                   <Link className='dropdown-item' to='/profile'>
-                    Profile
+                    {'Profile'}
                   </Link>
                   <a className='dropdown-item' href='#'>
-                    French
+                    {'French'}
                   </a>
                   <a className='dropdown-item' href='/logout'>
-                    Logout
+                    {'Logout'}
                   </a>
                 </div>
               </li>

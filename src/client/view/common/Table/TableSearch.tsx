@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Component } from 'react'
 import { ITablePermissions } from '../../typings'
-import Can from '../rbac'
+import { Can } from '../Can'
 import { Link } from 'react-router-dom'
 
 interface ITableSearchProps {

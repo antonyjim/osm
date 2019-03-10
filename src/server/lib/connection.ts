@@ -17,6 +17,7 @@ import { isBoolean } from './validation'
 import { IResponseMessage } from '../types/server'
 import { resolve } from 'path'
 import loadModule from './ql/hooks/loadHook'
+import { IFieldError } from '../types/api'
 
 // Constants and global variables
 const poolConfig: PoolConfig = {

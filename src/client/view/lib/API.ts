@@ -1,16 +1,10 @@
+import { ITHQWindowNamespace } from '../typings'
+
 declare global {
   interface Window {
     MonacoEnvironment: any
     $: JQuery
-    THQ: {
-      user: {
-        privs: string[]
-      }
-
-      menus: string[]
-      loadingInterval?: number
-      token: string
-    }
+    THQ: ITHQWindowNamespace
   }
 }
 
@@ -118,7 +112,7 @@ const API = {
   ) => {
     const authPath = path + '?' + flattenQuery(query)
     console.log('Making GET request to ' + authPath)
-    return new Promise((resolveRequest, reject) => {
+    return new Promise((resolve, reject) => {
       makeFetchRequest(authPath, {
         headers: {
           Accept: 'application/json'

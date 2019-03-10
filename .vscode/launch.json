@@ -3,8 +3,7 @@
     // Hover to view descriptions of existing attributes.
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
-    "configurations": [
-        {
+    "configurations": [{
             "type": "node",
             "request": "attach",
             "name": "Attach by Process ID",
@@ -21,7 +20,7 @@
             ],
             "preLaunchTask": "tsc-watch",
             "port": 9229,
-            "console": "integratedTerminal" ,
+            "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
             "timeout": 10000,
             "autoAttachChildProcesses": true
@@ -47,20 +46,36 @@
             "name": "Launch in Docker",
             "preLaunchTask": "tsc-watch",
             "runtimeExecutable": "npm",
-            "runtimeArgs": [ "run", "docker-debug" ],
+            "runtimeArgs": ["run", "docker-debug"],
             "port": 9222,
             "restart": true,
             "timeout": 60000,
             "localRoot": "${workspaceFolder}",
             "remoteRoot": "/server",
             "outFiles": [
-              "${workspaceFolder}/dist/**/*.js"
+                "${workspaceFolder}/dist/**/*.js"
             ],
             "skipFiles": [
-              "<node_internals>/**/*.js",
+                "<node_internals>/**/*.js",
             ],
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen"
-          }
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Mocha Current File",
+            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+            "args": [
+                "--no-timeouts",
+                "--colors",
+                "${file}",
+                "--require",
+                "ts-node/register"
+            ],
+            "console": "integratedTerminal",
+            "sourceMaps": true,
+            "internalConsoleOptions": "neverOpen"
+        }
     ]
 }

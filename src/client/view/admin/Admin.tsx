@@ -1,8 +1,7 @@
 import * as React from 'react'
-import { Component } from 'react'
 import { Route, Switch } from 'react-router-dom'
 import { AdminWireFrame } from './NavigationRoles'
-import { E404 } from '../common/errors'
+import { E404 } from '../common/Errors'
 import Wetty from './Wetty'
 import Stats from './Stats'
 

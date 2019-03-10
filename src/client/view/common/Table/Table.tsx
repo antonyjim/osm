@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Component, MouseEventHandler } from 'react'
 import API, { TowelRecord } from '../../lib/API'
-import { E404 } from '../errors'
+import { E404 } from '../Errors'
 import { TableRow } from './TableRow'
 import { TableSearch } from './TableSearch'
 

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Component } from 'react'
-import Can from '../common/rbac'
+import { Can } from '../common/Can'
 
 interface IDashboardState {
   menus: string[]
@@ -172,6 +172,24 @@ export default class Dashboard extends Component<{}, IDashboardState> {
             </Can>
           </div>
           <div className='col-md-4'>
+            <div className='card mt-4 h-50'>
+              <div className='card-body'>
+                <h4 className='card=title'>Sales Stats</h4>
+                <div className='row'>
+                  <div className='col-sm-6'>
+                    <ul>
+                      <li>Deliveries MTD:</li>
+                    </ul>
+                  </div>
+                  <div className='col' />
+                  <div className='col-sm-6'>
+                    <ul>
+                      <li>5</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
             <div className='card mt-4 h-50'>
               <div className='card-header bg-gold'>
                 <h4 className='card-title'>News</h4>

@@ -1,7 +1,16 @@
 import * as React from 'react'
+import { ITHQWindowNamespace } from '../typings'
 interface ICanProps {
   if?: boolean
   role?: string
+}
+
+declare global {
+  interface Window {
+    MonacoEnvironment: any
+    $: JQuery
+    THQ: ITHQWindowNamespace
+  }
 }
 
 function Can(props: React.PropsWithChildren<ICanProps>) {
@@ -26,8 +35,8 @@ function Can(props: React.PropsWithChildren<ICanProps>) {
   if (validate()) {
     return <>{props.children}</>
   } else {
-    return <></>
+    return null
   }
 }
 
-export default Can
+export { Can }

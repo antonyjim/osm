@@ -406,7 +406,7 @@ CREATE TABLE doc_prod_accept (
         ON UPDATE CASCADE,
 
     FOREIGN KEY (dmShipToNonsig)
-        REFERENCES sys_addr_shop=(stnId)
+        REFERENCES sys_addr_shop(stnId)
         ON DELETE RESTRICT
         ON UPDATE CASCADE
 );
@@ -417,7 +417,8 @@ CREATE TABLE sys_db_object (
 	name VARCHAR(40) NOT NULL, -- Name of the table
 	label VARCHAR(40) NOT NULL, -- Friendly name
     plural VARCHAR(40),
-	description VARCHAR(80) -- Short Description
+	description VARCHAR(80), -- Short Description
+    customer_bound BOOLEAN
 ) CHARSET = utf8;
 
 CREATE TABLE sys_db_dictionary (

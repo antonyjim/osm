@@ -1,5 +1,5 @@
 import * as React from 'react'
-import Alert from './alerts'
+import { Alert } from './Alerts'
 import $ from 'jquery'
 
 interface IPillProps {

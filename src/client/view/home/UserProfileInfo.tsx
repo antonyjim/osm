@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { Component } from 'react'
 import { Field, SelectField } from '../common/FormControls'
-import $ from 'jquery'
-import Alert from '../common/alerts'
+import * as $ from 'jquery'
+import { Alert } from '../common/Alerts'
 import API from '../lib/API'
 
 export class UserProfileInfo extends Component<any, any> {

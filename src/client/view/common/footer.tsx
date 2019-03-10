@@ -1,5 +1,5 @@
 import * as React from 'react'
-export default function Footer() {
+export function Footer() {
   return (
     <>
       <footer className='bg-dark'>
@@ -57,5 +57,3 @@ export default function Footer() {
     </>
   )
 }
-
-export { Footer }

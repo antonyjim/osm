@@ -5,7 +5,7 @@
 
 // Node Modules
 import { cpus, arch, freemem, hostname, platform, totalmem } from 'os'
-import { Querynator } from './connection'
+import { Querynator, simpleQuery } from './connection'
 
 // NPM Modules
 
@@ -41,10 +41,7 @@ export async function getServerStatus() {
       poolLimit: process.env.DB_POOL_LIMIT || '1',
       dbName: process.env.DB_DB || 'thq',
       NODE_ENV: process.env.NODE_ENV || 'development',
-      version: await new Querynator().createQ(
-        { query: 'SELECT VERSION() AS VERSION' },
-        'CALL'
-      )
+      version: await simpleQuery('SELECT VERSION() AS VERSION')
     }
   }
 }

@@ -23,4 +23,4 @@ function Alert(props: IAlert) {
   )
 }
 
-export default Alert
+export { Alert }
