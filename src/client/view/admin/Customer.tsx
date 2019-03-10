@@ -1,7 +1,8 @@
-import React, { Component } from 'react'
+import * as React from 'react'
+import { Component } from 'react'
 import Pills from '../common/PillLayout'
 import API from '../lib/API'
-import Table from '../common/Table/Table'
+import Table from '../common/Table'
 import { Checkbox, Field } from '../common/FormControls'
 
 export default class Customer extends Component<any, any> {

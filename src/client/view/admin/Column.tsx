@@ -1,20 +1,11 @@
-import React, { Component } from 'react'
+import * as React from 'react'
+import { Component } from 'react'
 import Pills from '../common/PillLayout'
-import Table from '../common/Table/Table'
+import { Table } from '../common/Table'
 import API from '../lib/API'
 import { ColumnGeneralInformation } from './ColumnInfo'
 
 function ColumnTables(props: { sys_id: string }) {
-  const handleChange = (e) => {
-    const state = { ...this.state }
-    state.fields[e.target.id] = e.target.value
-    if (!state.modifiedFields.includes(e.target.id)) {
-      state.modifiedFields.push(e.target.id)
-    }
-    state.saveDisabled = {}
-    this.setState(state)
-  }
-
   return (
     <Table
       table='sys_db_dictionary_list'
@@ -51,10 +42,10 @@ export default class Column extends Component<any, any> {
         'required_on_update',
         'required_on_create'
       ],
-      loaded: this.state.sys_id !== 'new' ? false : true
+      loaded: props.id !== 'new' ? false : true
     }
 
-    if (this.state.sys_id !== 'new') {
+    if (props.id !== 'new') {
       this.getInfo()
     }
   }
@@ -109,17 +100,6 @@ export default class Column extends Component<any, any> {
         body: <ColumnTables sys_id={this.state.sys_id} />
       }
     }
-    return (
-      <>
-        {this.state.loaded && (
-          <Pills
-            pills={pills}
-            handleChange={this.handleChange.bind(this)}
-            handleSubmit={this.handleSubmit}
-            {...this.state}
-          />
-        )}
-      </>
-    )
+    return <>{this.state.loaded && <Pills pills={pills} {...this.state} />}</>
   }
 }

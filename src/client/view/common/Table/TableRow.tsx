@@ -1,6 +1,7 @@
-import React, { MouseEventHandler, ChangeEventHandler } from 'react'
-import { Checkbox } from '../FormControls/Checkbox'
+import * as React from 'react'
+import { MouseEventHandler, ChangeEventHandler } from 'react'
 import { Link } from 'react-router-dom'
+import { Checkbox } from '../FormControls'
 
 interface ITableRowProps {
   showSelect?: boolean
@@ -78,7 +79,7 @@ export function TableRow(props: ITableRowProps) {
               title={props.cols[col].label}
               className='align-middle'
             >
-              {this.props.cells[col + '_display'] || ''}
+              {props.cells[col + '_display'] || ''}
             </Link>
           </td>
         )
@@ -97,14 +98,15 @@ export function TableRow(props: ITableRowProps) {
         cells.push(
           <td
             key={'table-data-' + ~~(Math.random() * 100000)}
-            style={{ textAlign: 'center', fontSize: '20px' }}
+            style={{ textAlign: 'center' }}
           >
             <Checkbox
               id={col + ~~(Math.random() * 100000)}
               name={col}
               value={props.cells[props.id]}
               onChange={props.handleInlineUpdate}
-              label={props.cols[col].label}
+              title={props.cols[col].label}
+              label=''
               checked={val === true || val === 1}
             />
           </td>
@@ -113,7 +115,7 @@ export function TableRow(props: ITableRowProps) {
         cells.push(
           <td
             key={'table-data-' + ~~(Math.random() * 100000)}
-            style={{ textAlign: 'center', fontSize: '20px' }}
+            style={{ textAlign: 'center' }}
             className='align-middle'
           >
             {val === true || (val === 1 && '×') || ''}

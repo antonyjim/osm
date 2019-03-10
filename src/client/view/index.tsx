@@ -1,4 +1,5 @@
-import React, { Component, Suspense } from 'react'
+import * as React from 'react'
+import { Component, Suspense } from 'react'
 import { render } from 'react-dom'
 import '@babel/polyfill'
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
@@ -7,35 +8,36 @@ import { E404, ErrorBoundary } from './common/errors'
 import UserProfile from './home/UserProfile'
 import Customer from './admin/Customer'
 import Navigation from './common/Navigation'
-import SuspenseLoader from './common/Suspense'
 import Dashboard from './home/dashboard'
-import TableList from './common/ListView'
+import { TableList } from './common/ListView'
 import Form from './common/Form'
 import $ from 'jquery'
 
 const Admin = React.lazy(() => import('./admin/Admin'))
 
+const SuspenseLoader = (
+  <div className='jumbotron'>
+    <h1 className='display-4'>Loading...</h1>
+  </div>
+)
+
 declare global {
   interface Window {
     MonacoEnvironment: any
+    $: JQuery
     THQ: {
       user: {
         privs: string[]
       }
 
       menus: string[]
+      loadingInterval?: number
       token: string
     }
-
-    loadingInterval: number
   }
 }
 
-interface IAppProps {
-  path: string
-}
-
-class App extends Component<IAppProps, {}> {
+class App extends Component<{}, {}> {
   constructor(props) {
     super(props)
     const token = this.qs('token')
@@ -59,6 +61,7 @@ class App extends Component<IAppProps, {}> {
       }
     }
     setInterval(this.refreshToken, 300000)
+    console.log('Constructed App')
   }
 
   private qs(key) {
@@ -99,8 +102,9 @@ class App extends Component<IAppProps, {}> {
   }
 
   public render() {
-    if (window.loadingInterval) {
-      clearInterval(window.loadingInterval)
+    console.log('Calling render')
+    if (window.THQ.loadingInterval) {
+      clearInterval(window.THQ.loadingInterval)
       const container = document.getElementById('loading-container')
       if (container) {
         container.parentElement.removeChild(
@@ -139,7 +143,5 @@ class App extends Component<IAppProps, {}> {
   }
 }
 
-render(
-  <App path={document.location.pathname} />,
-  document.querySelector('#root')
-)
+console.log('Calling render DOM')
+render(<App />, document.querySelector('#root'))

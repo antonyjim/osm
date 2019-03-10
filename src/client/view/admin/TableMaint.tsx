@@ -1,8 +1,9 @@
-import React, { Component } from 'react'
+import * as React from 'react'
+import { Component } from 'react'
 import Pills from '../common/PillLayout'
 import { Field } from '../common/FormControls'
 import API from '../lib/API'
-import Table from '../common/Table/Table'
+import Table from '../common/Table'
 
 class TableGeneralInformation extends Component<any, any> {
   constructor(props) {

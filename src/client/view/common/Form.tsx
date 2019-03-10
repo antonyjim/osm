@@ -1,4 +1,5 @@
-import React, { Component } from 'react'
+import * as React from 'react'
+import { Component } from 'react'
 import API, { TowelRecord } from '../lib/API'
 // import Customer from '../admin/Customer'
 import UserProfile from '../home/UserProfile'
@@ -26,7 +27,7 @@ export default class Form extends Component<any, any> {
       title: props.title,
       table: props.match.params.table,
       id: props.match.params.id,
-      loaded: false,
+      loaded: specialForms[props.match.params.table] ? true : false,
       modifiedFields: []
     }
   }

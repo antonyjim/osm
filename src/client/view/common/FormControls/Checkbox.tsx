@@ -10,13 +10,14 @@ interface ICheckboxProps {
   onChange: React.ChangeEventHandler
   label: string
   className?: string
+  title?: string
 }
 
 function Checkbox(props: ICheckboxProps) {
   return (
     !props.isHidden && (
       <div
-        className={'form-checkbox ' + props.className}
+        className={'form-checkbox ' + (props.className || '')}
         id={'check-' + props.id}
       >
         <input
@@ -27,6 +28,7 @@ function Checkbox(props: ICheckboxProps) {
           checked={!!props.checked}
           value={props.value}
           onChange={props.onChange}
+          title={props.title}
         />
         <label className='ml-2' htmlFor={props.id}>
           {props.label}

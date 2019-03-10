@@ -1,4 +1,5 @@
-import React, { Component, MouseEventHandler } from 'react'
+import * as React from 'react'
+import { Component, MouseEventHandler } from 'react'
 import API, { TowelRecord } from '../../lib/API'
 import { E404 } from '../errors'
 import { TableRow } from './TableRow'
@@ -56,10 +57,7 @@ interface ITableState {
 /**
  * Show a list view from a table prop
  */
-export default class Table extends Component<
-  any,
-  any
-> /* ITableProps, ITableState */ {
+export class Table extends Component<any, any> /* ITableProps, ITableState */ {
   /**
    * The options that can be passed to <Table/> are:
    * cols: an object describing the column headers
@@ -94,7 +92,10 @@ export default class Table extends Component<
       order: {},
       shownColumns: [],
       permissions: {},
-      args: flatArgs
+      args: flatArgs,
+      field: {
+        limit: props.limit || 25
+      }
     }
     if (!props.cols && !props.rows && props.table) this.getCols()
     // Retrieve the column information from /api/q/describe
@@ -206,7 +207,15 @@ export default class Table extends Component<
             permissions: response.permissions
           }
         } else {
-          throw new Error(response.errors[0].message)
+          if (response.errors) {
+            throw new Error(response.errors[0].message)
+          } else {
+            console.error(
+              new Error(
+                'Failed for some reason, but no error was in ther response'
+              )
+            )
+          }
         }
         return API.get({
           path: '/api/q/' + this.state.table,
@@ -302,7 +311,7 @@ export default class Table extends Component<
     new TowelRecord(this.state.table)
       .update(updateId, body)
       .then((res: any) => {
-        if (res.ok()) {
+        if (res && res.status === 204) {
           console.log('Updated')
         }
         this.updateRowById(updateId, key, checked)
@@ -449,6 +458,7 @@ export default class Table extends Component<
                 onSearchKeyDown={this.handleSearchKeyDown.bind(this)}
                 onSetCount={this.handleSetCount.bind(this)}
                 permissions={this.state.permissions}
+                table={this.state.table}
               />
             )}
             <div className='row'>

@@ -1,35 +1,44 @@
-import React, { Component } from 'react'
+import * as React from 'react'
 import Alert from './alerts'
 import $ from 'jquery'
 
-export default class Pills extends Component<any, any> {
-  constructor(props) {
-    super(props)
-    this.state = { ...props }
-    if (!props.pills) {
-      throw new Error(
-        'Pills must be provided as a prop to the <Pills /> Component.'
-      )
+interface IPillProps {
+  pills: {
+    [name: string]: {
+      id: string
+      label: string
+      body: JSX.Element
     }
-    if (props.handleLoad) props.handleLoad()
-    this.handlePillBodies()
   }
+}
 
-  private handleDblClick(e) {
+interface IMessages {
+  info?: [{ message: string }]
+  warnings?: [{ message: string }]
+  errors?: [{ message: string }]
+}
+
+export default function Pills(props: IPillProps) {
+  const pillAs = []
+  const pillBodies = []
+  const [messages, setMessages]: [
+    IMessages,
+    React.ComponentState
+  ] = React.useState({})
+
+  const handleDblClick = (e) => {
     console.log('Double clicked')
     e.target.children = <div>{e.target.innerText}</div>
 
-    $(document).on('click', this.handleOutsideClick.bind(this))
+    $(document).on('click', handleOutsideClick.bind(this))
   }
 
-  private handleOutsideClick(e) {
+  const handleOutsideClick = (e) => {
     console.log('Clicked on something else')
   }
 
-  private handlePillBodies() {
-    const pills = { ...this.state.pills }
-    const pillAs = []
-    const pillBodies = []
+  const handlePillBodies = () => {
+    const pills = { ...props.pills }
     Object.keys(pills).map((pill, key) => {
       if (key === 0) {
         // First pill is active by default
@@ -39,7 +48,7 @@ export default class Pills extends Component<any, any> {
               /* key * Date.now() + (~~Math.random() * 10000)*/ pills[pill].id +
               '-tab'
             }
-            onDoubleClick={this.handleDblClick.bind(this)}
+            onDoubleClick={handleDblClick.bind(this)}
             className='nav-link active'
             id={pills[pill].id + '-tab'}
             data-toggle='pill'
@@ -75,7 +84,7 @@ export default class Pills extends Component<any, any> {
               /* key * Date.now() + (~~Math.random() * 1000)*/ pills[pill].id +
               '-tab'
             }
-            onDoubleClick={this.handleDblClick.bind(this)}
+            onDoubleClick={handleDblClick.bind(this)}
             className='nav-link'
             id={pills[pill].id + '-tab'}
             data-toggle='pill'
@@ -106,7 +115,6 @@ export default class Pills extends Component<any, any> {
         )
       }
     })
-    this.setState({ pillBodies, pillAs })
   }
 
   /**
@@ -114,45 +122,52 @@ export default class Pills extends Component<any, any> {
    * across all components that utilize the bill layout
    * @param {Error} err Error message or raw error
    */
-  private handleErrorMessage(err) {
-    this.setState({ errorMessage: err.message })
+  const handleErrorMessage = (err: Error | string) => {
+    setMessages({
+      errors: [...messages.errors].concat([{ message: err.toString() }])
+    })
   }
 
   /**
    * Provide a simple, reusable interface to trigger alerts in the pill layout.
    * @param {string} message Alert to be displayed as a blue info message
    */
-  private handleStatusMessage(message) {
-    this.setState({ statusMessage: message })
+  const handleStatusMessage = (message) => {
+    setMessages({
+      info: [...messages.info].concat([{ message: message.toString() }])
+    })
   }
 
-  public render() {
-    return (
-      <div className='container-fluid' style={{ minHeight: '80vh' }}>
-        <div className='row mt-4'>
-          <div className='col-md-3 col-sm-12'>
-            <div
-              className='nav flex-column nav-pills'
-              id='v-pills'
-              role='tablist'
-              aria-orientation='vertical'
-            >
-              {this.state.pillAs}
-            </div>
+  handlePillBodies()
+  return (
+    <div className='container-fluid' style={{ minHeight: '80vh' }}>
+      <div className='row mt-4'>
+        <div className='col-md-3 col-sm-12'>
+          <div
+            className='nav flex-column nav-pills'
+            id='v-pills'
+            role='tablist'
+            aria-orientation='vertical'
+          >
+            {pillAs}
           </div>
-          <div className='col-md-9 col-sm-12 mb-5'>
-            <div className='tab-content' id='v-pill-tabContent'>
-              {this.state.errorMessage && (
-                <Alert alertType='danger' message={this.state.error} />
-              )}
-              {this.state.statusMessage && (
-                <Alert alertType='info' message={this.state.statusMessage} />
-              )}
-              {this.state.pillBodies}
-            </div>
+        </div>
+        <div className='col-md-9 col-sm-12 mb-5'>
+          <div className='tab-content' id='v-pill-tabContent'>
+            {messages.errors &&
+              messages.errors.map((errorsmessage) => {
+                return (
+                  <Alert alertType='info' message={errorsmessage.message} />
+                )
+              })}
+            {messages.info &&
+              messages.info.map((infomessage) => {
+                return <Alert alertType='info' message={infomessage.message} />
+              })}
+            {pillBodies}
           </div>
         </div>
       </div>
-    )
-  }
+    </div>
+  )
 }

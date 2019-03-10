@@ -1,4 +1,5 @@
-import React, { Component } from 'react'
+import * as React from 'react'
+import { Component } from 'react'
 import { ITablePermissions } from '../../typings'
 import Can from '../rbac'
 import { Link } from 'react-router-dom'
@@ -7,6 +8,7 @@ interface ITableSearchProps {
   onSearchKeyDown: (selectedColumn: string, searchString: string) => void
   permissions: ITablePermissions
   onSetCount: React.ChangeEventHandler
+  table: string
 }
 
 interface ITableSearchState {
@@ -28,7 +30,7 @@ export class TableSearch extends Component<
       options: props.options,
       table: props.table,
       searchQ: '',
-      col: props.options[0].props.value || ''
+      col: props.value || ''
     }
   }
 
@@ -99,7 +101,7 @@ export class TableSearch extends Component<
           <div className='col-1'>
             <Link
               className='btn btn-primary'
-              to={`/f/${this.state.table.slice(0, -5)}/new`}
+              to={`/f/${this.props.table.slice(0, -5)}/new`}
             >
               New
             </Link>

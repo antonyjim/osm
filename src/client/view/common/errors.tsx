@@ -1,5 +1,5 @@
-import React, { Component } from 'react'
-
+import * as React from 'react'
+import { Component } from 'react'
 interface IErrorBoundary {
   hasError: boolean
   error?: Error

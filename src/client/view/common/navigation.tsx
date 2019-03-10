@@ -1,10 +1,10 @@
-import React, { Component } from 'react'
+import * as React from 'react'
+import { Component } from 'react'
 import { fetchLogin } from '../lib/getNavigation'
 import Can from './rbac'
 
 // React-Router
 import { Link } from 'react-router-dom'
-import { pathMatcher } from '../router/history'
 
 interface INavigationLink {
   href: string
@@ -170,13 +170,6 @@ export default class Navigation extends Component<any, any> {
                   <a className='dropdown-item' href='/logout'>
                     Logout
                   </a>
-                  <button
-                    onClick={pathMatcher}
-                    className='dropdown-item'
-                    value='/foo/:bar'
-                  >
-                    Match
-                  </button>
                 </div>
               </li>
             </ul>

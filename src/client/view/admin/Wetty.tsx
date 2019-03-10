@@ -1,5 +1,4 @@
-import React from 'react'
-
+import * as React from 'react'
 function Wetty() {
   const wettyHeight =
     $(window).innerHeight() -

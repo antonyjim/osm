@@ -8,11 +8,12 @@ let config = {
     watch: true,
     entry: {
         "main": APP_DIR + '/index.tsx',
-        "editor.worker": 'monaco-editor/esm/vs/editor/editor.worker.js',
-        "json.worker": 'monaco-editor/esm/vs/language/json/json.worker',
-        "css.worker": 'monaco-editor/esm/vs/language/css/css.worker',
-        "html.worker": 'monaco-editor/esm/vs/language/html/html.worker',
-        "ts.worker": 'monaco-editor/esm/vs/language/typescript/ts.worker',
+        // "monaco.editor": 'monaco-editor/esm/vs/editor/editor.api.js',
+        // "editor.worker": 'monaco-editor/esm/vs/editor/editor.worker.js',
+        // "json.worker": 'monaco-editor/esm/vs/language/json/json.worker',
+        // "css.worker": 'monaco-editor/esm/vs/language/css/css.worker',
+        // "html.worker": 'monaco-editor/esm/vs/language/html/html.worker',
+        // "ts.worker": 'monaco-editor/esm/vs/language/typescript/ts.worker',
     },
     mode: 'development',
     devtool: 'inline-source-map',
@@ -29,7 +30,7 @@ let config = {
     },
     module: {
         rules: [{
-                test: /\.jsx?/,
+                test: /\.js/,
                 include: APP_DIR,
                 loader: 'babel-loader'
             },
@@ -63,8 +64,10 @@ let config = {
     },
     externals: {
         jquery: 'jQuery',
+        $: 'jQuery',
         react: 'React',
-        'react-dom': 'ReactDOM'
+        'react-dom': 'ReactDOM',
+        bootstrap: 'bootstrap'
     }
 }
 

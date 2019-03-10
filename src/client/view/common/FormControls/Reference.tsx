@@ -60,6 +60,7 @@ function Reference(props) {
         </div>
       </div>
       <SearchModal
+        title={props.references}
         table={props.references}
         handleSelectKey={handleSelection.bind(this)}
       />

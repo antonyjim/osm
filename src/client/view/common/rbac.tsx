@@ -1,5 +1,4 @@
-import React from 'react'
-
+import * as React from 'react'
 interface ICanProps {
   if?: boolean
   role?: string
@@ -15,9 +14,9 @@ function Can(props: React.PropsWithChildren<ICanProps>) {
   }
 
   function validate() {
-    if (props.role && privs && privs.indexOf(this.props.role) > -1) {
+    if (props.role && privs && privs.indexOf(props.role) > -1) {
       return true
-    } else if (this.props.if) {
+    } else if (props.if) {
       return true
     } else {
       return false

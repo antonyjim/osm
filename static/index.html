@@ -9,8 +9,7 @@
     <link rel="icon" href="/public/images/favicon.ico">
     <title>Tire-HQ</title>
     <script src="/public/scripts/third-party/jq.js"></script>
-    <script src="/public/scripts/third-party/react.development.js"></script>
-    <script src="/public/scripts/third-party/react-dom.development.js"></script>
+
 </head>
 
 <body>
@@ -65,7 +64,9 @@
             Loading something <span id="loadingMessage">great...</span>
         </div>
         <script id="loadingScript">
-            let loadingInterval = setInterval(showMessage, 2000)
+            window.THQ = {
+                loadingInterval: setInterval(showMessage, 2000)
+            }
 
             function showMessage() {
                 var messages = [
@@ -89,8 +90,10 @@
     <!--Bundled file and JS-->
     <!-- <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script> -->
     <script src="/public/scripts/third-party/bootstrap.js"></script>
-    <script src="/public/scripts/bundles/main.bundle.js"></script>
+    <script src="/public/scripts/third-party/react.development.js"></script>
+    <script src="/public/scripts/third-party/react-dom.development.js"></script>
     <script src="/public/scripts/bundles/vendors~main.bundle.js"></script>
+    <script src="/public/scripts/bundles/main.bundle.js"></script>
 </body>
 
 </html>

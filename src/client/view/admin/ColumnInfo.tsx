@@ -11,7 +11,7 @@ interface IColumnGeneralInformationProps {
 
 interface IColumnGeneralInformationState {
   fields: any
-  sysId: string
+  sys_id: string
   modifiedFields: string[]
   saveDisabled?: { disabled?: string }
   type?: string
@@ -26,7 +26,7 @@ export class ColumnGeneralInformation extends Component<
   constructor(props) {
     super(props)
     this.state = {
-      sysId: props.sys_id,
+      sys_id: props.sys_id,
       fields: { ...props.info },
       modifiedFields: [],
       saveDisabled: { disabled: 'disabled' }
@@ -50,12 +50,12 @@ export class ColumnGeneralInformation extends Component<
     if (this.props.sys_id === 'new') {
       this.createNew(e)
     } else {
-      const body = { sys_id: this.state.sysId }
+      const body = { sys_id: this.state.sys_id }
       this.state.modifiedFields.forEach((field) => {
         body[field] = this.state.fields[field]
       })
       API.patch({
-        path: '/api/q/sys_db_dictionary/' + this.state.sysId,
+        path: '/api/q/sys_db_dictionary/' + this.state.sys_id,
         body,
         query: { fields: this.props.fields.join(',') }
       })

@@ -1,6 +1,7 @@
-import React, { Component } from 'react'
+import * as React from 'react'
+import { Component } from 'react'
 import API from '../lib/API'
-import Table from '../common/Table/Table'
+import Table from '../common/Table'
 import Pills from '../common/PillLayout'
 import $ from 'jquery'
 import { UserProfileInfo } from './UserProfileInfo'
@@ -238,19 +239,7 @@ class UserProfile extends Component<any, any> {
         )
       }
     }
-    return (
-      <>
-        {this.state.loaded && (
-          <Pills
-            pills={pills}
-            handleFocus={this.handleFocus.bind(this)}
-            handleChange={this.handleChange.bind(this)}
-            handleSubmit={this.handleSubmit}
-            {...this.state}
-          />
-        )}
-      </>
-    )
+    return <>{this.state.loaded && <Pills pills={pills} />}</>
   }
 }
 

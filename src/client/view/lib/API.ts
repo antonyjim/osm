@@ -1,4 +1,63 @@
-import $ from 'jquery'
+declare global {
+  interface Window {
+    MonacoEnvironment: any
+    $: JQuery
+    THQ: {
+      user: {
+        privs: string[]
+      }
+
+      menus: string[]
+      loadingInterval?: number
+      token: string
+    }
+  }
+}
+
+interface IAPIResponse {
+  errors?: [
+    {
+      message: string
+      field?: string
+    }
+  ]
+  warnings?: [
+    {
+      message: string
+      field?: string
+    }
+  ]
+  info?: [
+    {
+      message: string
+    }
+  ]
+  data?: {
+    [table: string]: {
+      [column: string]: string
+    }
+  }
+  meta?: {
+    from: number
+    to: number
+  }
+}
+
+function makeFetchRequest(uri: string, init?: RequestInit) {
+  return new Promise((resolveRequest) => {
+    fetch(uri, init)
+      .then((res) => {
+        if (res.status === 204) return res
+        return res.json()
+      })
+      .then((data: IAPIResponse) => {
+        return resolveRequest(data)
+      })
+      .catch((err) => {
+        throw err
+      })
+  })
+}
 
 function flattenQuery(queryObject) {
   const queryStringArray = [`token=${window.THQ.token || ''}`]
@@ -17,56 +76,34 @@ function flattenQuery(queryObject) {
 const API = {
   // Define constants
   TABLE: '/api/q/',
-  post: (
-    {
-      path,
-      query,
-      body
-    }: {
-      path: string
-      query?: { [key: string]: string }
-      body: { [key: string]: string }
-    },
-    cb?
-  ) => {
+  post: ({
+    path,
+    query,
+    body
+  }: {
+    path: string
+    query?: { [key: string]: string }
+    body: { [key: string]: string }
+  }) => {
     const authPath = path + '?' + flattenQuery(query)
     console.log('Making POST request to ' + authPath)
-    if (cb !== null && cb !== undefined) {
-      $.ajax(authPath, {
+
+    return new Promise((resolve, reject) => {
+      makeFetchRequest(authPath, {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json'
         },
         method: 'POST',
-        data: JSON.stringify(body),
-        success: (res) => {
-          cb(null, res)
-        },
-        error: (err) => {
-          cb(err)
-        }
+        body: JSON.stringify(body)
       })
-    } else {
-      return new Promise((resolve, reject) => {
-        $.ajax(authPath, {
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json'
-          },
-          method: 'POST',
-          data: JSON.stringify(body),
-          success: (res) => {
-            res.ok = () => {
-              return true
-            }
-            resolve(res)
-          },
-          error: (err) => {
-            throw err
-          }
+        .then((data: IAPIResponse) => {
+          resolve(data)
         })
-      })
-    }
+        .catch((err) => {
+          throw err
+        })
+    })
   },
 
   get: (
@@ -81,35 +118,20 @@ const API = {
   ) => {
     const authPath = path + '?' + flattenQuery(query)
     console.log('Making GET request to ' + authPath)
-    if (cb !== null && cb !== undefined) {
-      $.ajax(authPath, {
+    return new Promise((resolveRequest, reject) => {
+      makeFetchRequest(authPath, {
         headers: {
           Accept: 'application/json'
         },
-        method: 'GET',
-        success: (res) => {
-          cb(null, res)
-        },
-        error: (err) => {
-          cb(err)
-        }
+        method: 'GET'
       })
-    } else {
-      return new Promise((resolve, reject) => {
-        $.ajax(authPath, {
-          headers: {
-            Accept: 'application/json'
-          },
-          method: 'GET',
-          success: (res) => {
-            resolve(res)
-          },
-          error: (err) => {
-            throw err
-          }
+        .then((data: IAPIResponse) => {
+          resolve(data)
         })
-      })
-    }
+        .catch((err) => {
+          throw err
+        })
+    })
   },
 
   /**
@@ -117,58 +139,25 @@ const API = {
    * @param {object} query Query string parameters in object format
    * @param {object} body Body of update parameters
    */
-  put: ({ path, query, body }, cb?) => {
+  put: ({ path, query, body }) => {
     const authPath = path + '?' + flattenQuery(query)
-    if (cb !== null && cb !== undefined) {
-      $.ajax(authPath, {
+
+    return new Promise((resolve, reject) => {
+      makeFetchRequest(authPath, {
         headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json'
+          Accept: 'application/json',
+          'Content-Type': 'application/json'
         },
-        data: JSON.stringify(body),
         method: 'PUT',
-        success: (res) => {
-          cb(null, res)
-        },
-        error: (err) => {
-          cb(err)
-        }
+        body: JSON.stringify(body)
       })
-    } else {
-      return new Promise((resolve, reject) => {
-        $.ajax(authPath, {
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json'
-          },
-          data: JSON.stringify(body),
-          method: 'PUT',
-          statusCode: {
-            204: () => {
-              resolve({
-                info: [
-                  {
-                    message: 'Record updated'
-                  }
-                ]
-              })
-            },
-            201: () => {
-              resolve({
-                info: [
-                  {
-                    message: 'Record inserted'
-                  }
-                ]
-              })
-            }
-          },
-          error: (err) => {
-            throw err
-          }
+        .then((data: IAPIResponse) => {
+          resolve(data)
         })
-      })
-    }
+        .catch((err) => {
+          throw err
+        })
+    })
   },
   /**
    * @param {string} path URL to make request to
@@ -188,54 +177,22 @@ const API = {
     cb?
   ) => {
     const authPath = path + '?' + flattenQuery(query)
-    if (cb !== null && cb !== undefined) {
-      $.ajax(authPath, {
+    return new Promise((resolve, reject) => {
+      makeFetchRequest(authPath, {
         headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json'
+          Accept: 'application/json',
+          'Content-Type': 'application/json'
         },
-        data: JSON.stringify(body),
         method: 'PATCH',
-        success: (res) => {
-          if (res) {
-            res.okay = () => {
-              return true
-            }
-            cb(null, res)
-          }
-        },
-        error: (err) => {
-          cb(err)
-        }
+        body: JSON.stringify(body)
       })
-    } else {
-      return new Promise((resolve, reject) => {
-        $.ajax(authPath, {
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json'
-          },
-          data: JSON.stringify(body),
-          method: 'PATCH',
-          statusCode: {
-            204: (res) => {
-              resolve({
-                statusCode: 204,
-                okay: () => {
-                  return true
-                }
-              })
-            },
-            201: (res) => {
-              resolve(res)
-            }
-          },
-          error: (err) => {
-            throw err
-          }
+        .then((data: IAPIResponse) => {
+          resolve(data)
         })
-      })
-    }
+        .catch((err) => {
+          throw err
+        })
+    })
   }
 }
 

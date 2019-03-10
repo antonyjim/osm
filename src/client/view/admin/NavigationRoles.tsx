@@ -1,7 +1,6 @@
-import React, { Component, useState } from 'react'
-import { submitForm } from '../lib/formSubmission'
+import * as React from 'react'
+import { Component, useState } from 'react'
 import Alert from '../common/alerts'
-import { E401 } from '../common/errors'
 import Pills from '../common/PillLayout'
 import $ from 'jquery'
 import { SelectField, Field } from '../common/FormControls'
@@ -16,6 +15,7 @@ declare global {
 
       menus: string[]
       token: string
+      loadingInterval?: number
     }
 
     loadingInterval: number
@@ -750,16 +750,6 @@ function AdminWireFrame(props) {
     modifiedFields: []
   })
 
-  function handleChange(e) {
-    const oldFields = { ...this.state.fields }
-    const modifiedFields = this.state.modifiedFields
-    oldFields[e.target.id] = e.target.value
-    if (modifiedFields.indexOf(e.target.id) === -1) {
-      modifiedFields.push(e.target.id)
-    }
-    setFields({ fields: oldFields, modifiedFields })
-  }
-
   const comps = {
     // routes: {
     //   id: 'routes',
@@ -774,7 +764,7 @@ function AdminWireFrame(props) {
   }
   return (
     <>
-      <Pills pills={comps} handleChange={handleChange.bind(this)} {...fields} />
+      <Pills pills={comps} />
     </>
   )
 }
