@@ -458,6 +458,7 @@ export class Table extends Component<any, any> /* ITableProps, ITableState */ {
                 onSearchKeyDown={this.handleSearchKeyDown.bind(this)}
                 onSetCount={this.handleSetCount.bind(this)}
                 permissions={this.state.permissions}
+                options={this.state.fieldSearchSelections}
                 table={this.state.table}
               />
             )}

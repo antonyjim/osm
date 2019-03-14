@@ -1,23 +1,28 @@
 import * as React from 'react'
 import API from '../lib/API'
 import { Field } from '../common/FormControls/TextField'
+import { IServerStats } from '../../../server/types/server'
 
 export default function Stats() {
-  let loaded = false
-  const getStats = () => {
+  const [stats, setStats]: [
+    IServerStats,
+    React.Dispatch<IServerStats>
+  ] = React.useState()
+
+  React.useEffect(() => {
     API.get({ path: '/stats' })
-      .then((stats) => {
-        console.log(stats)
-        loaded = true
+      .then((serverStats: IServerStats) => {
+        console.log(serverStats)
+        setStats({ ...serverStats, loaded: true })
       })
       .catch((err: Error) => {
         console.error(err)
       })
-  }
+  }, [])
 
   return (
     <>
-      {loaded && (
+      {stats && stats.loaded && (
         <div className='row m-5'>
           <div className='col' />
           <div className='col-lg-6 col-md-8 col-sm-11'>
@@ -26,20 +31,20 @@ export default function Stats() {
             <Field
               id='cpuCount'
               name='cpuCount'
-              value={this.state.stats.os.host}
+              value={stats.os.host}
               label='Node Hostname'
               type='text'
               attributes={{ readOnly: 'readonly' }}
             />
             <Field
-              value={this.state.stats.os.OS}
+              value={stats.os.OS}
               label='Operating System'
               name='os'
               type='text'
               attributes={{ readOnly: 'readonly' }}
             />
             <Field
-              value={this.state.stats.os.cpuCount}
+              value={stats.os.cpuCount}
               label='CPU Count'
               type='text'
               name='cpu'
@@ -47,18 +52,17 @@ export default function Stats() {
             />
             <Field
               name='architecture'
-              value={this.state.stats.os.architecture}
+              value={stats.os.architecture}
               label='Architecture'
               type='text'
               attributes={{ readOnly: 'readonly' }}
             />
             <Field
-              value={~~(this.state.stats.os.openMem / 1e6)}
+              value={~~(stats.os.openMem / 1e6)}
               label={
                 'Available Memory (MB) (' +
                 ~~(
-                  (~~(this.state.stats.os.openMem / 1e6) /
-                    ~~(this.state.stats.os.totMem / 1e6)) *
+                  (~~(stats.os.openMem / 1e6) / ~~(stats.os.totMem / 1e6)) *
                   100
                 ) +
                 '%)'
@@ -68,12 +72,12 @@ export default function Stats() {
               attributes={{ readOnly: 'readonly' }}
             />
             <Field
-              value={~~(this.state.stats.os.processMem.rss / 1e6)}
+              value={~~(stats.os.processMem.rss / 1e6)}
               label={
                 'Memory Used By Node (' +
                 ~~(
-                  (~~(this.state.stats.os.processMem.rss / 1e6) /
-                    ~~(this.state.stats.os.totMem / 1e6)) *
+                  (~~(stats.os.processMem.rss / 1e6) /
+                    ~~(stats.os.totMem / 1e6)) *
                   100
                 ) +
                 '%)'
@@ -84,14 +88,14 @@ export default function Stats() {
             />
             <Field
               id='openMem'
-              value={~~(this.state.stats.os.totMem / 1e6)}
+              value={~~(stats.os.totMem / 1e6)}
               label='Total Memory (MB)'
               type='text'
               name='openMem'
               attributes={{ readOnly: 'readonly' }}
             />
             <Field
-              value={this.state.stats.db.NODE_ENV}
+              value={stats.db.NODE_ENV}
               label='Node Environment'
               type='text'
               name='env'
@@ -101,21 +105,21 @@ export default function Stats() {
             <h2>Database Status</h2>
             <hr />
             <Field
-              value={this.state.stats.db.version[0].VERSION}
+              value={stats.db.version[0].VERSION}
               label='Version'
               type='text'
               name='dbVersion'
               attributes={{ readOnly: 'readonly' }}
             />
             <Field
-              value={this.state.stats.db.poolLimit}
+              value={stats.db.poolLimit}
               label='Pool Limit'
               type='text'
               name='poolLimit'
               attributes={{ readOnly: 'readonly' }}
             />
             <Field
-              value={this.state.stats.db.dbName}
+              value={stats.db.dbName}
               label='Database Name'
               type='text'
               name='dbName'

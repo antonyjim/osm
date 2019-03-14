@@ -6,6 +6,7 @@
 // Node Modules
 import { cpus, arch, freemem, hostname, platform, totalmem } from 'os'
 import { Querynator, simpleQuery } from './connection'
+import { IServerStats } from '../types/server'
 
 // NPM Modules
 
@@ -19,7 +20,7 @@ export function LoginException(message: string, details?: Error) {
   this.error = true
 }
 
-export async function getServerStatus() {
+export async function getServerStatus(): Promise<IServerStats> {
   const cpuCount = cpus().length
   const architecture = arch()
   const processMem = process.memoryUsage()
@@ -38,7 +39,7 @@ export async function getServerStatus() {
       processMem
     },
     db: {
-      poolLimit: process.env.DB_POOL_LIMIT || '1',
+      poolLimit: parseInt(process.env.DB_POOL_LIMIT, 10) || 1,
       dbName: process.env.DB_DB || 'thq',
       NODE_ENV: process.env.NODE_ENV || 'development',
       version: await simpleQuery('SELECT VERSION() AS VERSION')

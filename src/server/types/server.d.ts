@@ -27,6 +27,31 @@ export interface IResponseMessage {
   data?: any
 }
 
+export interface IServerStats {
+  loaded?: boolean
+  os: {
+    cpuCount: number
+    architecture: string
+    openMem: number
+    totMem: number
+    host: string
+    OS: string
+    processMem: {
+      rss: number
+      heapTotal: number
+      heapUsed: number
+      external: number
+    }
+  }
+  db: {
+    poolLimit: number
+    dbName: string
+    NODE_ENV: string
+    version: any[]
+    // version: { VERSION: string }[]
+  }
+}
+
 declare global {
   namespace Express {
     interface Request {

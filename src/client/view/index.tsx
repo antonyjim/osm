@@ -22,6 +22,7 @@ declare global {
     MonacoEnvironment: any
     $: JQuery
     THQ: ITHQWindowNamespace
+    monaco: any
   }
 }
 

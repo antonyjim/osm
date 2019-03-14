@@ -9,6 +9,7 @@ interface ITableSearchProps {
   permissions: ITablePermissions
   onSetCount: React.ChangeEventHandler
   table: string
+  options: [any]
 }
 
 interface ITableSearchState {
@@ -27,7 +28,6 @@ export class TableSearch extends Component<
     super(props)
     this.state = {
       limit: props.limit || 25,
-      options: props.options,
       table: props.table,
       searchQ: '',
       col: props.value || ''
@@ -59,7 +59,7 @@ export class TableSearch extends Component<
                   value={this.state.col}
                   id='col'
                 >
-                  {this.state.options}
+                  {this.props.options}
                 </select>
               </div>
               <input

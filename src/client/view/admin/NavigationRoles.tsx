@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Component, useState } from 'react'
 import { Alert } from '../common/Alerts'
 import Pills from '../common/PillLayout'
-import $ from 'jquery'
+import * as $ from 'jquery'
 import { SelectField, Field } from '../common/FormControls'
 import { ITHQWindowNamespace } from '../typings'
 

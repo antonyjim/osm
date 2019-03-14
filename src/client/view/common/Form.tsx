@@ -8,7 +8,8 @@ import { TableModifier } from '../admin/TableMaint'
 // import Authorization from '../admin/Authorization'
 import { Checkbox, Field } from './FormControls'
 import Pills from './PillLayout'
-const Hook = React.lazy(() => import('../admin/Hook'))
+import { Hook } from './../admin/Hook'
+// const Hook = React.lazy(() => import('../admin/Hook'))
 
 const specialForms = {
   //   sys_customer: Customer,

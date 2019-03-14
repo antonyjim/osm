@@ -174,18 +174,16 @@ export default class Dashboard extends Component<{}, IDashboardState> {
           <div className='col-md-4'>
             <div className='card mt-4 h-50'>
               <div className='card-body'>
-                <h4 className='card=title'>Sales Stats</h4>
+                <h4 className='card-title'>Sales Stats</h4>
                 <div className='row'>
-                  <div className='col-sm-6'>
-                    <ul>
-                      <li>Deliveries MTD:</li>
-                    </ul>
+                  <div className='col-9'>
+                    <p className='text-left'>Deliveries MTD:</p>
+                    <p className='text-left'>ECommerce Deliveries:</p>
                   </div>
-                  <div className='col' />
-                  <div className='col-sm-6'>
-                    <ul>
-                      <li>5</li>
-                    </ul>
+                  <div className='col-3'>
+                    <p className='text-right'>5</p>
+
+                    <p className='text-right'>105</p>
                   </div>
                 </div>
               </div>
