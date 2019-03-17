@@ -9,9 +9,9 @@
 import { Router, Request, Response } from 'express'
 
 // Local Modules
-import { NavigationSettings } from '../../types/roles'
+import { NavigationSettings } from '../../../types/roles'
 import { Navigation } from '../../lib/users/navigation'
-import { IStatusMessage } from '../../types/server'
+import { IStatusMessage } from '../../../types/server'
 import { Roles } from '../../lib/users/roles'
 import { Querynator } from '../../lib/connection'
 

@@ -16,7 +16,6 @@ import * as monaco from 'monaco-editor'
 
 // import 'monaco-editor/esm/vs/basic-languages/javascript/javascript.contribution'
 // import 'monaco-editor/esm/vs/language/typescript/monaco.contribution'
-import * as React from 'react'
 import { useEffect } from 'react'
 
 export default function(props: { value: string }) {
@@ -30,7 +29,7 @@ export default function(props: { value: string }) {
     return () => {
       monaco.editor.getModels()[0].dispose()
     }
-  })
+  }, [])
 
   self.MonacoEnvironment = {
     getWorkerUrl: (moduleId, label) => {

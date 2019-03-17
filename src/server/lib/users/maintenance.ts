@@ -10,14 +10,14 @@ import * as uuid from 'uuid'
 
 // Local Modules
 import { Validation } from '../validation'
-import { IStatusMessage } from '../../types/server'
+import { IStatusMessage } from '../../../types/server'
 import { getPool, simpleQuery } from '../connection'
 import {
   sendConfirmation,
   sendFailedPasswordReset,
   sendPasswordReset
 } from '../email/emails'
-import { NonsigTypes } from '../../types/nonsig'
+import { NonsigTypes } from '../../../types/nonsig'
 
 // Constants and global variables
 const pool = getPool()

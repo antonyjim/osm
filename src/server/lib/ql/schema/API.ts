@@ -19,7 +19,7 @@ import {
   genericTableUpdate,
   genericTableCreate
 } from './GeneralTable'
-import { IFieldError } from '../../../types/api'
+import { IFieldError } from '../../../../types/api'
 
 // Constants and global variables
 

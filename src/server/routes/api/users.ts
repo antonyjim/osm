@@ -17,12 +17,35 @@ import { Log } from '../../lib/log'
 const useradminRoutes = Router()
 
 useradminRoutes.get('/me', (req: Request, res: Response) => {
+  // new User({ req, res })
+  //   .profile()
+  //   .then((me) => {
+  //     res.status(200).json({
+  //       errors: null,
+  //       data: me
+  //     })
+  //   })
+  //   .catch((err) => {
+  //     new Log(err.message).error()
+  //     res.status(500).json({
+  //       errors: [
+  //         {
+  //           message: err.message
+  //         }
+  //       ],
+  //       data: null
+  //     })
+  //   })
   new User({ req, res })
-    .profile()
-    .then((me) => {
+    .profile(req.query.sys_id)
+    .then(([user, logs, customers]) => {
       res.status(200).json({
         errors: null,
-        data: me
+        data: {
+          user,
+          logs,
+          customers
+        }
       })
     })
     .catch((err) => {
@@ -45,10 +68,14 @@ useradminRoutes.get('/myusers', (req: Request, res: Response) => {
 useradminRoutes.get('/profile', (req: Request, res: Response) => {
   new User({ req, res })
     .profile(req.query.sys_id)
-    .then((me) => {
+    .then(([user, logs, customers]) => {
       res.status(200).json({
         errors: null,
-        data: me
+        data: {
+          user: user[0],
+          logs,
+          customers
+        }
       })
     })
     .catch((err) => {

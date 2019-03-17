@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Alert } from './Alerts'
 import $ from 'jquery'
+import { ContextMenu, IContextMenuProps } from './ContextMenu'
 
 interface IPillProps {
   pills: {
@@ -18,6 +19,11 @@ interface IMessages {
   errors?: [{ message: string }]
 }
 
+function InlineModifier(props: { val: string }) {
+  // const handleOkay = (e) => {}
+  return true
+}
+
 export default function Pills(props: IPillProps) {
   const pillAs = []
   const pillBodies = []
@@ -25,6 +31,34 @@ export default function Pills(props: IPillProps) {
     IMessages,
     React.ComponentState
   ] = React.useState({})
+
+  const [showContext, setContextShown]: [
+    IContextMenuProps,
+    React.ComponentState
+  ] = React.useState({
+    show: false,
+    location: { x: 0, y: 0 }
+  })
+
+  const handleRename = (e) => {
+    setContextShown({ show: false })
+    console.log(showContext.originalTarget)
+  }
+
+  const handleAuxClick = (e: React.MouseEvent) => {
+    console.log('Right clicked')
+    console.log(e)
+    e.persist()
+    e.preventDefault()
+    setContextShown({
+      show: true,
+      location: {
+        x: e.pageX,
+        y: e.pageY
+      },
+      originalTarget: e.target
+    })
+  }
 
   const handleDblClick = (e) => {
     console.log('Double clicked')
@@ -117,6 +151,18 @@ export default function Pills(props: IPillProps) {
     })
   }
 
+  const contextOptions: [
+    {
+      text: string
+      action: React.MouseEventHandler
+    }
+  ] = [
+    {
+      text: 'Rename',
+      action: handleRename
+    }
+  ]
+
   /**
    * Provide a simple, reusable interface to trigger error alerts
    * across all components that utilize the bill layout
@@ -148,6 +194,7 @@ export default function Pills(props: IPillProps) {
             id='v-pills'
             role='tablist'
             aria-orientation='vertical'
+            onContextMenu={handleAuxClick}
           >
             {pillAs}
           </div>
@@ -168,6 +215,9 @@ export default function Pills(props: IPillProps) {
           </div>
         </div>
       </div>
+      {showContext.show && (
+        <ContextMenu {...showContext} options={contextOptions} />
+      )}
     </div>
   )
 }

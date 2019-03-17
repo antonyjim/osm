@@ -23,7 +23,8 @@
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
             "timeout": 10000,
-            "autoAttachChildProcesses": true
+            "autoAttachChildProcesses": true,
+            "restart": true
         },
         {
             "type": "node",

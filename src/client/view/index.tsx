@@ -141,4 +141,15 @@ console.log(
   'Calling render DOM %s milliseconds after pageload',
   parsedAt - window.THQ.pageLoad
 )
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker
+    .register('/public/sw.js', { scope: '/public/' })
+    .then((reg) => {
+      console.log('Registration succeeded with scope ' + reg.scope)
+    })
+    .catch((err) => {
+      console.error('Serviceworker registration failed with error ' + err)
+    })
+}
 render(<App />, document.querySelector('#root'))

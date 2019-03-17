@@ -8,7 +8,7 @@
 // NPM Modules
 
 // Local Modules
-import { IValidationFields } from '../types/server'
+import { IValidationFields } from '../../types/server'
 
 // Constants and global variables
 

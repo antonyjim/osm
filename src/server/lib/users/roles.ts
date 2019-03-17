@@ -9,8 +9,8 @@
 
 // Local Modules
 import { getPool } from '../connection'
-import { IRolePermissions } from '../../types/roles'
-import { IStatusMessage } from '../../types/server'
+import { IRolePermissions } from '../../../types/roles'
+import { IStatusMessage } from '../../../types/server'
 import { Validation } from '../validation'
 import uuid = require('uuid')
 

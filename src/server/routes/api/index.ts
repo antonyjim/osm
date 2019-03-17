@@ -16,11 +16,11 @@ import {
 } from '../middleware/authentication'
 import { adminRoutes } from './admin'
 import { Login, getToken } from './../../lib/users/login'
-import { IStatusMessage } from '../../types/server'
+import { IStatusMessage } from '../../../types/server'
 import { jwtSecret } from '../../lib/connection'
 import { q } from './q'
 import bodyParser = require('body-parser')
-import { UserTypes } from '../../types/users'
+import { UserTypes } from '../../../types/users'
 import useradminRoutes from './users'
 import descriptions from './descriptions'
 

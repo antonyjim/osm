@@ -14,10 +14,10 @@ import { Pool, PoolConfig, createPool, PoolConnection } from 'mysql'
 import { getTables } from './ql/schema/constructSchema'
 import { Log } from './log'
 import { isBoolean } from './validation'
-import { IResponseMessage } from '../types/server'
+import { IResponseMessage } from '../../types/server'
 import { resolve } from 'path'
 import loadModule from './ql/hooks/loadHook'
-import { IFieldError } from '../types/api'
+import { IFieldError } from '../../types/api'
 
 // Constants and global variables
 const poolConfig: PoolConfig = {
@@ -40,7 +40,7 @@ function getPool(): Pool {
   return pool
 }
 
-function simpleQuery(query: string, params?: any[]): Promise<any[]> {
+async function simpleQuery(query: string, params?: any[]): Promise<any> {
   return new Promise((resolveQuery) => {
     getPool().getConnection((err, conn) => {
       if (err) conn.release()

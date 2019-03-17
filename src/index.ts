@@ -3,7 +3,7 @@
  */
 
 import { readFile } from 'fs'
-import routes from './app'
+import routes from './server/app'
 
 readFile('./dot.env', { encoding: 'utf8' }, (err: Error, data: string) => {
   if (err) {

@@ -14,8 +14,8 @@ import { Router, Request, Response } from 'express'
 
 // Local Modules
 import { getRoleAuthorizedNavigation } from '../../lib/navigation/navigation'
-import { IStatusMessage, IResponseMessage } from '../../types/server'
-import { UserTypes } from '../../types/users'
+import { IStatusMessage, IResponseMessage } from '../../../types/server'
+import { UserTypes } from '../../../types/users'
 import { Login, getToken } from '../../lib/users/login'
 import { Log } from '../../lib/log'
 import User, { forgotPassword } from '../../lib/ql/users/users'

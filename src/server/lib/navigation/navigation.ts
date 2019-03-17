@@ -10,8 +10,8 @@
 
 // Local Modules
 import { getPool, Querynator } from './../connection'
-import { IStatusMessage } from '../../types/server'
-import { IRolePermissions } from '../../types/roles'
+import { IStatusMessage } from '../../../types/server'
+import { IRolePermissions } from '../../../types/roles'
 import { Log } from '../log'
 
 // Constants and global variables

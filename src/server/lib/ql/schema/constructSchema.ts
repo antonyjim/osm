@@ -117,38 +117,42 @@ export default async function constructSchema() {
           tableName,
           'col_order'
         ]
-        const tableColumns = await simpleQuery(statement, params) // I know I'm trying to avoid static queries, but come on
+        const tableColumns = await simpleQuery(statement, params).catch((err) =>
+          console.error(err)
+        ) // I know I'm trying to avoid static queries, but come on
         tables[tableName].tableId = tableColumns[0].table_name
-        tableColumns.map((col) => {
-          tables[tableName].columns[col.column_name] = {
-            type: sqlToJsType(col.type),
-            nullable: col.nullable,
-            readonly: col.readonly,
-            maxLength: col.len,
-            reference: col.reference_id_display || false,
-            refTable: col.reference_id_table_name_display,
-            label: col.label,
-            visible: col.visible || false,
-            requiredUpdate: col.required_on_update,
-            requiredCreate: col.required_on_create
-          }
-          if (col.default_view) {
-            tables[tableName].defaultFields.push(col.column_name)
-          }
-          if (col.reference_id_display) {
-            references.push({
-              col: col.column_name,
-              table: tableName,
+        if (tableColumns) {
+          tableColumns.map((col) => {
+            tables[tableName].columns[col.column_name] = {
+              type: sqlToJsType(col.type),
+              nullable: col.nullable,
+              readonly: col.readonly,
+              maxLength: col.len,
+              reference: col.reference_id_display || false,
               refTable: col.reference_id_table_name_display,
-              refCol: col.reference_id_display
-            })
-          }
+              label: col.label,
+              visible: col.visible || false,
+              requiredUpdate: col.required_on_update,
+              requiredCreate: col.required_on_create
+            }
+            if (col.default_view) {
+              tables[tableName].defaultFields.push(col.column_name)
+            }
+            if (col.reference_id_display) {
+              references.push({
+                col: col.column_name,
+                table: tableName,
+                refTable: col.reference_id_table_name_display,
+                refCol: col.reference_id_display
+              })
+            }
 
-          if (col.display_field) {
-            tables[tableName].displayField = col.column_name
-          }
-          if (col.update_key) tables[tableName].primaryKey = col.column_name
-        })
+            if (col.display_field) {
+              tables[tableName].displayField = col.column_name
+            }
+            if (col.update_key) tables[tableName].primaryKey = col.column_name
+          })
+        }
         return Promise.resolve()
       })()
         .then(() => {

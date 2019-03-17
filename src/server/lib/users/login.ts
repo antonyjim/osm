@@ -11,7 +11,7 @@ import { sign } from 'jsonwebtoken'
 
 // Local Modules
 import { getPool, jwtSecret, Querynator } from '../connection'
-import { UserTypes } from '../../types/users'
+import { UserTypes } from '../../../types/users'
 import { LoginException } from '../utils'
 import { Log } from '../log'
 

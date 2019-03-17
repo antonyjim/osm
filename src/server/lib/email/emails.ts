@@ -11,7 +11,7 @@ import { sign } from 'jsonwebtoken'
 
 // Local Modules
 import { jwtSecret, Querynator, simpleQuery } from '../connection'
-import { IEmailMessage } from '../../types/mailmessage'
+import { IEmailMessage } from '../../../types/mailmessage'
 
 // Constants and global variables
 

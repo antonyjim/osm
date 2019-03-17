@@ -12,10 +12,10 @@ import * as uuid from 'uuid'
 
 // Local Modules
 import { getPool } from '../connection'
-import { UserTypes } from '../../types/users'
-import { NavigationSettings, IRolePermissions } from '../../types/roles'
+import { UserTypes } from '../../../types/users'
+import { NavigationSettings, IRolePermissions } from '../../../types/roles'
 import { Validation } from '../validation'
-import { IStatusMessage } from '../../types/server'
+import { IStatusMessage } from '../../../types/server'
 
 // Constants and global variables
 const pool = getPool()

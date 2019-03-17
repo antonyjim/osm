@@ -36,9 +36,6 @@
     "@types/mysql": "^2.15.5",
     "@types/node": "^10.12.18",
     "@types/nodemailer": "^4.6.5",
-    "@types/passport": "^0.4.7",
-    "@types/passport-jwt": "^3.0.1",
-    "@types/passport-local": "^1.0.33",
     "@types/react": "^16.8.6",
     "@types/react-dom": "^16.8.2",
     "@types/react-router-dom": "^4.3.1",
@@ -78,13 +75,14 @@
     "postinstall": "tsc -p .",
     "build": "webpack",
     "watch": "tsc -w -p .",
-    "debug": "nodemon --legacy-watch --watch ./dist --inspect=127.0.0.1:9229 --nolazy ./dist/",
+    "debug": "nodemon --legacy-watch --watch ./dist --inspect=127.0.0.1:9229 --nolazy -i ./dist/lib/hooks ./dist/",
     "docker-debug": "docker-compose up",
     "client-watch": "webpack --watch",
     "start": "tsc && node dist/app.js",
     "lint": "tslint -c ./tslint.json 'src/**/*.{ts,tsx}'",
     "lint-fix": "tslint -c tslint.json 'src/**/*.{ts,tsx}'",
-    "test": "mocha --no-timeouts --colors ./test/index.ts --require ts-node/register"
+    "test": "mocha --no-timeouts --colors ./test/index.ts --require ts-node/register",
+    "tsc": "tsc"
   },
   "author": "",
   "license": "ISC"

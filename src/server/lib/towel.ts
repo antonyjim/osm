@@ -49,7 +49,7 @@ export default class Towel extends Querynator {
     console.log('[TOWEL] Regenerating Hooks')
   }
 
-  public static async rawQuery(query, params?) {
+  public static async rawQuery(query, params?): Promise<any> {
     return new Promise((resolve) => {
       simpleQuery(query, params)
         .then((rows) => {
@@ -58,6 +58,7 @@ export default class Towel extends Querynator {
         .catch((err) => {
           console.error('[TOWEL] ERROR OCCURRED AT RAW QUERY')
           console.error('[TOWEL] \n' + err.message)
+          throw err
         })
     })
   }

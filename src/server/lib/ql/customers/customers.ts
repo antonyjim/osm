@@ -1,4 +1,4 @@
-import { Querynator } from './../../connection'
+import { Querynator, simpleQuery } from './../../connection'
 
 class Customer extends Querynator {
   constructor(context, queryFields) {
@@ -18,10 +18,10 @@ class Customer extends Querynator {
     return await this.byFields({ fields }, pagination)
   }
 
-  public async getMyCustomers() {
+  public async getMyCustomers(userId: string = this.context.req.auth.u) {
     const query = 'SELECT nsaNonsig FROM sys_user_nsacl WHERE nsaUserId = ?'
-    const params = [this.context.req.auth.u]
-    return await this.createQ({ query, params }, 'CALL')
+    const params = [userId]
+    return await simpleQuery(query, params)
   }
 }
 

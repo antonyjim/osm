@@ -12,8 +12,8 @@ import { sign, verify } from 'jsonwebtoken'
 
 // Local Modules
 import { validateEndpoint } from './../../lib/navigation/navigation'
-import { IStatusMessage } from './../../types/server'
-import { UserTypes } from '../../types/users'
+import { IStatusMessage } from './../../../types/server'
+import { UserTypes } from '../../../types/users'
 import { jwtSecret } from '../../lib/connection'
 
 // Constants and global variables

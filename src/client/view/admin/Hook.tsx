@@ -1,9 +1,20 @@
 import * as React from 'react'
 import { Field, Reference } from '../common/FormControls'
 import { TowelRecord } from '../lib/API'
+import { ITHQWindowNamespace } from '../typings'
 // import Monaco from '../common/Monaco'
 const Monaco = React.lazy(() => import('./../common/Monaco'))
 // import * as monaco from 'monaco-editor'
+
+// Handle pesky window types
+declare global {
+  interface Window {
+    MonacoEnvironment: any
+    $: JQuery
+    THQ: ITHQWindowNamespace
+    monaco: any
+  }
+}
 
 export function Hook(props: { id: string }) {
   const [hookInfo, setHookInfo] = React.useState({
@@ -59,12 +70,16 @@ module.exports = function(sysId, action, incomingFields) {
         if (res && res.data && res.data[hookInfo.table]) {
           const state = { ...hookInfo }
           for (const field in res.data[hookInfo.table]) {
-            if (field === 'code') {
-              window.monaco.editor
-                .getModels()[0]
-                .setValue(res.data[hookInfo.table][field])
+            // if (field === 'code') {
+            //   window.monaco.editor
+            //     .getModels()[0]
+            //     .setValue(res.data[hookInfo.table][field])
+            //   state[field] = res.data[hookInfo.table][field]
+            // } else {
+            if (res.data[hookInfo.table][field]) {
               state[field] = res.data[hookInfo.table][field]
             }
+            // }
           }
           setHookInfo(state)
         }
@@ -100,19 +115,20 @@ module.exports = function(sysId, action, incomingFields) {
       })
     }
     TowelQuery.then((res) => {
-      if (res.okay()) {
+      if (res.okay() || res.status === 204) {
         console.log('Created or updated')
       }
     }).catch((err) => {
       console.error(err)
     })
   }
-
-  if (props.id !== 'new') getData()
-
   const getEditorValue = () => {
     return window.monaco.editor.getModels()[0].getValue()
   }
+
+  React.useEffect(() => {
+    if (props.id !== 'new') getData()
+  }, [])
 
   return (
     <form className='row'>
@@ -156,7 +172,7 @@ module.exports = function(sysId, action, incomingFields) {
             className='col-lg-6 col-md-12'
             label='Hook'
           />
-          <Monaco value={hookInfo.code} />
+          {hookInfo.code && <Monaco value={hookInfo.code} />}
         </div>
       </div>
       <div className='col' />

@@ -20,11 +20,12 @@
             "mysql",
             "uuid",
             "bcrypt",
-            "jsonwebtoken"
+            "jsonwebtoken",
+            "nodemailer"
         ]
     },
     "include": [
-        "src/server/**/*"
+        "src/server/**/*", "src/index.ts"
     ],
     "exclude": [
         "node_modules",

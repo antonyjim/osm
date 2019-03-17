@@ -11,7 +11,7 @@ import { sign, verify } from 'jsonwebtoken'
 import uuid = require('uuid')
 
 // Local Modules
-import { Querynator, jwtSecret } from './../../connection'
+import { Querynator, jwtSecret, simpleQuery } from './../../connection'
 import { Nonsig } from '../../users/maintenance'
 import { Validation } from '../../validation'
 import {
@@ -19,7 +19,7 @@ import {
   sendFailedPasswordReset,
   sendPasswordReset
 } from '../../email/emails'
-import { UserTypes } from '../../../types/users'
+import { UserTypes } from '../../../../types/users'
 import { Customer } from '../customers/customers'
 import { resolve } from 'path'
 import { Log } from '../../log'
@@ -84,49 +84,65 @@ class User extends Querynator {
 
   public async profile(userId?: string) {
     const user = userId || this.context.req.auth.u
-    let detailsRetrieved: number = 0
-    let info: any
-    let logs: any
-    let customers: any
-    this.on('info', () => {
-      detailsRetrieved++
-      if (detailsRetrieved === 3) {
-        return {
-          user: info[0],
-          logs,
-          customers
-        }
-      }
-    })
-    this.createQ(
-      {
-        query: 'SELECT * FROM sys_user_list WHERE sys_id = ?',
-        params: [user]
-      },
-      'CALL'
-    )
-      .then((details) => {
-        info = details
-        this.emit('info')
-        return (async () =>
-          new Log(this.context, {
-            table: this.tableName,
-            primaryKey: this.primaryKey
-          }).get([], user))()
-      })
-      .then((logDetails) => {
-        logs = logDetails
-        this.emit('info')
-        return (async () => new Customer(this.context, null).getMyCustomers())()
-      })
-      .then((customerDetails) => {
-        customers = customerDetails
-        this.emit('info')
-      })
-      .catch((e) => {
-        new Log(e.message).error()
-        this.emit('info')
-      })
+    return await Promise.all([
+      await simpleQuery('SELECT * FROM sys_user_list WHERE sys_id = ?', [user]),
+      await new Log(this.context, {
+        table: this.tableName,
+        primaryKey: this.primaryKey
+      }).get([], user),
+      await new Customer(this.context, null).getMyCustomers(user)
+    ])
+    // return {
+    //   logs: await new Log(this.context, {
+    //     table: this.tableName,
+    //     primaryKey: this.primaryKey
+    //   }).get([], user),
+    //   user: simpleQuery('SELECT * FROM sys_user_list WHERE sys_id = ?', [user]),
+    //   customers: await new Customer(this.context, null).getMyCustomers(user)
+    // }
+    // return new Promise((resolve) => {
+    //   const user = userId || this.context.req.auth.u
+    //   // let detailsRetrieved: number = 0
+    //   let info: any
+    //   let logs: any
+    //   // let customers: any
+    //   // this.on('info', () => {
+    //   //   detailsRetrieved++
+    //   //   if (detailsRetrieved === 3) {
+    //   //     return {
+    //   //       user: info[0],
+    //   //       logs,
+    //   //       customers
+    //   //     }
+    //   //   }
+    //   // })
+    //   simpleQuery('SELECT * FROM sys_user_list WHERE sys_id = ?', [user])
+    //     .then((details) => {
+    //       info = details
+    //       // this.emit('info')
+    //       return new Log(this.context, {
+    //         table: this.tableName,
+    //         primaryKey: this.primaryKey
+    //       }).get([], user)
+    //     })
+    //     .then((logDetails) => {
+    //       logs = logDetails
+    //       // this.emit('info')
+    //       return new Customer(this.context, null).getMyCustomers(user)
+    //     })
+    //     .then((customers) => {
+    //       return resolve({
+    //         user: info[0],
+    //         logs,
+    //         customers
+    //       })
+    //     })
+    //     .catch((e) => {
+    //       new Log(e.message).error()
+    //       return resolve(null)
+    //       // this.emit('info')
+    //     })
+    // })
   }
 
   /**

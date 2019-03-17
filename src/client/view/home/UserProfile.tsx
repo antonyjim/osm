@@ -37,7 +37,7 @@ class UserProfile extends Component<any, any> {
         userPassConfirmation: 'thisisnotanactualpassword'
       },
       modifiedFields: [],
-      sys_id: props.match.params.id || false,
+      sys_id: props.id || false,
       logs: [],
       logCols: {
         Time: {
@@ -85,15 +85,18 @@ class UserProfile extends Component<any, any> {
         if (response.errors) throw response.errors
         const state = { ...this.state.fields }
         const customers = []
-        if (response.data.customers) {
+        if (response && response.data && response.data.customers) {
           response.data.customers.map((customer) => {
             customers.push(customer.nsaNonsig)
           })
         }
-        Object.keys(response.data.user).map((field) => {
-          state[field] = response.data.user[field]
-        })
-        state.notificationNonsig = response.data.user.userDefaultNonsig
+        if (response.data && response.data.user) {
+          Object.keys(response.data.user).map((field) => {
+            state[field] = response.data.user[field]
+          })
+          state.notificationNonsig = response.data.user.userDefaultNonsig
+        }
+
         this.setState({
           fields: state,
           logs: response.data.logs,
