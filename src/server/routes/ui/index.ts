@@ -28,7 +28,7 @@ uiRoutes.get('/logout', (req: Request, res: Response) => {
   res.cookie('token', null)
   res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' })
   const fileStream = createReadStream(
-    resolve(__dirname, '../../../static/login.html')
+    resolve(__dirname, '../../../../static/login.html')
   )
   fileStream.on('data', (data) => {
     res.write(data)
@@ -48,7 +48,7 @@ uiRoutes.get('/stats', (req: Request, res: Response) => {
 uiRoutes.get('/wetty', (req: Request, res: Response) => {
   res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' })
   const fileStream = createReadStream(
-    resolve(__dirname, '../../../static/wettyError.html')
+    resolve(__dirname, '../../../../static/wettyError.html')
   )
   fileStream.on('data', (data) => {
     res.write(data)
@@ -63,7 +63,7 @@ uiRoutes.get('*', (req: Request, res: Response) => {
   if (req.auth.iA && req.auth.u) {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' })
     const fileStream = createReadStream(
-      resolve(__dirname, '../../../static/index.html')
+      resolve(__dirname, '../../../../static/index.html')
     )
     fileStream.on('data', (data) => {
       res.write(data)
@@ -75,7 +75,7 @@ uiRoutes.get('*', (req: Request, res: Response) => {
   } else {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' })
     const fileStream = createReadStream(
-      resolve(__dirname, '../../../static/login.html')
+      resolve(__dirname, '../../../../static/login.html')
     )
     fileStream.on('data', (data) => {
       res.write(data)

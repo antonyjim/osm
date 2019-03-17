@@ -336,7 +336,7 @@ export class Table extends Component<any, any> /* ITableProps, ITableState */ {
       nextOffset = this.state.count - this.state.field.limit
     } else {
       // Next page
-      nextOffset = this.state.field.limit
+      nextOffset = this.state.from + this.state.field.limit
     }
 
     API.get({

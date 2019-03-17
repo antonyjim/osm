@@ -59,7 +59,7 @@ export function sqlToJsType(type: string) {
 
 export default async function constructSchema() {
   return new Promise(async (resolve) => {
-    if (tables) return tables
+    if (tables) return resolve(tables)
     tables = {}
     const tableConstructorEmitter = new EventEmitter()
     const gotTables: any[] | void = await simpleQuery('SELECT ??, ?? FROM ??', [
@@ -68,7 +68,7 @@ export default async function constructSchema() {
       SYS_DB_OBJECT
     ])
     if (!Array.isArray(gotTables)) {
-      return new Error('No tables found')
+      throw new Error('No tables found')
     }
     gotTables.map((tableInfo, i) => {
       ;(async () => {
@@ -199,6 +199,6 @@ export function getTables() {
     return tables
   } else {
     constructSchema()
-    throw new Error('Tables missing. Please try again now.')
+    return false
   }
 }

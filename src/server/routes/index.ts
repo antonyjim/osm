@@ -15,6 +15,8 @@ import { apiRoutes } from './api/index'
 import { uiRoutes } from './ui/index'
 import { staticRoutes } from './static'
 import { Log, RequestLog } from '../lib/log'
+import { rawGen } from '../lib/ql/schema/dbSchemaGen'
+import { constructForms } from '../lib/ql/schema/constructForms'
 
 // Constants and global variables
 const router = Router()
@@ -31,6 +33,17 @@ router.use(bodyParser.json())
 router.use('/api', apiRoutes)
 // Parse cookies on routes that return a webpage
 router.use(cookieParser())
+
+router.get('/testtest', (req, res) => {
+  rawGen()
+  res.status(200).send()
+})
+
+router.get('/formGen', (req, res) => {
+  constructForms()
+  res.status(200).send()
+})
+
 router.use('/', uiRoutes)
 
 export { router }

@@ -70,7 +70,7 @@ class Log {
         )
       }
       query = 'INSERT INTO ?? (??, log_message, log_severity) VALUES (?, ?, 5)'
-      params.push([this.tableName.slice(0, -4), this.primaryKey].join('_'))
+      params.push(this.primaryKey)
       params.push(objectId)
     } else {
       query = 'INSERT INTO ?? (log_message, log_severity) VALUES (?, 5)'

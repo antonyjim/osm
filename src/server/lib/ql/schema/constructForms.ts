@@ -7,10 +7,12 @@
 // Node Modules
 
 // NPM Modules
+import { v4 as uuid } from 'uuid'
 
 // Local Modules
 import { getTables } from './constructSchema'
 import Towel from '../../towel'
+import { simpleQuery } from '../../connection'
 
 // Constants and global variables
 let forms = null
@@ -39,10 +41,12 @@ export async function constructForms() {
 
   if (customForms && customForms.data && customForms.data.length !== 0) {
     console.log('Fetched form')
+    return
   }
   const allTables = getTables()
   console.log('[FORM_GENERATOR] Got Tables')
   for (const table of Object.keys(allTables)) {
+    const initialFormId = uuid()
     const title = await new Towel({
       table: 'sys_db_object',
       fields: ['plural']
@@ -57,8 +61,25 @@ export async function constructForms() {
         const thisCol = allTables[table].columns[col]
         thisCol.name = col || ''
         theseCols.push(thisCol)
+        const fieldId = await simpleQuery(
+          'SELECT t1.sys_id AS id FROM sys_db_dictionary t1 LEFT JOIN sys_db_object t2 ON t1.table_name = t2.sys_id WHERE t2.name = ? AND t1.column_name = ? LIMIT 1',
+          [table, col]
+        )
+        const initialForm = [
+          uuid(), // sys_id
+          initialFormId, // form_id
+          table, // form_name
+          'general_information', // tab_name
+          'General Information', // tab_title
+          null, // table_ref
+          null, // table_args,
+          fieldId[0].id // field_name
+        ]
+        simpleQuery('INSERT INTO sys_form VALUES ?', [[initialForm]])
+        console.log(initialForm)
       }
     }
+
     allForms[table] = {
       title: title.plural || '',
       tabs: [

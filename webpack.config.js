@@ -1,5 +1,5 @@
 const path = require('path')
-const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin')
+// const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin')
 
 let BUILD_DIR = path.resolve(__dirname, 'public/scripts/bundles/')
 let APP_DIR = path.resolve(__dirname, 'src/client/view')
@@ -65,21 +65,21 @@ let config = {
             chunks: 'all'
         }
     },
-    plugins: [
-        new MonacoWebpackPlugin({
-            languages: [
-                'javascript',
-                'typescript'
-            ]
-        })
-    ],
+    // plugins: [
+    //     new MonacoWebpackPlugin({
+    //         languages: [
+    //             'javascript',
+    //             'typescript'
+    //         ]
+    //     })
+    // ],
     externals: {
         jquery: 'jQuery',
         $: 'jQuery',
         react: 'React',
         'react-dom': 'ReactDOM',
         bootstrap: 'bootstrap',
-        // 'monaco-editor': 'monaco'
+        'monaco-editor': 'monaco'
     }
 }
 

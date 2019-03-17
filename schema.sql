@@ -515,9 +515,9 @@ CREATE TABLE sys_authorization (
         ON UPDATE CASCADE
 );
 
-CREATE TABLE sys_forms (
+CREATE TABLE sys_form (
     PRIMARY KEY(sys_id),
-    sys_id INT AUTO_INCREMENT,
+    sys_id CHAR(36),
     form_id CHAR(36),
     form_name VARCHAR(40),
     tab_name VARCHAR(40),
@@ -532,7 +532,7 @@ CREATE TABLE sys_forms (
         ON UPDATE CASCADE,
     
     FOREIGN KEY(field_name)
-        REFERENCES sys_db_object(sys_id)
+        REFERENCES sys_db_dictionary(sys_id)
         ON DELETE CASCADE
         ON UPDATE CASCADE
 ) CHARSET = utf8;

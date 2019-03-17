@@ -1,7 +1,7 @@
 import * as React from 'react'
 import API from '../lib/API'
 import { Field } from '../common/FormControls/TextField'
-import { IServerStats } from '../../../server/types/server'
+import { IServerStats } from '../../../types/server'
 
 export default function Stats() {
   const [stats, setStats]: [

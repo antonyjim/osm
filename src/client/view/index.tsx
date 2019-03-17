@@ -23,6 +23,7 @@ declare global {
     $: JQuery
     THQ: ITHQWindowNamespace
     monaco: any
+    require: any
   }
 }
 

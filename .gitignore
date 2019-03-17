@@ -64,7 +64,7 @@ typings/
 .next
 
 # Ignore bundles
-public/scripts/bundles/*.bundle.js
+public/scripts/bundles/**/*
 
 # Ignore third party JS libraries
 public/scripts/third-party/**/*

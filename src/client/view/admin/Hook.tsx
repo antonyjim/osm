@@ -2,8 +2,8 @@ import * as React from 'react'
 import { Field, Reference } from '../common/FormControls'
 import { TowelRecord } from '../lib/API'
 import { ITHQWindowNamespace } from '../typings'
-// import Monaco from '../common/Monaco'
-const Monaco = React.lazy(() => import('./../common/Monaco'))
+import { Monaco } from '../common/Monaco'
+// const Monaco = React.lazy(() => import('./../common/Monaco'))
 // import * as monaco from 'monaco-editor'
 
 // Handle pesky window types
@@ -90,7 +90,10 @@ module.exports = function(sysId, action, incomingFields) {
   }
 
   const handleChange = (e) => {
-    this.setState({ [e.target.name]: e.target.value })
+    const _state = { ...hookInfo }
+    _state[e.target.name] = e.target.value
+    setHookInfo(_state)
+    // setHookInfo({ [e.target.name]: e.target.value })
   }
 
   const handleSubmit = (e) => {

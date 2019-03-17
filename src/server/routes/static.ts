@@ -14,6 +14,6 @@ import * as express from 'express'
 // Constants and global variables
 const staticRoutes = express.Router()
 
-staticRoutes.use('/', express.static(join(__dirname, join('../../public'))))
+staticRoutes.use('/', express.static(join(__dirname, join('../../../public'))))
 
 export { staticRoutes }
