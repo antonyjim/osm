@@ -9,14 +9,26 @@ import { EventEmitter } from 'events'
 // Local Modules
 import { simpleQuery } from '../../connection'
 import Towel from '../../towel'
-import { inspect } from 'util'
+import { ITableField } from '../../../../types/forms'
 
 // Constants and global module variables
 const SYS_DB_OBJECT = 'sys_db_object'
 const SYS_DB_DICTIONARY = 'sys_db_dictionary'
 
-let tables = null
+let tables: ISchema = null
 const references = []
+
+interface ISchema {
+  [table: string]: {
+    primaryKey: string
+    tableId: string
+    displayField: string
+    defaultFields: string[]
+    columns: {
+      [col: string]: ITableField
+    }
+  }
+}
 
 /**
  * Converts an sql data type such as VARCHAR, INT
@@ -176,13 +188,15 @@ export default async function constructSchema() {
         const refCol = ref.refCol
         const colDetails = tables[refTable].columns[refCol]
         tables[colTable].columns[colName] = {
+          label: '',
+          visible: true,
           type: colDetails.type,
           readonly: colDetails.readonly,
           localRef: ref.col, // The name of the id for JOIN ON
           displayAs:
             tables[refTable].displayField || tables[refTable].primaryKey,
           reference: refCol, // Foreign reference column
-          tableRef: refTable // Foreign reference table
+          refTable // Foreign reference table
         }
         if (tables[colTable].defaultFields.indexOf(ref.col) > -1) {
           tables[colTable].defaultFields.push(colName)
@@ -199,6 +213,6 @@ export function getTables() {
     return tables
   } else {
     constructSchema()
-    return false
+    return tables
   }
 }

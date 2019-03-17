@@ -115,7 +115,7 @@ export default class Description extends Querynator {
 
         if (thisCol.reference) {
           const displayCol = thisTable.columns[col + '_display']
-          colDetails.refTable = displayCol.tableRef
+          colDetails.refTable = displayCol.refTable
           colDetails.boundTo = col + '_display'
         }
         formattedFields[thisCol.label] = colDetails

@@ -35,8 +35,9 @@ export function Monaco(props: { value: string }) {
     ]
     if (!scriptReady) {
       scripts.map((scriptSrc) => {
-        if (document.querySelector('script[src="' + scriptSrc + '"]'))
+        if (document.querySelector('script[src="' + scriptSrc + '"]')) {
           return true
+        }
         const scriptTag: HTMLScriptElement = document.createElement('script')
         scriptTag.addEventListener('load', (e) => {
           setTimeout(() => {

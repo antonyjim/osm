@@ -515,4 +515,44 @@ BEGIN
     END IF;
     RETURN 0;
 END //
+
+DROP PROCEDURE IF EXISTS create_table //
+CREATE PROCEDURE create_table (
+    IN _table_name VARCHAR(40),
+    IN _table_id CHAR(36)
+)
+BEGIN
+    DECLARE _existing_table_id CHAR(36);
+    DECLARE _statement VARCHAR(255);
+
+    SET _statement = CONCAT(
+        'CREATE TABLE IF NOT EXISTS ',
+        _table_name,
+        ' (',
+            'PRIMARY KEY(sys_id),',
+            'sys_id CHAR(36)',
+        ');'
+    );
+    PREPARE stmt FROM _statement;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+
+
+    SELECT sys_id 
+    INTO  _existing_table_id 
+    FROM sys_db_object
+    WHERE name = _table_name;
+
+    IF _existing_table_id IS NULL THEN
+        INSERT INTO sys_db_object
+        (sys_id, name, label)
+        VALUES (_table_id, _table_name, label);
+        -- RETURN _table_id;
+    ELSE
+        SET _table_id = _existing_table_id;
+    END IF;
+
+    SELECT * FROM sys_db_object WHERE sys_id = _table_id;
+
+END //
 DELIMITER ;

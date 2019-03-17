@@ -13,13 +13,71 @@ import { v4 as uuid } from 'uuid'
 import { getTables } from './constructSchema'
 import Towel from '../../towel'
 import { simpleQuery } from '../../connection'
+import { IFormDetails, ITableField, IFormTab } from '../../../../types/forms'
 
 // Constants and global variables
-let forms = null
+let forms: { [table: string]: IFormDetails } = {}
+
+interface IFormRow {
+  field_name: string
+  form_id: string
+  form_name: string
+  sys_id: string
+  tab_name: string
+  tab_title: string
+  table_args: string
+  table_ref: string
+  field_name_display: string
+  table_ref_display: string
+}
 
 export default function getForm(table) {
+  constructForms()
   if (forms && forms.hasOwnProperty('sys_form')) return forms[table]
-  else constructForms()
+  // else constructForms()
+  else return {}
+}
+
+async function serializeFormFromRow(row: IFormRow) {
+  const schema = getTables()
+  // allForms[table] = {
+  //   title: title.plural || '',
+  //   tabs: [
+  //     {
+  //       title: 'General Information',
+  //       name: 'General',
+  //       primaryKey: allTables[table].primaryKey,
+  //       fields: theseCols
+  //     }
+  //   ]
+  // }
+  const tab: IFormTab = {
+    name: row.tab_name,
+    title: row.tab_title,
+    primaryKey: schema[row.form_name].primaryKey
+  }
+  if (row.table_ref && row.table_args) {
+    tab.table = {
+      name: row.table_ref_display,
+      args: row.table_args
+    }
+  } else {
+    if (!tab.fields) tab.fields = {}
+    tab.fields[row.field_name_display] =
+      schema[row.form_name].columns[row.field_name_display]
+  }
+
+  if (!forms[row.form_name]) {
+    forms[row.form_name] = {
+      title: row.form_name,
+      table: row.form_name,
+      tabs: [tab]
+    }
+  } else if (forms[row.form_name].tabs) {
+    console.log('Do something here')
+  } else {
+    forms[row.form_name].tabs.push(tab)
+  }
 }
 
 export async function constructForms() {
@@ -35,12 +93,17 @@ export async function constructForms() {
       'table_ref',
       'table_args',
       'field_name',
-      'form_name'
+      'form_name',
+      'table_ref_display',
+      'field_name_display'
     ]
   }).get()
 
   if (customForms && customForms.data && customForms.data.length !== 0) {
-    console.log('Fetched form')
+    customForms.data.map((formDetail: IFormRow) => {
+      // const tableName = formDetail.form_name
+      serializeFormFromRow(formDetail)
+    })
     return
   }
   const allTables = getTables()
@@ -59,7 +122,7 @@ export async function constructForms() {
           col === allTables[table].primaryKey)
       ) {
         const thisCol = allTables[table].columns[col]
-        thisCol.name = col || ''
+        thisCol.label = col || ''
         theseCols.push(thisCol)
         const fieldId = await simpleQuery(
           'SELECT t1.sys_id AS id FROM sys_db_dictionary t1 LEFT JOIN sys_db_object t2 ON t1.table_name = t2.sys_id WHERE t2.name = ? AND t1.column_name = ? LIMIT 1',

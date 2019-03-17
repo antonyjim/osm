@@ -90,9 +90,9 @@ module.exports = function(sysId, action, incomingFields) {
   }
 
   const handleChange = (e) => {
-    const _state = { ...hookInfo }
-    _state[e.target.name] = e.target.value
-    setHookInfo(_state)
+    const state = { ...hookInfo }
+    state[e.target.name] = e.target.value
+    setHookInfo(state)
     // setHookInfo({ [e.target.name]: e.target.value })
   }
 

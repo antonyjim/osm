@@ -100,7 +100,7 @@ export default class APICall extends Querynator {
    */
   public create() {
     // rootQueries[queryTable](fields, this.context.req.params.id, this.context)
-    const queryTable = this.context.req.params.table
+    const queryTable: string = this.context.req.params.table
     let handler
     if (rootMutations.create[queryTable]) {
       handler = rootMutations.create[queryTable]

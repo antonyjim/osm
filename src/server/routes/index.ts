@@ -15,7 +15,7 @@ import { apiRoutes } from './api/index'
 import { uiRoutes } from './ui/index'
 import { staticRoutes } from './static'
 import { Log, RequestLog } from '../lib/log'
-import { rawGen } from '../lib/ql/schema/dbSchemaGen'
+import { syncDbSchema } from '../lib/ql/schema/dbSchemaGen'
 import { constructForms } from '../lib/ql/schema/constructForms'
 
 // Constants and global variables
@@ -35,7 +35,7 @@ router.use('/api', apiRoutes)
 router.use(cookieParser())
 
 router.get('/testtest', (req, res) => {
-  rawGen()
+  syncDbSchema()
   res.status(200).send()
 })
 

@@ -3,46 +3,50 @@ import { getPool, simpleQuery } from '../../connection'
 import { inspect } from 'util'
 import { v4 as uuid } from 'uuid'
 
-export function rawGen() {
-  console.log('Generating right now')
-  constructSchema()
+export function syncDbSchema() {
+  constructSchema() // Refresh the in-memory schema object
     .then((tables) => {
-      console.log('Completed bulding schema')
       ;(async () => {
         const allTables = await simpleQuery(
-          "SHOW TABLES WHERE Tables_in_thq LIKE 'sys%' AND NOT Tables_in_thq like '%_list'"
+          "SHOW TABLES WHERE NOT Tables_in_thq LIKE '%_list'"
         )
         const formattedTables = []
         const flaggedKeyFields = []
         allTables.map((table) => {
           const tableName = table.Tables_in_thq
-          if (tables[tableName] && tables[tableName].tableId !== '') {
-            console.log(
-              'Table %s already exists in table schema with %s',
-              tableName,
-              inspect(tables[tableName], false, 1)
-            )
-            return
-          } else {
-            console.log('Table %s does not exist in current schema', tableName)
-            createTableIfNotExists(tableName)
-              .then((tableId) => {
-                simpleQuery('DESCRIBE ??', [tableName]).then((columns) => {
-                  console.log(columns)
-                  const theseColumns = []
-                  let hasSetDisplay = false
-                  columns.map((col, i) => {
+          // if (tables[tableName] && tables[tableName].tableId !== '') {
+          //   console.log(
+          //     'Table %s already exists in table schema with %s',
+          //     tableName,
+          //     inspect(tables[tableName], false, 1)
+          //   )
+
+          //   return
+          // } else {
+          //   console.log('Table %s does not exist in current schema', tableName)
+          createTableIfNotExists(tableName)
+            .then((tableId) => {
+              simpleQuery('DESCRIBE ??', [tableName]).then((columns) => {
+                console.log(columns)
+                const theseColumns = []
+                let hasSetDisplay = false
+                columns.map((col, i) => {
+                  if (tables[tableName].columns[col.Field]) {
+                    console.log('Column %s already defined', col)
+                    return // Column already defined
+                  } else {
                     let displayField = false
                     if (col.Field !== 'sys_id' && hasSetDisplay === false) {
                       displayField = true
                       hasSetDisplay = true
                     }
 
-                    if (col.Key === 'MUL')
+                    if (col.Key === 'MUL') {
                       flaggedKeyFields.push({
                         table: tableName,
                         field: col.Field
                       })
+                    }
 
                     theseColumns.push([
                       uuid(), // sys_id
@@ -66,17 +70,20 @@ export function rawGen() {
                       null, // enum
                       displayField // display_field
                     ])
-                  })
+                  }
+                })
 
+                if (theseColumns.length > 0) {
                   simpleQuery('INSERT INTO sys_db_dictionary VALUES ?', [
                     theseColumns
                   ])
-                })
+                }
               })
-              .catch((err) => {
-                console.error(err)
-              })
-          }
+            })
+            .catch((err) => {
+              console.error(err)
+            })
+          // }
         })
       })()
     })
@@ -135,10 +142,12 @@ export function rawGen() {
       }
       case 'tin': {
         returnType.dataType = 'boolean'
+        returnType.dataLength = null
         break
       }
       default: {
         returnType.dataType = sqlType
+        returnType.dataLength = null
       }
     }
     return returnType
@@ -153,10 +162,14 @@ async function createTableIfNotExists(tableName) {
   if (table) {
     return table[0].sys_id
   } else {
-    const id = uuid()
-    const status = await simpleQuery('INSERT INTO sys_db_object VALUES (?)', [
-      [id, tableName, tableName, null, null]
+    // const id = uuid()
+    // await simpleQuery('INSERT INTO sys_db_object VALUES (?)', [
+    //   [id, tableName, tableName, null, null]
+    // ])
+    const tableInfo = await simpleQuery(`CALL create_table(?, ?)`, [
+      tableName,
+      uuid
     ])
-    return id
+    return tableInfo[0].sys_id
   }
 }

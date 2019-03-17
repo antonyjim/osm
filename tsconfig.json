@@ -7,7 +7,6 @@
         "allowJs": true,
         "jsx": "react",
         "allowSyntheticDefaultImports": true,
-        "moduleResolution": "ES6",
         "typeRoots": ["./src/types"],
         "lib": [
             "es6",

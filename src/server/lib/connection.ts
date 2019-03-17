@@ -18,6 +18,7 @@ import { IResponseMessage } from '../../types/server'
 import { resolve } from 'path'
 import loadModule from './ql/hooks/loadHook'
 import { IFieldError } from '../../types/api'
+import { ITableField } from '../../types/forms'
 
 // Constants and global variables
 const poolConfig: PoolConfig = {
@@ -197,14 +198,7 @@ class Querynator extends EventEmitter {
   }
 
   private async validateFieldIsValid(
-    fieldInfo: {
-      type: string
-      readonly: boolean
-      nullable: boolean
-      reference: string
-      tableRef: string
-      maxLength: number
-    },
+    fieldInfo: ITableField,
     fieldValue: string | boolean | number
   ) {
     if (
@@ -212,12 +206,12 @@ class Querynator extends EventEmitter {
       (fieldValue === null || fieldValue === undefined)
     ) {
       throw new Error(`Value cannot be null`)
-    } else if (fieldInfo.reference && fieldInfo.tableRef) {
+    } else if (fieldInfo.reference && fieldInfo.refTable) {
       const row = await simpleQuery(
         'SELECT DISTINCT ?? FROM ?? WHERE ?? = ??',
         [
           fieldInfo.reference,
-          fieldInfo.tableRef,
+          fieldInfo.refTable,
           fieldInfo.reference,
           fieldValue
         ]
@@ -331,10 +325,10 @@ class Querynator extends EventEmitter {
           validFields.push(tableAliases[this.tableName], qField) // Add field value to params with alias
           tableAliasIndex++
           fieldPlaceholders.push('??.??')
-        } else if (refCol.localRef && refCol.tableRef) {
+        } else if (refCol.localRef && refCol.refTable) {
           const alias = `t${tableAliasIndex}`
-          if (!tableAliases[refCol.tableRef]) {
-            tableAliases[refCol.tableRef] = alias
+          if (!tableAliases[refCol.refTable]) {
+            tableAliases[refCol.refTable] = alias
           }
           tableAliasIndex++
 
@@ -349,7 +343,7 @@ class Querynator extends EventEmitter {
               6. Column of the table being joined
           */
           tableParams.push(
-            refCol.tableRef,
+            refCol.refTable,
             alias,
             tableAliases[this.tableName],
             refCol.localRef,
@@ -415,11 +409,11 @@ class Querynator extends EventEmitter {
         }
         if (
           aliases &&
-          aliases[ref.tableRef] &&
-          schema[ref.tableRef] &&
-          schema[ref.tableRef].columns[ref.displayAs]
+          aliases[ref.refTable] &&
+          schema[ref.refTable] &&
+          schema[ref.refTable].columns[ref.displayAs]
         ) {
-          thisField.validField.push(aliases[ref.tableRef], ref.displayAs)
+          thisField.validField.push(aliases[ref.refTable], ref.displayAs)
           thisField.placeHolder = '??.??'
           thisField.originalField = field
         } else if (aliases && aliases[this.tableName]) {
