@@ -12,7 +12,7 @@
 export interface IFormDetails {
   title: string
   table: string
-  tabs: IFormTab[]
+  tabs: { [tabId: string]: IFormTab }
 }
 
 export interface ITableField {
@@ -40,5 +40,19 @@ export interface IFormTab {
   table?: {
     name: string
     args: string
+  }
+}
+
+export interface ITableSchema {
+  columns: { [id: string]: ITableField }
+  defaultFields: string[]
+  displayField: string
+  primaryKey: string
+  tableId: string
+  permissions?: {
+    create: boolean
+    delete: boolean
+    edit: boolean
+    read: boolean
   }
 }

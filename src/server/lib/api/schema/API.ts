@@ -8,7 +8,7 @@
 // NPM Modules
 
 // Local Modules
-import { Querynator } from '../../connection'
+import { Querynator } from '../../queries'
 import { Log } from '../../log'
 import { rootQueries } from './queries'
 import rootMutations from './mutations'
@@ -19,7 +19,7 @@ import {
   genericTableUpdate,
   genericTableCreate
 } from './GeneralTable'
-import { IFieldError } from '../../../../types/api'
+import { IFieldError, IAPIGETResponse } from '../../../../types/api'
 
 // Constants and global variables
 
@@ -288,13 +288,10 @@ export default class APICall extends Querynator {
       handler = genericTableQuery
     }
 
-    /* Optionally provide a fields argument */
-    if (fields) {
-      queryFields = fields.split(',')
-    } else {
-      /* The Querynator.buildQuery will recognize this as the default */
-      queryFields = ['*']
-    }
+    // Optionally provide a fields argument.
+    // If no fields are provided, the Querynator will choose defualts
+    if (fields) queryFields = fields.split(',')
+
     if (rawArgs && rawArgs.length > 0 && rawArgs !== undefined) {
       args = {}
       rawArgs.split(',').map((arg) => {
@@ -308,12 +305,12 @@ export default class APICall extends Querynator {
       order.direction = this.context.req.query.order_direction || 'ASC'
     }
     if (queryTable && !queryTable.endsWith('_list') && queryId && handler) {
-      /* If both the ID and table is provided, query the single record */
+      // If both the ID and table is provided, query the single record
       handler(queryFields, this.context.req.params.id, this.context)
         .then(
-          (rows) => {
-            if (rows.errors) this.response.body.errors.push(rows.errors) // Allow non-terminating errors to be passed in the response
-            if (rows.warnings) this.response.body.warnings.push(rows.warnings)
+          (rows: IAPIGETResponse) => {
+            if (rows.errors) this.response.body.errors.concat(rows.errors) // Allow non-terminating errors to be passed in the response
+            if (rows.warnings) this.response.body.warnings.concat(rows.warnings)
             if (rows.data) {
               this.response.body.data[queryTable] = rows.data[0]
             } else {
@@ -337,9 +334,9 @@ export default class APICall extends Querynator {
 
       handler(queryFields, args, this.context, pagination)
         .then(
-          (rows) => {
-            if (rows.errors) this.response.body.errors.push(rows.errors) // Allow non-terminating errors to be passed in the response
-            if (rows.warnings) this.response.body.warnings.push(rows.warnings)
+          (rows: IAPIGETResponse) => {
+            if (rows.errors) this.response.body.errors.concat(rows.errors) // Allow non-terminating errors to be passed in the response
+            if (rows.warnings) this.response.body.warnings.concat(rows.warnings)
             if (rows.meta) this.response.body.meta = rows.meta
             if (rows.data) {
               this.response.body.data[queryTable] = rows.data

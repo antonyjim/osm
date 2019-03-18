@@ -8,7 +8,7 @@
 // NPM Modules
 
 // Local Modules
-import { Querynator } from '../../connection'
+import { Querynator } from '../../queries'
 
 // Constants and global variables
 

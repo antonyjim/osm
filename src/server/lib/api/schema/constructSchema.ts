@@ -8,8 +8,8 @@ import { EventEmitter } from 'events'
 
 // Local Modules
 import { simpleQuery } from '../../connection'
-import Towel from '../../towel'
-import { ITableField } from '../../../../types/forms'
+import Towel from '../../queries/towel/towel'
+import { ITableField, ITableSchema } from '../../../../types/forms'
 
 // Constants and global module variables
 const SYS_DB_OBJECT = 'sys_db_object'
@@ -19,15 +19,7 @@ let tables: ISchema = null
 const references = []
 
 interface ISchema {
-  [table: string]: {
-    primaryKey: string
-    tableId: string
-    displayField: string
-    defaultFields: string[]
-    columns: {
-      [col: string]: ITableField
-    }
-  }
+  [table: string]: ITableSchema
 }
 
 /**

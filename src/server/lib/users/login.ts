@@ -10,7 +10,8 @@ import { compare } from 'bcrypt'
 import { sign } from 'jsonwebtoken'
 
 // Local Modules
-import { getPool, jwtSecret, Querynator } from '../connection'
+import { Querynator } from '../queries'
+import { getPool, jwtSecret } from '../connection'
 import { UserTypes } from '../../../types/users'
 import { LoginException } from '../utils'
 import { Log } from '../log'

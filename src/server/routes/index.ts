@@ -15,8 +15,8 @@ import { apiRoutes } from './api/index'
 import { uiRoutes } from './ui/index'
 import { staticRoutes } from './static'
 import { Log, RequestLog } from '../lib/log'
-import { syncDbSchema } from '../lib/ql/schema/dbSchemaGen'
-import { constructForms } from '../lib/ql/schema/constructForms'
+import { syncDbSchema } from '../lib/api/schema/dbSchemaGen'
+import { constructForms } from '../lib/api/schema/constructForms'
 
 // Constants and global variables
 const router = Router()

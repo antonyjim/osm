@@ -11,7 +11,7 @@ import { v4 as uuid } from 'uuid'
 
 // Local Modules
 import { getTables } from './constructSchema'
-import Towel from '../../towel'
+import Towel from '../../queries/towel/towel'
 import { simpleQuery } from '../../connection'
 import { IFormDetails, ITableField, IFormTab } from '../../../../types/forms'
 
@@ -68,15 +68,21 @@ async function serializeFormFromRow(row: IFormRow) {
   }
 
   if (!forms[row.form_name]) {
+    // At this point, the forms object for this table should be blank
     forms[row.form_name] = {
       title: row.form_name,
       table: row.form_name,
-      tabs: [tab]
+      tabs: {
+        [row.tab_title]: tab
+      }
     }
   } else if (forms[row.form_name].tabs) {
+    // Now there are already tabs in existence,
+    // so there is no need to re-declare title and table.
+
     console.log('Do something here')
   } else {
-    forms[row.form_name].tabs.push(tab)
+    forms[row.form_name].tabs[row.tab_name].fields = {}
   }
 }
 

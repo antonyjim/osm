@@ -1,4 +1,4 @@
-import { Querynator } from '../../connection'
+import { Querynator } from '../../queries'
 
 /**
  * lib/ql/nsacl/nsacl.ts

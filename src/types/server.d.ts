@@ -52,6 +52,12 @@ export interface IServerStats {
   }
 }
 
+export interface IPagination {
+  order?: { by?: string; direction?: 'ASC' | 'DESC' }
+  offset?: number
+  limit?: number
+}
+
 declare global {
   namespace Express {
     interface Request {

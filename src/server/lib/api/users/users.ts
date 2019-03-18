@@ -7,11 +7,12 @@
 
 // NPM Modules
 import { hashSync } from 'bcrypt'
-import { sign, verify } from 'jsonwebtoken'
+import { verify } from 'jsonwebtoken'
 import uuid = require('uuid')
 
 // Local Modules
-import { Querynator, jwtSecret, simpleQuery } from './../../connection'
+import { Querynator, simpleQuery } from './../../queries'
+import { jwtSecret } from '../../connection'
 import { Nonsig } from '../../users/maintenance'
 import { Validation } from '../../validation'
 import {

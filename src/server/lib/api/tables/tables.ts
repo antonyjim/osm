@@ -1,5 +1,4 @@
-import { Querynator } from '../../connection'
-import { Validation } from '../../validation'
+import { Querynator } from '../../queries'
 
 enum FOREIGN_KEY_ACTIONS {
   'CASCADE',

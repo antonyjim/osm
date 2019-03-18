@@ -10,9 +10,9 @@
 import { Router, Request, Response } from 'express'
 
 // Local Modules
-import Description from './../../lib/ql/schema/descriptions'
-import Towel from '../../lib/towel'
-import getForm from '../../lib/ql/schema/constructForms'
+import Description from './../../lib/api/schema/descriptions'
+import Towel from '../../lib/queries/towel/towel'
+import getForm from '../../lib/api/schema/constructForms'
 
 // Constants and global variables
 const descriptions = Router()

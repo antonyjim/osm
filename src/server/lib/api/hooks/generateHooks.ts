@@ -19,7 +19,7 @@ import { resolve } from 'path'
 // NPM Modules
 
 // Local Modules
-import Towel from './../../towel'
+import Towel from '../../queries/towel/towel'
 import { HOOKS_DIR } from '../../connection'
 
 // Constants and global variables

@@ -9,13 +9,12 @@
 // NPM Modules
 
 // Local Modules
-import { getPool, Querynator } from './../connection'
+import { Querynator, simpleQuery } from './../queries'
 import { IStatusMessage } from '../../../types/server'
 import { IRolePermissions } from '../../../types/roles'
 import { Log } from '../log'
 
 // Constants and global variables
-const pool = getPool()
 
 export function getRoleAuthorizedNavigation(
   userId: string,
@@ -88,17 +87,12 @@ export function validateEndpoint(
 ): Promise<IStatusMessage> {
   return new Promise((resolve, reject) => {
     if (method && endpoint && role) {
-      const sqlStatement = `SELECT endpointvalidation(${pool.escape([
+      simpleQuery('SELECT enpointvalidation(?, ?, ?) AS authed', [
         role,
         endpoint.split('?')[0],
         method
-      ])}) AS authed`
-      pool.query(
-        sqlStatement,
-        (err: Error, authorizedNavigationLinks: IRolePermissions[]) => {
-          if (err) {
-            throw err
-          }
+      ])
+        .then((authorizedNavigationLinks) => {
           if (
             authorizedNavigationLinks[0] &&
             authorizedNavigationLinks[0].authed
@@ -119,8 +113,16 @@ export function validateEndpoint(
               }
             })
           }
-        }
-      )
+        })
+        .catch((err) => {
+          reject({
+            error: true,
+            message: err.message,
+            details: {
+              authorized: false
+            }
+          })
+        })
     } else {
       reject({
         error: true,

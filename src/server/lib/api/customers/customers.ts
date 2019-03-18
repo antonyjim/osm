@@ -1,4 +1,4 @@
-import { Querynator, simpleQuery } from './../../connection'
+import { Querynator, simpleQuery } from './../../queries'
 
 class Customer extends Querynator {
   constructor(context, queryFields) {

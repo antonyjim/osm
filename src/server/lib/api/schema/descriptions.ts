@@ -9,7 +9,7 @@
 
 // Local Modules
 import constructSchema, { sqlToJsType, getTables } from './constructSchema'
-import { Querynator, simpleQuery } from '../../connection'
+import { Querynator, simpleQuery } from '../../queries'
 
 // Constants and global variables
 

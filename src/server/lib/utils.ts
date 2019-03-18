@@ -5,7 +5,7 @@
 
 // Node Modules
 import { cpus, arch, freemem, hostname, platform, totalmem } from 'os'
-import { Querynator, simpleQuery } from './connection'
+import { simpleQuery } from './queries'
 import { IServerStats } from '../../types/server'
 
 // NPM Modules

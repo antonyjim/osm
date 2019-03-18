@@ -14,9 +14,9 @@ import * as express from 'express'
 import { router } from './routes/index'
 import { Log } from './lib/log'
 import { getPool } from './lib/connection'
-import constructSchema, { getTables } from './lib/ql/schema/constructSchema'
-import { constructForms } from './lib/ql/schema/constructForms'
-import generateHooks from './lib/ql/hooks/generateHooks'
+import constructSchema from './lib/api/schema/constructSchema'
+import { constructForms } from './lib/api/schema/constructForms'
+import generateHooks from './lib/api/hooks/generateHooks'
 
 export default function routes() {
   if (process.env.NODE_ENV === 'production') {

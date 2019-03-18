@@ -18,7 +18,7 @@ import { IStatusMessage, IResponseMessage } from '../../../types/server'
 import { UserTypes } from '../../../types/users'
 import { Login, getToken } from '../../lib/users/login'
 import { Log } from '../../lib/log'
-import User, { forgotPassword } from '../../lib/ql/users/users'
+import User, { forgotPassword } from '../../lib/api/users/users'
 
 // Constants and global variables
 const loginRoutes = Router()
