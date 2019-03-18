@@ -139,7 +139,7 @@ export class Querynator extends EventEmitter {
                 process.env.STATEMENT_LOGGING === 'true' ||
                 process.env.STATEMENT_LOGGING
               ) {
-                console.log(conn.format(query, params))
+                console.log('[QUERYNATOR] %s', conn.format(query, params))
               }
               conn.query(query, params, (qErr: Error, results: any[]) => {
                 if (qErr) {
@@ -290,6 +290,7 @@ export class Querynator extends EventEmitter {
     const fieldParams = await _byFields(
       {
         fields: this.queryFieldsArr,
+        args: fields,
         table: this.tableName,
         baseParams: this.baseParams
       },

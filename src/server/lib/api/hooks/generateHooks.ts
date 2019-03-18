@@ -60,14 +60,11 @@ function removeRecursively(path: string) {
 
 export default function() {
   ;(async () => {
-    const hooks = await new Towel({
-      table: 'sys_db_hook',
-      fields: ['code', 'hook', 'hook_table', 'hook_table_display']
+    const towel = new Towel('sys_db_hook')
+    towel.setFields(['code', 'hook', 'hook_table', 'hook_table_display'])
+    const hooks = await towel.get().catch((err) => {
+      console.error(err)
     })
-      .get()
-      .catch((err) => {
-        console.error(err)
-      })
 
     if (hooks && hooks.data.length > 0) {
       if (existsSync(HOOKS_DIR)) removeRecursively(HOOKS_DIR)

@@ -25,10 +25,12 @@ export async function byFields(
   {
     fields,
     table,
+    args,
     baseParams = []
   }: {
     fields: any
     table: string
+    args: any
     baseParams?: string[]
   },
   pagination: {
@@ -49,13 +51,14 @@ export async function byFields(
   const queryParams = await queryBuilder(table, fields)
   warnings.concat(queryParams.warnings) // Carry warnings to parent
 
-  const validatedFields = await validateFieldsExist(
-    Object.keys(fields),
+  const validatedFields = validateFieldsExist(
+    Object.keys(args),
+    table,
     queryParams.aliases
   )
   if (validatedFields.length > 0) queryParams.query += ' WHERE '
   validatedFields.map((col, i) => {
-    const fieldValue = fields[col.originalField]
+    const fieldValue = args[col.originalField]
     if (typeof fieldValue === 'string') {
       const { value, operator, not } = evaluateFieldOperator(fieldValue)
       if (not) {
@@ -66,16 +69,16 @@ export async function byFields(
 
       queryParams.params = queryParams.params.concat(col.validField)
       queryParams.params.push(value)
-    } else if (Array.isArray(fields[col.originalField])) {
+    } else if (Array.isArray(args[col.originalField])) {
       queryParams.query += col.placeHolder + ' IN ?'
       queryParams.params = queryParams.params.concat(col.validField)
-      queryParams.params.push(fields[col.originalField])
+      queryParams.params.push(args[col.originalField])
     } else {
       queryParams.query += col.placeHolder + ' = ?'
       queryParams.params = queryParams.params.concat(col.validField)
       queryParams.params.push(fieldValue)
     }
-    if (i + 1 !== Object.keys(fields).length) queryParams.query += ' AND '
+    if (i + 1 !== Object.keys(args).length) queryParams.query += ' AND '
   })
 
   // Query for count for meta information

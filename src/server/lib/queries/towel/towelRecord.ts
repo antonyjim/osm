@@ -22,6 +22,7 @@ import { IFieldError } from '../../../../types/api'
 import { getTables } from '../../api/schema/constructSchema'
 import { simpleQuery } from '../../connection'
 import { queryBuilder } from '../builder'
+import Towel from './towel'
 
 // Constants and global variables
 
@@ -35,6 +36,7 @@ export class TowelRecord {
   protected aggregates: {
     [aggregate: string]: string
   }
+  protected requestedFields: string[]
 
   constructor(table: string) {
     let schema
@@ -57,11 +59,20 @@ export class TowelRecord {
       this.primaryKey = this.tableSchema.primaryKey
     }
 
-    console.log('New Towel instantiated')
+    console.log('[TOWEL] New Towel instantiated for table %s', this.tableName)
   }
 
   public addAggregate(aggregate: string, field: string) {
     this.hasAggregate = true
+  }
+
+  public setFields(fields: string | string[]): TowelRecord {
+    if (Array.isArray(fields)) {
+      this.requestedFields = fields
+    } else {
+      this.requestedFields = fields.split(',')
+    }
+    return this
   }
 
   public async byId(id: string) {

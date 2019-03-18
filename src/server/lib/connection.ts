@@ -36,7 +36,7 @@ async function simpleQuery(query: string, params?: any[]): Promise<any> {
   return new Promise((resolveQuery) => {
     getPool().getConnection((err, conn) => {
       if (err) conn.release()
-      console.log(conn.format(query, params))
+      console.log('[SQL_SIMPLE] %s', conn.format(query, params))
       conn.release()
     })
     getPool().query(query, params, (err: Error, results: any[]) => {

@@ -58,8 +58,6 @@ export default class Towel extends TowelRecord {
     } else {
       this.primaryKey = this.tableSchema.primaryKey
     }
-
-    console.log('New Towel instantiated')
   }
 
   public addArgument(col: string, value: string, operator: string = '='): void {
@@ -114,7 +112,7 @@ export default class Towel extends TowelRecord {
   }
 
   private async byFields(
-    { ...fields }: { [field: string]: string | boolean | number },
+    { fields }: { [field: string]: string | boolean | number },
     pagination: {
       order?: { by?: string; direction?: 'ASC' | 'DESC' }
       offset?: number
@@ -123,7 +121,8 @@ export default class Towel extends TowelRecord {
   ) {
     const fieldParams = await _byFields(
       {
-        fields,
+        fields: this.requestedFields,
+        args: fields,
         table: this.tableName
       },
       pagination

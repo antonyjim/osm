@@ -89,21 +89,20 @@ async function serializeFormFromRow(row: IFormRow) {
 export async function constructForms() {
   // Attempt to get forms from the sys_form table
   const allForms = {}
-  const customForms = await new Towel({
-    table: 'sys_form',
-    fields: [
-      'sys_id',
-      'form_id',
-      'tab_name',
-      'tab_title',
-      'table_ref',
-      'table_args',
-      'field_name',
-      'form_name',
-      'table_ref_display',
-      'field_name_display'
-    ]
-  }).get()
+  const towel = new Towel('sys_form')
+  towel.setFields([
+    'sys_id',
+    'form_id',
+    'tab_name',
+    'tab_title',
+    'table_ref',
+    'table_args',
+    'field_name',
+    'form_name',
+    'table_ref_display',
+    'field_name_display'
+  ])
+  const customForms = await towel.get()
 
   if (customForms && customForms.data && customForms.data.length !== 0) {
     customForms.data.map((formDetail: IFormRow) => {

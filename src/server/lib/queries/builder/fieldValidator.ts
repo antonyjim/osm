@@ -60,12 +60,11 @@ export async function validateFieldIsValid(
  * @param fields Object containing the fields to be validated against
  * @param aliases Table aliases received from this.queryBuilder
  */
-export async function validateFieldsExist(
+export function validateFieldsExist(
   fields: string[],
+  table: string,
   aliases?: any
-): Promise<
-  { validField: string[]; placeHolder: string; originalField: string }[]
-> {
+): { validField: string[]; placeHolder: string; originalField: string }[] {
   const schema = getTables()
   const validFields: {
     validField: string[]
@@ -74,8 +73,8 @@ export async function validateFieldsExist(
   }[] = []
 
   fields.map((field) => {
-    if (schema[this.tableName] && schema[this.tableName].columns[field]) {
-      const ref = schema[this.tableName].columns[field]
+    if (schema[table] && schema[table].columns[field]) {
+      const ref = schema[table].columns[field]
       const thisField = {
         validField: [],
         placeHolder: '',
@@ -90,11 +89,11 @@ export async function validateFieldsExist(
         thisField.validField.push(aliases[ref.refTable], ref.displayAs)
         thisField.placeHolder = '??.??'
         thisField.originalField = field
-      } else if (aliases && aliases[this.tableName]) {
-        thisField.validField.push(aliases[this.tableName], field)
+      } else if (aliases && aliases[table]) {
+        thisField.validField.push(aliases[table], field)
         thisField.placeHolder = '??.??'
         thisField.originalField = field
-      } else if (aliases && !aliases[this.tableName]) {
+      } else if (aliases && !aliases[table]) {
         return false
       } else {
         thisField.validField.push(field)
