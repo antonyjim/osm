@@ -25,6 +25,9 @@ export default class Column extends Querynator {
   }
 
   public async create(fields) {
+    if (fields && fields.column_name && fields.type) {
+      console.log('Do something')
+    }
     return await this.insert(fields)
   }
 

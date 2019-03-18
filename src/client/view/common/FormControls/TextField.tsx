@@ -12,10 +12,11 @@ interface ITextField {
   attributes?: any
   isHidden?: boolean
   readOnly?: string
+  maxLength?: number
   onChange?: React.ChangeEventHandler<HTMLInputElement>
 }
 
-function Field(props: ITextField) {
+function Field(props: ITextField): JSX.Element {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const id = e.target.name || e.target.id
     const val = {}
@@ -27,17 +28,18 @@ function Field(props: ITextField) {
     !props.isHidden && (
       <div
         className={'form-group ' + props.className || ''}
-        id={'cont-' + props.id}
+        id={'cont-' + props.name}
       >
-        <label htmlFor={props.id}>{props.label}</label>
+        <label htmlFor={props.name}>{props.label}</label>
         <input
           {...props.attributes}
           type={props.type}
           className='form-control'
-          id={props.id}
-          name={props.id}
+          id={props.name}
+          name={props.name}
           value={props.value || ''}
           onChange={handleChange}
+          maxLength={props.maxLength}
         />
       </div>
     )

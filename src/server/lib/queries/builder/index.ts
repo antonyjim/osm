@@ -18,8 +18,13 @@ export async function queryBuilder(
   let fieldArr
   if ((fields && fields[0] === '*') || !fields) {
     fieldArr = schema[tableName].defaultFields
-  } else if (!Array.isArray(fields)) fieldArr = fields.split(',')
-  else fieldArr = fields
+  } else if (!Array.isArray(fields) || fields.length === 0) {
+    if (fields && fields.length > 0 && typeof fields === 'string') {
+      fieldArr = fields.split(',')
+    } else {
+      fieldArr = schema[tableName].defaultFields
+    }
+  } else fieldArr = fields
 
   fieldArr.map((qField) => {
     const refCol = tableCols[qField]

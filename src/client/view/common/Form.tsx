@@ -1,83 +1,163 @@
 import * as React from 'react'
-import { Component } from 'react'
+import { useState, useEffect } from 'react'
 import API, { TowelRecord } from '../lib/API'
-// import Customer from '../admin/Customer'
-import UserProfile from '../home/UserProfile'
-import Column from '../admin/Column'
-import { TableModifier } from '../admin/TableMaint'
-// import Authorization from '../admin/Authorization'
-import { Checkbox, Field } from './FormControls'
-import Pills from './PillLayout'
-import { Hook } from './../admin/Hook'
-// const Hook = React.lazy(() => import('../admin/Hook'))
 
+import { Checkbox, Field, Reference } from './FormControls'
+import Pills, { IPillProps } from './PillLayout'
+import { IFormDetails, ITableField } from '../../../types/forms'
+import { Loading } from './Loading'
+
+const Hook = React.lazy(() => import('../admin/Hook'))
+const UserProfile = React.lazy(() => import('../home/UserProfile'))
+const Column = React.lazy(() => import('../admin/Column'))
+
+interface ISerializedFormControl {
+  component: any
+  props: {
+    label: string
+    id?: string
+    name: string
+    onChange: React.ChangeEventHandler
+    value: string | boolean | number
+    display?: string
+    className?: string
+    references?: string
+    checked?: boolean | string
+    maxLength?: number
+  }
+}
+
+// Store tsx forms in this object
 const specialForms = {
-  //   sys_customer: Customer,
   sys_user: UserProfile,
   sys_db_dictionary: Column,
-  sys_db_object: TableModifier,
-  //   sys_authorization: Authorization,
+  // sys_db_object: TableModifier,
   sys_db_hook: Hook
 }
 
-export default class Form extends Component<any, any> {
-  constructor(props) {
-    super(props)
-    this.state = {
-      fields: { ...props.values },
-      title: props.title,
-      table: props.match.params.table,
-      id: props.match.params.id,
-      loaded: specialForms[props.match.params.table] ? true : false,
-      modifiedFields: []
-    }
-  }
+export default function Form(props) {
+  // Define the state variables
 
-  private fetchFormDetails() {
+  // Hold the serialized form here
+  const [form, setForm] = useState(null)
+  // Hold all of the field data here
+  const [formFieldData, setFormFieldData] = useState({})
+  // Store the pill bodies
+  const [pills, setPills]: [IPillProps, React.ComponentState] = useState(null)
+  // Store a list of modified fields
+  const [modifiedFields, setModifiedFields]: [
+    string[],
+    React.ComponentState
+  ] = useState([])
+
+  // Define helper functions
+
+  /**
+   * Fetch the layout of the form to be rendered
+   */
+  const fetchFormDetails = () => {
     API.get({
-      path: `/api/describe/form/${this.state.table}`
+      path: `/api/describe/form/${props.match.params.table}`
     })
-      .then((res: any) => {
+      .then((res: IFormDetails) => {
         if (res && res.tabs) {
-          if (this.state.id !== 'new' && res.tabs[0].fields) {
-            const fields = []
-            for (const fieldToFetch of res.tabs[0].fields) {
-              fields.push(fieldToFetch.name)
-            }
-            new TowelRecord(this.state.table)
-              .get({ fields, id: this.state.id })
-              .then((fetchedFields: any) => {
-                this.setState({
-                  fields: fetchedFields.data[this.state.table],
-                  form: res,
-                  loaded: true
-                })
-              })
-              .catch((err) => {
-                this.setState({ form: res, loaded: true })
-                console.error(err)
-              })
-          } else {
-            this.setState({ form: res, loaded: true })
-          }
+          setForm({ ...res })
+        } else {
+          throw new Error('No form found')
         }
       })
       .catch((err) => {
-        this.setState({ error: err, loaded: true })
+        console.error(err)
+        throw err
       })
   }
 
-  private formControlFromJson(jsonData) {
+  const getData = (table: string, id: string, fields: string[]) => {
+    new TowelRecord(table)
+      .get({ fields, id })
+      .then((fetchedFields: any) => {
+        setFormFieldData({ ...fetchedFields.data[table] })
+      })
+      .catch((err) => {
+        console.error(err)
+        throw err
+      })
+  }
+
+  const handleSubmit = (e) => {
+    const id = props.match.params.id
+    const table = props.match.params.table
+    if (id === 'new') {
+      new TowelRecord(table).create({ ...formFieldData })
+    } else {
+      const body = { sys_id: id }
+      modifiedFields.forEach((field) => {
+        body[field] = formFieldData[field]
+      })
+      new TowelRecord(table)
+        .update(id, body)
+        .then((res) => {
+          console.log(res)
+        })
+        .catch((err) => {
+          console.error(err)
+        })
+    }
+  }
+
+  const handleDelete = (e) => {
+    const id = props.match.params.id
+    new TowelRecord(props.match.params.table).delete(id).then((res: any) => {
+      if (res.status === 204) console.log('Deleted')
+    })
+  }
+
+  const handleChange: React.ChangeEventHandler = (e: React.ChangeEvent) => {
+    if (e.target instanceof HTMLInputElement) {
+      const currState = { ...formFieldData }
+      if (modifiedFields.indexOf(e.target.name) === -1) {
+        setModifiedFields(modifiedFields.concat([e.target.name]))
+      }
+      if (e.target.type === 'checkbox') {
+        currState[e.target.name] = e.target.checked
+      } else {
+        currState[e.target.name] = e.target.value
+      }
+      setFormFieldData(currState)
+    }
+  }
+
+  const formControlFromJson = (fieldName: string): ISerializedFormControl => {
+    const jsonData: ITableField = {
+      ...form.tabs['General Information'].fields[fieldName]
+    }
     switch (jsonData.type) {
       case 'string': {
-        return {
-          component: Field,
-          props: {
-            label: jsonData.label,
-            id: jsonData.name,
-            onChange: this.handleChange.bind(this),
-            value: this.state.fields[jsonData.name],
-            className: 'col-lg-6 col-md-12'
+        if (jsonData.refTable) {
+          return {
+            component: Reference,
+            props: {
+              label: jsonData.label,
+              id: fieldName,
+              name: fieldName,
+              onChange: handleChange,
+              value: formFieldData[fieldName],
+              display: formFieldData[fieldName + '_display'],
+              className: 'col-lg-6 col-md-12',
+              references: jsonData.refTable
+            }
+          }
+        } else {
+          return {
+            component: Field,
+            props: {
+              label: jsonData.label,
+              name: fieldName,
+              onChange: handleChange,
+              value: formFieldData[fieldName],
+              maxLength: jsonData.maxLength || 40,
+              className: 'col-lg-6 col-md-12'
+            }
           }
         }
       }
@@ -86,155 +166,124 @@ export default class Form extends Component<any, any> {
           component: Checkbox,
           props: {
             label: jsonData.label,
-            id: jsonData.name,
-            onChange: this.handleChange.bind(this),
-            value: this.state[jsonData.name],
-            checked: this.state.fields[jsonData.name],
+            name: fieldName,
+            onChange: handleChange,
+            value: formFieldData[fieldName],
+            checked: formFieldData[fieldName],
             className: 'col-lg-6 col-md-12'
           }
         }
       }
       default: {
-        return (
-          <Field
-            label={jsonData.label}
-            id={jsonData.name}
-            name={jsonData.name}
-            type='text'
-            onChange={this.handleChange.bind(this)}
-            value={this.state.fields[jsonData.name]}
-          />
-        )
+        return {
+          component: Field,
+          props: {
+            label: jsonData.label,
+            name: fieldName,
+            onChange: handleChange,
+            value: formFieldData[fieldName],
+            className: 'col-lg-6 col-md-12'
+          }
+        }
       }
     }
   }
 
-  private handleChange(e) {
-    const oldState = { ...this.state }
-    oldState.fields[e.target.id] = e.target.value
-    if (e.target.type === 'checkbox') {
-      oldState.fields[e.target.id] = e.target.checked
-    }
-    if (!oldState.modifiedFields.includes(e.target.id)) {
-      oldState.modifiedFields.push(e.target.id)
-    }
-    oldState.saveDisabled = {}
-    this.setState(oldState)
-  }
-
-  private handleSubmit(e) {
-    if (this.props.sys_id === 'new') {
-      new TowelRecord(this.state.table).create({ body: this.state.fields })
-    } else {
-      const body = { sys_id: this.state.sys_id }
-      this.state.modifiedFields.forEach((field) => {
-        body[field] = this.state.fields[field]
-      })
-      new TowelRecord(this.state.table)
-        .update(this.state.sys_id, body)
-        .then((res) => {
-          console.log(res)
-        })
-        .catch((err) => {
-          this.props.handleErrorMessage(err)
-        })
-    }
-  }
-
-  private createNew(e) {
-    API.post({
-      path: `${API.TABLE}${this.state.table}`,
-      query: {
-        fields: this.props.fields.join(',')
-      },
-      body: this.state.fields
-    })
-      .then((res) => {
-        console.log(res)
-      })
-      .catch((err) => {
-        console.error(err)
-      })
-  }
-
-  public componentDidUpdate(prevProps) {
-    if (prevProps.match.params.table !== this.props.match.params.table) {
-      console.log('Updated forms')
-      this.render()
-    }
-  }
-
-  public componentDidMount() {
-    if (!specialForms[this.state.table]) {
-      this.fetchFormDetails()
-    }
-  }
-
-  public render() {
-    if (specialForms[this.state.table]) {
-      const ThisForm = specialForms[this.state.table]
-      return <ThisForm id={this.state.id} />
-    }
-    if (!this.state.loaded) return null
-    if (!this.state.form || !this.state.form.tabs) {
-      throw new Error('No fields provided for form ' + this.state.table)
-    }
-    const displayFields = []
-    const pills = {}
-    for (const tab of this.state.form.tabs) {
+  const jsxFromJson = () => {
+    const newPills: IPillProps = {}
+    for (const tabName of Object.keys(form.tabs)) {
       /* If the tab has a fields property, map out the form control boxes */
-      const name = tab.name
+      const name = tabName
+      const tab = form.tabs[tabName]
+      const displayFields: JSX.Element[] = []
       if (tab.fields) {
-        pills[name] = {
-          id: name,
-          label: name
-        }
-        tab.fields.map((field, i) => {
-          if (tab.fields[i].name === tab.primaryKey) {
+        Object.keys(tab.fields).map((fieldName) => {
+          if (fieldName === tab.primaryKey) {
+            // Push the primary key into a hidden field
             return displayFields.push(
               <input
                 type='hidden'
-                id={tab.primaryKey}
-                value={this.state.fields[tab.primaryKey]}
-                onChange={this.handleChange.bind(this)}
-                key={`form-field-${tab.primaryKey}`}
+                id={fieldName}
+                name={fieldName}
+                value={formFieldData[fieldName]}
+                onChange={handleChange}
+                key={`form-field-${fieldName}`}
               />
             )
           }
-          const thisField: any = this.formControlFromJson(tab.fields[i])
+          const thisField = formControlFromJson(fieldName)
           const FormField = thisField.component
-          const theseProps = thisField.props
           displayFields.push(
             <FormField
-              {...theseProps}
-              key={`form-field-${thisField.props.id}`}
+              {...thisField.props}
+              key={`form-field-${thisField.props.name}`}
             />
           )
         })
-
-        pills[name].body = (
-          <>
-            <button
-              className='btn btn-primary float-right'
-              onClick={this.handleSubmit.bind(this)}
-            >
-              Save
-            </button>
-            <h4>{tab.title || 'General Information'}</h4>
-            <hr />
-            <form className='form-row' name='generalInformation'>
-              {displayFields}
-            </form>
-          </>
-        )
-      } else if (tab.table) {
-        // Render table
+        newPills[name] = {
+          id: name,
+          label: name,
+          body: (
+            <>
+              <button
+                className='btn btn-danger float-right'
+                onClick={handleDelete}
+              >
+                Delete
+              </button>
+              <button
+                className='btn btn-primary float-right'
+                onClick={handleSubmit}
+              >
+                Save
+              </button>
+              <h4>{tab.title || 'General Information'}</h4>
+              <hr />
+              <form className='form-row' name='generalInformation'>
+                {displayFields}
+              </form>
+            </>
+          )
+        }
       }
     }
-    return (
-      <>
-        <Pills pills={pills} />
-      </>
-    )
+    setPills(newPills)
+  }
+
+  // Fetch the form
+  useEffect(() => {
+    if (props.match.params.table && !specialForms[props.match.params.table]) {
+      fetchFormDetails()
+    }
+  }, [props.match.params.table])
+
+  useEffect(() => {
+    if (props.match.params.id !== 'new' && form) {
+      getData(
+        props.match.params.table,
+        props.match.params.id,
+        Object.keys(form.tabs['General Information'].fields)
+      )
+    } else {
+      console.log('New form or loading')
+    }
+  }, [props.match.params.id, props.match.params.table, form])
+
+  useEffect(() => {
+    if (form !== null) {
+      jsxFromJson()
+    }
+  }, [form, formFieldData])
+
+  // First check for a special form
+  if (specialForms[props.match.params.table]) {
+    const ThisForm = specialForms[props.match.params.table]
+    return <ThisForm />
+  } else if (form && pills) {
+    // If forms have been initialized, render the form contained in the form state
+    return <Pills pills={pills} />
+  } else {
+    // Duh
+    return <Loading />
   }
 }

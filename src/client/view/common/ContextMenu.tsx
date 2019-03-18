@@ -18,18 +18,22 @@ export interface IContextMenuProps {
 export function ContextMenu(props: IContextMenuProps) {
   const opts: JSX.Element[] = []
   const [shown, setShown] = React.useState(props.show || false)
-
+  const menuRef = React.useRef(null)
   const cancelContext = (e) => {
-    if (shown) {
-      console.log('Hiding Menu')
-      setShown(false)
-    }
+    if (e.target !== menuRef.current) setShown(false)
   }
 
   React.useEffect(() => {
-    document.addEventListener('click', cancelContext)
-    return document.removeEventListener('click', cancelContext)
-  }, [])
+    console.log('Calling effect')
+    $(document).on('click', cancelContext)
+    return () => {
+      $(document).off('click', cancelContext)
+    }
+  })
+
+  React.useEffect(() => {
+    setShown(props.show)
+  }, [props.show])
 
   props.options.map((opt, i) => {
     opts.push(
@@ -43,12 +47,15 @@ export function ContextMenu(props: IContextMenuProps) {
     <>
       {shown && (
         <div
+          ref={menuRef}
           className='dropdown-menu'
           style={{
             display: 'block',
             left: props.location.x,
             top: props.location.y
           }}
+          tabIndex={0}
+          onBlur={cancelContext}
         >
           {opts}
         </div>

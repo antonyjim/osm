@@ -121,16 +121,12 @@ class UserProfile extends Component<any, any> {
         body[this.id] = this.value
       }
     })
-    API.patch(
-      {
-        path: '/api/q/sys_user/' + body.sys_id,
-        body: JSON.stringify(body)
-      },
-      (err, data) => {
-        console.log(err)
-        if (err) this.setState({ error: true, errorMessage: err })
-      }
-    )
+    API.patch({
+      path: '/api/q/sys_user/' + body.sys_id,
+      body: JSON.stringify(body)
+    }).then((res: any) => {
+      if (res.error) this.setState({ error: true, errorMessage: res.error })
+    })
   }
 
   public render() {

@@ -3,13 +3,11 @@ import { Alert } from './Alerts'
 import $ from 'jquery'
 import { ContextMenu, IContextMenuProps } from './ContextMenu'
 
-interface IPillProps {
-  pills: {
-    [name: string]: {
-      id: string
-      label: string
-      body: JSX.Element
-    }
+export interface IPillProps {
+  [name: string]: {
+    id: string
+    label: string
+    body: JSX.Element
   }
 }
 
@@ -24,7 +22,7 @@ function InlineModifier(props: { val: string }) {
   return true
 }
 
-export default function Pills(props: IPillProps) {
+export default function Pills(props: { pills: IPillProps }) {
   const pillAs = []
   const pillBodies = []
   const [messages, setMessages]: [
@@ -48,7 +46,6 @@ export default function Pills(props: IPillProps) {
   const handleAuxClick = (e: React.MouseEvent) => {
     console.log('Right clicked')
     console.log(e)
-    e.persist()
     e.preventDefault()
     setContextShown({
       show: true,
@@ -188,7 +185,7 @@ export default function Pills(props: IPillProps) {
   return (
     <div className='container-fluid' style={{ minHeight: '80vh' }}>
       <div className='row mt-4'>
-        <div className='col-md-3 col-sm-12'>
+        <div className='col-md-3 col-sm-12 d-print-none'>
           <div
             className='nav flex-column nav-pills'
             id='v-pills'
@@ -199,7 +196,7 @@ export default function Pills(props: IPillProps) {
             {pillAs}
           </div>
         </div>
-        <div className='col-md-9 col-sm-12 mb-5'>
+        <div className='col mb-4'>
           <div className='tab-content' id='v-pill-tabContent'>
             {messages.errors &&
               messages.errors.map((errorsmessage) => {

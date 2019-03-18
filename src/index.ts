@@ -3,13 +3,13 @@
  */
 
 import { readFile } from 'fs'
-import routes from './server/app'
 
+// Load environment variables
 readFile('./dot.env', { encoding: 'utf8' }, (err: Error, data: string) => {
   if (err) {
     console.error(err)
     console.error(
-      'App could not read environment variables. Please check that dot.env exists in the root directory'
+      '[STARTUP] App could not read environment variables. Please check that dot.env exists in the root directory'
     )
     process.exit(1)
   }
@@ -18,11 +18,16 @@ readFile('./dot.env', { encoding: 'utf8' }, (err: Error, data: string) => {
     const key: string = line.split('=')[0]
     const value: string = line.split('=')[1]
     if (value[0] === "'") {
-      console.log('Setting environment variable %s to value %s', key, value)
+      console.log(
+        '[STARTUP] Setting environment variable %s to value %s',
+        key,
+        value
+      )
       process.env[key] = value.slice(1, -1)
     } else {
       process.env[key] = value
     }
   })
-  routes()
+  // Start the web server
+  require('./server/app').routes()
 })

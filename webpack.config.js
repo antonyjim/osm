@@ -40,7 +40,6 @@ let config = {
                 include: STYLE_DIR,
                 use: [
                     'style-loader',
-                    'css-loader',
                     'sass-loader'
                 ]
             }

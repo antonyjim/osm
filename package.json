@@ -70,7 +70,7 @@
     "postinstall": "tsc -p .",
     "build": "webpack",
     "watch": "tsc -w -p .",
-    "debug": "nodemon --legacy-watch --watch ./dist --inspect=127.0.0.1:9229 --nolazy -i ./dist/lib/hooks ./dist/",
+    "debug": "nodemon --ignore ./dist/server/lib/hooks --legacy-watch --watch ./dist --inspect=127.0.0.1:9229 --nolazy ./dist/",
     "docker-debug": "docker-compose up",
     "client-watch": "webpack --watch",
     "start": "tsc && node dist/app.js",

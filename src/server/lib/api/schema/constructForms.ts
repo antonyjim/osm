@@ -13,7 +13,8 @@ import { v4 as uuid } from 'uuid'
 import { getTables } from './constructSchema'
 import Towel from '../../queries/towel/towel'
 import { simpleQuery } from '../../connection'
-import { IFormDetails, ITableField, IFormTab } from '../../../../types/forms'
+import { IFormDetails, IFormTab } from '../../../../types/forms'
+import { TowelRecord } from '../../queries/towel/towelRecord'
 
 // Constants and global variables
 let forms: { [table: string]: IFormDetails } = {}
@@ -40,17 +41,6 @@ export default function getForm(table) {
 
 async function serializeFormFromRow(row: IFormRow) {
   const schema = getTables()
-  // allForms[table] = {
-  //   title: title.plural || '',
-  //   tabs: [
-  //     {
-  //       title: 'General Information',
-  //       name: 'General',
-  //       primaryKey: allTables[table].primaryKey,
-  //       fields: theseCols
-  //     }
-  //   ]
-  // }
   const tab: IFormTab = {
     name: row.tab_name,
     title: row.tab_title,
@@ -80,7 +70,27 @@ async function serializeFormFromRow(row: IFormRow) {
     // Now there are already tabs in existence,
     // so there is no need to re-declare title and table.
 
-    console.log('Do something here')
+    if (row.tab_title) {
+      // console.log(
+      //   '[FORM_GENERATOR] Adding form tab %s to form %s',
+      //   row.tab_name,
+      //   row.form_name
+      // )
+      const thisTab: IFormTab = forms[row.form_name].tabs[row.tab_title]
+      if (thisTab.fields && row.field_name) {
+        const field = schema[row.form_name].columns[row.field_name_display]
+        forms[row.form_name].tabs[row.tab_title].fields[
+          row.field_name_display
+        ] = field
+      } else {
+        forms[row.form_name].tabs[row.tab_title].table = {
+          name: row.table_ref_display,
+          args: row.table_args
+        }
+      }
+    } else {
+      console.log('[FORM_GENERATOR] Creating tab %s', row.tab_name)
+    }
   } else {
     forms[row.form_name].tabs[row.tab_name].fields = {}
   }
@@ -102,6 +112,7 @@ export async function constructForms() {
     'table_ref_display',
     'field_name_display'
   ])
+  towel.setLimit(5000) // Yeah yeah, I probably should implement an infinite query. Sue me
   const customForms = await towel.get()
 
   if (customForms && customForms.data && customForms.data.length !== 0) {

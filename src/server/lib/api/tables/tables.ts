@@ -1,4 +1,7 @@
-import { Querynator } from '../../queries'
+import { Querynator, simpleQuery } from '../../queries'
+import Towel from '../../queries/towel/towel'
+import { TowelRecord } from '../../queries/towel/towelRecord'
+import { ITableField } from '../../../../types/forms'
 
 enum FOREIGN_KEY_ACTIONS {
   'CASCADE',
@@ -46,10 +49,44 @@ class Table extends Querynator {
   }
 
   public async create(fields) {
-    this.insert(fields).catch((err) =>
+    const insertedRecords = this.insert(fields).catch((err) =>
       this.warnings.push({ message: err.message })
     )
-    return this.byId(fields.name)
+    if (this.warnings.length === 0) {
+      try {
+        simpleQuery(
+          'CREATE TABLE IF NOT EXISTS ?? (PRIMARY KEY(??), ?? ' +
+            CHAR(36) +
+            ')',
+          [fields.name, this.primaryKey, this.primaryKey]
+        )
+        if (fields.audits === true) {
+          simpleQuery(
+            `CREATE TABLE IF NOT EXISTS ?? (
+PRIMARY KEY(update_time, update_user),
+update_time DATETIME,
+update_user CHAR(36),
+resource CHAR(36),
+message VARCHAR(255),
+
+FOREIGN KEY(update_user)
+  REFERENCES ??(??)
+  ON DELETE RESTRICT
+  ON UPDATE CASCADE
+`,
+            [fields.name + '_audit', 'sys_user', 'sys_id']
+          )
+          new TowelRecord('sys_db_dictionary').create({})
+        }
+      } catch (e) {
+        this.deleteRecord(insertedRecords[this.tableName][this.primaryKey])
+        return {
+          errors: ['Could not create table']
+        }
+      }
+    }
+
+    return insertedRecords
   }
 
   public async update(fields) {

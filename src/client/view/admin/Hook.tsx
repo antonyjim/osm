@@ -16,7 +16,7 @@ declare global {
   }
 }
 
-export function Hook(props: { id: string }) {
+export default function Hook(props: { id: string }) {
   const [hookInfo, setHookInfo] = React.useState({
     hook: '',
     hook_table: '',

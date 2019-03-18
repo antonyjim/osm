@@ -18,7 +18,7 @@ import constructSchema from './lib/api/schema/constructSchema'
 import { constructForms } from './lib/api/schema/constructForms'
 import generateHooks from './lib/api/hooks/generateHooks'
 
-export default function routes() {
+export function routes() {
   if (process.env.NODE_ENV === 'production') {
     const cores: number = cpus().length
     if (cluster.isMaster) {

@@ -13,8 +13,8 @@ const rootQueries = {
   table: tableQueries.table,
   sys_db_dictionary_list: columnQueries.sys_db_dictionary_list,
   sys_user_nsacl_list: nsaclQueries.sys_user_nsacl_list,
-  sys_db_object_list: tableQueries.sys_db_object_list,
-  sys_db_object: tableQueries.sys_db_object,
+  // sys_db_object_list: tableQueries.sys_db_object_list,
+  // sys_db_object: tableQueries.sys_db_object,
   sys_db_dictionary: columnQueries.sys_db_dictionary
 }
 

@@ -88,8 +88,8 @@ CREATE PROCEDURE thq.addNav(
 /*
 	Validate every endpoint on every request
 */
-    DROP FUNCTION IF EXISTS endpointValidation //
-    CREATE FUNCTION endpointValidation (_role CHAR(7), _path VARCHAR(120), _method VARCHAR(6))
+    DROP FUNCTION IF EXISTS endpoint_validation //
+    CREATE FUNCTION endpoint_validation (_role CHAR(7), _path VARCHAR(120), _method VARCHAR(6))
         RETURNS BOOLEAN
         BEGIN
             DECLARE _authorized BOOLEAN;

@@ -41,7 +41,7 @@ function makeFetchRequest(uri: string, init?: RequestInit) {
   return new Promise((resolveRequest) => {
     fetch(uri, init)
       .then((res) => {
-        if (res.status === 204) return res
+        if (res.status === 204) return { ...res }
         return res.json()
       })
       .then((data: IAPIResponse) => {
@@ -53,7 +53,7 @@ function makeFetchRequest(uri: string, init?: RequestInit) {
   })
 }
 
-function flattenQuery(queryObject) {
+function flattenQuery(queryObject?) {
   const queryStringArray = [`token=${window.THQ.token || ''}`]
   if (queryObject && typeof queryObject === 'object') {
     Object.keys(queryObject).map((queryKey) => {
@@ -158,18 +158,15 @@ const API = {
    * @param {object} query Query string parameters in object format
    * @param {object} body Body of update parameters
    */
-  patch: (
-    {
-      path,
-      query,
-      body
-    }: {
-      path: string
-      query?: object
-      body?: any
-    },
-    cb?
-  ) => {
+  patch: ({
+    path,
+    query,
+    body
+  }: {
+    path: string
+    query?: object
+    body?: any
+  }) => {
     const authPath = path + '?' + flattenQuery(query)
     return new Promise((resolve, reject) => {
       makeFetchRequest(authPath, {
@@ -179,6 +176,21 @@ const API = {
         },
         method: 'PATCH',
         body: JSON.stringify(body)
+      })
+        .then((data: IAPIResponse) => {
+          resolve(data)
+        })
+        .catch((err) => {
+          throw err
+        })
+    })
+  },
+
+  del: (path: string) => {
+    const authPath = path + '?' + flattenQuery()
+    return new Promise((resolve, reject) => {
+      makeFetchRequest(authPath, {
+        method: 'DELETE'
       })
         .then((data: IAPIResponse) => {
           resolve(data)
@@ -218,6 +230,20 @@ export class TowelRecord {
         })
         .catch((err) => {
           console.error(err)
+          resolve({
+            error: err
+          })
+        })
+    })
+  }
+
+  public async delete(id: string) {
+    return new Promise((resolve) => {
+      API.del('/api/q/' + this.tableName + '/' + id)
+        .then((res) => {
+          resolve(res)
+        })
+        .catch((err) => {
           resolve({
             error: err
           })

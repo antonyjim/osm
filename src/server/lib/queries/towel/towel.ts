@@ -60,6 +60,10 @@ export default class Towel extends TowelRecord {
     }
   }
 
+  public setLimit(limit: number): void {
+    this.pagination.limit = limit
+  }
+
   public addArgument(col: string, value: string, operator: string = '='): void {
     this.args.push({
       col,
@@ -77,8 +81,7 @@ export default class Towel extends TowelRecord {
     if (
       this.pagination.limit &&
       this.pagination.limit !== null &&
-      !isNaN(this.pagination.limit) &&
-      this.pagination.limit <= 100
+      !isNaN(this.pagination.limit)
     ) {
       // Put a hard limit on 100 rows
       queryParams.query += ' LIMIT ' + this.pagination.limit

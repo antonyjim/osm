@@ -14,6 +14,7 @@
 // Node Modules
 
 // NPM Modules
+import { v4 as uuid } from 'uuid'
 
 // Local Modules
 import { byFields as _byFields } from '../builder/byFields'
@@ -22,7 +23,7 @@ import { IFieldError } from '../../../../types/api'
 import { getTables } from '../../api/schema/constructSchema'
 import { simpleQuery } from '../../connection'
 import { queryBuilder } from '../builder'
-import Towel from './towel'
+import { validateFieldIsValid } from '../builder/fieldValidator'
 
 // Constants and global variables
 
@@ -62,6 +63,46 @@ export class TowelRecord {
     console.log('[TOWEL] New Towel instantiated for table %s', this.tableName)
   }
 
+  protected async validateNewFields(
+    providedFields: any
+  ): Promise<{ errors: IFieldError[]; warnings: IFieldError[]; valid: any }> {
+    const returnVal = {
+      errors: [],
+      warnings: [],
+      valid: {}
+    }
+    const schema = getTables()
+    const tableSchema = schema[this.tableName].columns
+    if (!providedFields) throw new Error('Missing fields')
+    for (const field in tableSchema) {
+      if (field.endsWith('_display')) continue // Return for joined fields.
+      if (!Object.keys(providedFields).includes(field)) continue
+
+      const validOrNot = await validateFieldIsValid(
+        tableSchema[field],
+        providedFields[field]
+      ).catch((err) => {
+        if (tableSchema[field].nullable && !tableSchema[field].requiredCreate) {
+          returnVal.warnings.push({
+            message: err.message,
+            field
+          })
+        } else {
+          console.log({
+            message: err.message,
+            field
+          })
+          returnVal.errors.push({
+            message: err.message,
+            field
+          })
+        }
+      })
+      returnVal.valid[field] = validOrNot
+    }
+    return returnVal
+  }
+
   public addAggregate(aggregate: string, field: string) {
     this.hasAggregate = true
   }
@@ -73,6 +114,54 @@ export class TowelRecord {
       this.requestedFields = fields.split(',')
     }
     return this
+  }
+
+  public async create(fields) {
+    let id
+    if (this.primaryKey === 'sys_id') id = uuid()
+    fields[this.primaryKey] = id
+
+    let insertFields = { ...fields }
+    // Execute hook handle
+
+    insertFields = fields
+
+    const query = 'INSERT INTO ?? SET ?'
+    const params = [this.tableName]
+    const validatedFields = await this.validateNewFields(insertFields)
+    const returnObject = {
+      errors: [],
+      warnings: [],
+      info: [],
+      data: {}
+    }
+    let inserted
+    if (validatedFields.errors && validatedFields.errors.length > 0) {
+      return {
+        errors: validatedFields.errors,
+        warnings: validatedFields.warnings
+      }
+    }
+    params.push(validatedFields.valid)
+    inserted = await simpleQuery(query, params).catch((err) => {
+      this.warnings.push(err)
+      return {
+        warnings: this.warnings
+      }
+    })
+    if (inserted.affectedRows === 0) {
+      returnObject.warnings.push({ message: 'Record was not created' })
+    } else {
+      returnObject.info.push({ message: 'Record was successfully created' })
+    }
+
+    const updatedObj = await this.byId(id)
+
+    returnObject.data[this.tableName] = updatedObj.data.shift()
+    returnObject.warnings = validatedFields.warnings
+
+    if (returnObject.errors.length === 0) delete returnObject.errors
+    return returnObject
   }
 
   public async byId(id: string) {

@@ -71,7 +71,7 @@ export function TableRow(props: ITableRowProps) {
         )
       } else {
         const refCol = props.cols[col + '_display']
-        const refTab = refCol ? refCol.tableRef : '#'
+        const refTab = refCol ? refCol.refTable : '#'
         cells.push(
           <td key={Math.floor(Math.random() * 1000000)}>
             <Link

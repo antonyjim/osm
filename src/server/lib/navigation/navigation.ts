@@ -87,7 +87,7 @@ export function validateEndpoint(
 ): Promise<IStatusMessage> {
   return new Promise((resolve, reject) => {
     if (method && endpoint && role) {
-      simpleQuery('SELECT endpointvalidation(?, ?, ?) AS authed', [
+      simpleQuery('SELECT endpoint_validation(?, ?, ?) AS authed', [
         role,
         endpoint.split('?')[0],
         method

@@ -15,8 +15,6 @@ import { apiRoutes } from './api/index'
 import { uiRoutes } from './ui/index'
 import { staticRoutes } from './static'
 import { Log, RequestLog } from '../lib/log'
-import { syncDbSchema } from '../lib/api/schema/dbSchemaGen'
-import { constructForms } from '../lib/api/schema/constructForms'
 
 // Constants and global variables
 const router = Router()
@@ -33,16 +31,6 @@ router.use(bodyParser.json())
 router.use('/api', apiRoutes)
 // Parse cookies on routes that return a webpage
 router.use(cookieParser())
-
-router.get('/testtest', (req, res) => {
-  syncDbSchema()
-  res.status(200).send()
-})
-
-router.get('/formGen', (req, res) => {
-  constructForms()
-  res.status(200).send()
-})
 
 router.use('/', uiRoutes)
 

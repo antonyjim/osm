@@ -5,7 +5,6 @@ import '@babel/polyfill'
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 import { Footer } from './common/Footer'
 import { E404, ErrorBoundary } from './common/Errors'
-import UserProfile from './home/UserProfile'
 import Customer from './admin/Customer'
 import Navigation from './common/Navigation'
 import Dashboard from './home/Dashboard'
@@ -15,6 +14,7 @@ import $ from 'jquery'
 import { ITHQWindowNamespace } from './typings'
 
 const Admin = React.lazy(() => import('./admin/Admin'))
+const UserProfile = React.lazy(() => import('./home/UserProfile'))
 
 // Handle pesky window types
 declare global {
