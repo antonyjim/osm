@@ -2,7 +2,9 @@
  * Allow operators to be used with graphql queries in the format {field: "operator|value"}
  * @param fields Object containing field operators
  */
-export function evaluateFieldOperator(field) {
+export function evaluateFieldOperator(
+  field
+): { operator: string; value: string; not: boolean } {
   if (!field || typeof field !== 'string') return field
   const op = field.split('|')
   // Test for the existence of an operator
@@ -11,31 +13,36 @@ export function evaluateFieldOperator(field) {
       case 'lt': {
         return {
           operator: '<',
-          value: op[1]
+          value: op[1],
+          not: false
         }
       }
       case 'gt': {
         return {
           operator: '>',
-          value: op[1]
+          value: op[1],
+          not: false
         }
       }
       case 'lte': {
         return {
           operator: '<=',
-          value: op[1]
+          value: op[1],
+          not: false
         }
       }
       case 'gte': {
         return {
           operator: '>=',
-          value: op[1]
+          value: op[1],
+          not: false
         }
       }
       case 'lk': {
         return {
           operator: 'LIKE',
-          value: `%${op[1]}%` // op[1].replace('*', '%')
+          value: `%${op[1]}%`, // op[1].replace('*', '%')
+          not: false
         }
       }
       case 'ne': {
@@ -48,14 +55,15 @@ export function evaluateFieldOperator(field) {
       default: {
         return {
           operator: '=',
-          value: op[1]
+          value: op[1],
+          not: false
         }
       }
     }
   } else {
     return {
       operator: '=',
-      value: op,
+      value: field,
       not: false
     }
   }

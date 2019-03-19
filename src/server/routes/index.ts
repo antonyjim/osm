@@ -15,6 +15,7 @@ import { apiRoutes } from './api/index'
 import { uiRoutes } from './ui/index'
 import { staticRoutes } from './static'
 import { Log, RequestLog } from '../lib/log'
+import cell from '../lib/excel/cell'
 
 // Constants and global variables
 const router = Router()
@@ -25,6 +26,11 @@ router.use((req, res, next) => {
   console.log(req.method, req.path)
   // RequestLog(req.method, req.path)
   return next()
+})
+
+router.get('/xcel', (req, res) => {
+  cell()
+  res.status(200).send()
 })
 router.use(bodyParser.json())
 // Require token in query string for api calls

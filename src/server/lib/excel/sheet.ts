@@ -82,6 +82,12 @@ export default function Sheet(inputData: any[], headers: string[]) {
   const allRows = []
   const maxLetter = alphabet[this.cols.length - 1]
   let uniqueString = ''
+  const headerRow = {}
+  this.cols.map((col) => {
+    headerRow[col] = col
+  })
+  this.data.unshift(headerRow)
+
   this.data.map((obj, i) => {
     this.currentRow++
     allRows.push(this._row(obj))
