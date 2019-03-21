@@ -30,6 +30,7 @@ export default function API() {
       }
       case 'DELETE': {
         new APICall({ req, res }).delete()
+        break
       }
       default: {
         res.status(501).send()

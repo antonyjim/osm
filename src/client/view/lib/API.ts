@@ -41,7 +41,15 @@ function makeFetchRequest(uri: string, init?: RequestInit) {
   return new Promise((resolveRequest) => {
     fetch(uri, init)
       .then((res) => {
-        if (res.status === 204) return { ...res }
+        if (res.status === 204) {
+          return resolveRequest({
+            ok: res.ok,
+            statusText: res.statusText,
+            redirected: res.redirected,
+            bodyUsed: res.bodyUsed,
+            status: res.status
+          })
+        }
         return res.json()
       })
       .then((data: IAPIResponse) => {

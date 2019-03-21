@@ -28,9 +28,10 @@ router.use((req, res, next) => {
   return next()
 })
 
-router.get('/xcel', (req, res) => {
-  cell()
-  res.status(200).send()
+router.get('/excel', (req, res) => {
+  cell().then((status) => {
+    res.status(200).json(status)
+  })
 })
 router.use(bodyParser.json())
 // Require token in query string for api calls

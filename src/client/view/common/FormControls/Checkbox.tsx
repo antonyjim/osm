@@ -18,19 +18,19 @@ function Checkbox(props: ICheckboxProps) {
     !props.isHidden && (
       <div
         className={'form-checkbox ' + (props.className || '')}
-        id={'check-' + props.id}
+        id={'check-' + props.name}
       >
         <input
           {...props.attributes}
           type='checkbox'
-          id={props.id}
-          name={props.name || props.id}
-          checked={!!props.checked}
+          id={props.name}
+          name={props.name}
+          checked={props.checked || props.value}
           value={props.value}
           onChange={props.onChange}
           title={props.title}
         />
-        <label className='ml-2' htmlFor={props.id}>
+        <label className='ml-2' htmlFor={props.name}>
           {props.label}
         </label>
       </div>

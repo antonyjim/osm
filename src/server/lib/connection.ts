@@ -28,6 +28,11 @@ function getPool(): Pool {
   if (pool) {
     return pool
   }
+  console.log(
+    '[SQL_CONNECTION] Creating new connection with username %s and host %s',
+    poolConfig.user,
+    poolConfig.host
+  )
   pool = createPool(poolConfig)
   return pool
 }

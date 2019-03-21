@@ -30,7 +30,7 @@ export function getRoleAuthorizedNavigation(
       const query =
         'SELECT * FROM ?? WHERE ?? = (SELECT ?? FROM ?? WHERE ?? = ? AND ?? = ?)'
       const params = [
-        'uiNavigation',
+        'uinavigation',
         'rpId',
         'nsaRole',
         'sys_user_nsacl',
