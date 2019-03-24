@@ -5,13 +5,24 @@
 import { readFile } from 'fs'
 
 // Load environment variables
-readFile('./dot.env', { encoding: 'utf8' }, (err: Error, data: string) => {
+readFile('../dot.env', { encoding: 'utf8' }, (err: Error, data: string) => {
   if (err) {
     console.error(err)
     console.error(
-      '[STARTUP] App could not read environment variables. Please check that dot.env exists in the root directory'
+      '[STARTUP] dot.env not found in cwd. Defaulting to environment variables.'
     )
-    process.exit(1)
+    for (const envVar in process.env) {
+      if (!envVar.startsWith('npm')) {
+        console.log(
+          '[STARTUP] Setting environment variable %s to value %s',
+          envVar,
+          process.env[envVar]
+        )
+      }
+    }
+    // Start the web server
+    require('./server/app').routes()
+    return
   }
   const lines: string[] | number[] = data.split('\n')
   lines.map((line: string) => {

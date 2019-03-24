@@ -73,7 +73,7 @@
     "debug": "nodemon --ignore ./dist/server/lib/hooks --legacy-watch --watch ./dist --inspect=127.0.0.1:9229 --nolazy ./dist/",
     "docker-debug": "docker-compose up",
     "client-watch": "webpack --watch",
-    "start": "tsc && node dist/app.js",
+    "start": "tsc && node dist",
     "lint": "tslint -c ./tslint.json 'src/**/*.{ts,tsx}'",
     "lint-fix": "tslint -c ./tslint.json 'src/**/*.{ts,tsx}'",
     "test": "mocha --no-timeouts --colors ./test/index.ts --require ts-node/register",

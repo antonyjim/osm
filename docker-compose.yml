@@ -2,10 +2,27 @@ version: '3.7'
 
 services:
   web:
-    build: .
+    # build: .
+    image: node_with_7z
     command: npm run debug
+    env_file: ./dot.env
     volumes:
       - ./dist:/server/dist
     ports:
-      - '8020:80'
+      - '8080:80'
       - '9222:9222'
+    depends_on:
+      - db
+    links:
+      - db
+  db:
+    image: 'mariadb:latest'
+    volumes:
+      - C:\Program Files\MariaDB 10.3\data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=thq
+      - MYSQL_USER=remote_node
+      - MYSQL_PASSWORD=development
+    expose:
+      - '3306'

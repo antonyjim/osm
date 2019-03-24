@@ -1,3 +1,4 @@
 # Force container to install dependencies
 node_modules
 test
+dot.env
