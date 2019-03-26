@@ -15,8 +15,11 @@ import { router } from './routes/index'
 import { Log } from './lib/log'
 import { getPool } from './lib/connection'
 import constructSchema from './lib/api/schema/constructSchema'
-import { constructForms } from './lib/api/schema/constructForms'
+import { constructForms } from './lib/api/forms/constructForms'
 import generateHooks from './lib/api/hooks/generateHooks'
+import { syncDbSchema } from './lib/api/schema/dbSchemaGen'
+import { fstat, readFile, createReadStream } from 'fs'
+import { resolve } from 'path'
 
 export function routes() {
   if (process.env.NODE_ENV === 'production') {
@@ -53,6 +56,9 @@ export function routes() {
 
     app.listen(port, () => {
       new Log(`Listening at port ${port} on process ${process.pid}`).info()
+
+      syncDbSchema()
+
       constructSchema()
         .then((tables) => {
           console.log('Completed bulding schema')
@@ -69,4 +75,24 @@ export function routes() {
         })
     })
   }
+}
+
+export function internalError() {
+  const app = express()
+  const port = parseInt(process.env.SERVER_PORT, 10) || 8020
+
+  app.all('*', (req, res) => {
+    try {
+      res.writeHead(200, { 'Content-Type': 'text/html' })
+      createReadStream(resolve(__dirname, '../../static/error505.html')).pipe(
+        res
+      )
+    } catch (err) {
+      res.send('<html>Internal server error</html>')
+    }
+  })
+
+  app.listen(port, () => {
+    console.log('[APP] Listening for fallback on port %d', port)
+  })
 }

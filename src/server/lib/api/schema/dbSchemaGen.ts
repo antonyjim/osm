@@ -1,12 +1,12 @@
-import constructSchema, { getTables } from './constructSchema'
+import constructSchema from './constructSchema'
 import { getPool, simpleQuery } from '../../connection'
-import { inspect } from 'util'
 import { v4 as uuid } from 'uuid'
 
 export function syncDbSchema() {
   constructSchema() // Refresh the in-memory schema object
     .then((tables) => {
       ;(async () => {
+        const existingTables = await constructSchema()
         const allTables = await simpleQuery(
           "SHOW TABLES WHERE NOT Tables_in_thq LIKE '%_list'"
         )
@@ -26,15 +26,21 @@ export function syncDbSchema() {
           //   console.log('Table %s does not exist in current schema', tableName)
           createTableIfNotExists(tableName)
             .then((tableId) => {
+              console.log(
+                '[CONSTRUCT_SCHEMA] Got sys_id for table %s of id %s',
+                tableName,
+                tableId
+              )
               simpleQuery('DESCRIBE ??', [tableName]).then((columns) => {
-                console.log(columns)
                 const theseColumns = []
+                const existingColumns = existingTables[tableName].columns
                 let hasSetDisplay = false
                 columns.map((col, i) => {
                   if (tables[tableName].columns[col.Field]) {
-                    console.log('Column %s already defined', col)
                     return // Column already defined
                   } else {
+                    console.log('Column %s is not defined', col.Field)
+
                     let displayField = false
                     if (col.Field !== 'sys_id' && hasSetDisplay === false) {
                       displayField = true
@@ -155,11 +161,12 @@ export function syncDbSchema() {
 }
 
 async function createTableIfNotExists(tableName) {
+  console.log('[CONSTRUCT_SCHEMA] Getting sys_id for table %s', tableName)
   const table = await simpleQuery(
     'SELECT sys_id FROM sys_db_object where name = ?',
     [tableName]
   )
-  if (table) {
+  if (table && table.length > 0) {
     return table[0].sys_id
   } else {
     // const id = uuid()

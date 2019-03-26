@@ -1,4 +1,5 @@
 FROM node:11
+FROM node_with_7z
 
 WORKDIR /server
 

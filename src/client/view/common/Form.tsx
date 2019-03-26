@@ -9,7 +9,7 @@ import { Loading } from './Loading'
 
 const Hook = React.lazy(() => import('../admin/Hook'))
 const UserProfile = React.lazy(() => import('../home/UserProfile'))
-// const Column = React.lazy(() => import('../admin/Column'))
+const Column = React.lazy(() => import('../admin/Column'))
 
 interface ISerializedFormControl {
   component: any
@@ -30,7 +30,7 @@ interface ISerializedFormControl {
 // Store tsx forms in this object
 const specialForms = {
   sys_user: UserProfile,
-  // sys_db_dictionary: Column,
+  sys_db_dictionary: Column,
   // sys_db_object: TableModifier,
   sys_db_hook: Hook
 }

@@ -451,6 +451,19 @@ CREATE TABLE sys_db_dictionary (
         ON UPDATE CASCADE
 ) CHARSET = utf8;
 
+CREATE TABLE sys_db_dictionary_attr (
+    PRIMARY KEY(sys_id),
+    sys_id CHAR(36),
+    field_id CHAR(36),
+    attr_key VARCHAR(40),
+    attr_val VARCHAR(40),
+
+    FOREIGN KEY(field_id)
+        REFERENCES sys_db_dictionary (sys_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+) CHARSET = utf8;
+
 CREATE TABLE sys_view (
     PRIMARY KEY(view_field, view_name),
     view_name VARCHAR(40),
@@ -518,10 +531,28 @@ CREATE TABLE sys_authorization (
 CREATE TABLE sys_form (
     PRIMARY KEY(sys_id),
     sys_id CHAR(36),
-    form_id CHAR(36),
-    form_name VARCHAR(40),
-    tab_name VARCHAR(40),
-    tab_title VARCHAR(40),
+    form_name VARCHAR(40), -- Name of the form
+    has_state BOOLEAN -- To be used in the future
+) CHARSET = utf8;
+
+CREATE TABLE sys_form_tab (
+    PRIMARY KEY(sys_id),
+    sys_id CHAR(36),
+    form_id CHAR(36), -- Reference to sys_form
+    tab_name VARCHAR(40) DEFAULT 'General',
+    tab_title VARCHAR(40) DEFAULT 'General Information',
+    validation_script CHAR(36),
+
+    FOREIGN KEY(form_id)
+        REFERENCES sys_form(sys_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+) CHARSET = utf8;
+
+CREATE TABLE sys_form_body (
+    PRIMARY KEY(sys_id),
+    sys_id CHAR(36),
+    tab_id CHAR(36),
     table_ref CHAR(36),
     table_args VARCHAR(100),
     field_name CHAR(36),

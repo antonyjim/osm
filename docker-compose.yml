@@ -3,7 +3,8 @@ version: '3.7'
 services:
   web:
     # build: .
-    image: node_with_7z
+    image: thq_web # thq_web is a pre-build image from local Dockerfile
+    working_dir: /server
     command: npm run debug
     env_file: ./dot.env
     volumes:
@@ -18,11 +19,13 @@ services:
   db:
     image: 'mariadb:latest'
     volumes:
-      - C:\Program Files\MariaDB 10.3\data:/var/lib/mysql
+      - 'C:\Program Files\MariaDB 10.3\data:/var/lib/mysql'
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=thq
       - MYSQL_USER=remote_node
       - MYSQL_PASSWORD=development
+    ports:
+      - '3306:3306'
     expose:
       - '3306'

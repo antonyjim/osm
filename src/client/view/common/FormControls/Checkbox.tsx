@@ -25,7 +25,7 @@ function Checkbox(props: ICheckboxProps) {
           type='checkbox'
           id={props.name}
           name={props.name}
-          checked={props.checked || props.value}
+          checked={props.checked}
           value={props.value}
           onChange={props.onChange}
           title={props.title}

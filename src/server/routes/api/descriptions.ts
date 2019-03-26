@@ -12,7 +12,7 @@ import { Router, Request, Response } from 'express'
 // Local Modules
 import Description from './../../lib/api/schema/descriptions'
 import Towel from '../../lib/queries/towel/towel'
-import getForm from '../../lib/api/schema/constructForms'
+import getForm from '../../lib/api/forms/constructForms'
 
 // Constants and global variables
 const descriptions = Router()

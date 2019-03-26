@@ -47,6 +47,7 @@ export class TowelRecord {
         throw new Error(`${table} does not exist in the schema.`)
       }
     } catch (err) {
+      console.error(err)
       throw new Error('Schema has not been initialized')
     }
 

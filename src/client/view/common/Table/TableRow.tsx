@@ -38,7 +38,7 @@ export function TableRow(props: ITableRowProps) {
     if (thisCol.reference || thisCol.display) {
       if (props.onSelectKey && thisCol.display) {
         cells.push(
-          <td key={Math.floor(Math.random() * 1000000)}>
+          <td key={Math.floor(Math.random() * 1000000)} tabIndex={0}>
             <a
               href='#'
               data-key={props.cells[props.id]}
@@ -54,13 +54,14 @@ export function TableRow(props: ITableRowProps) {
           <td
             key={Math.floor(Math.random() * 1000000)}
             className='align-middle'
+            tabIndex={0}
           >
             {val || ''}
           </td>
         )
       } else if (thisCol.display) {
         cells.push(
-          <td key={Math.floor(Math.random() * 1000000)}>
+          <td key={Math.floor(Math.random() * 1000000)} tabIndex={0}>
             <Link
               to={`/f/${thisCol.display}/${props.cells[props.id] || '#'}`}
               className='align-middle'
@@ -73,7 +74,7 @@ export function TableRow(props: ITableRowProps) {
         const refCol = props.cols[col + '_display']
         const refTab = refCol ? refCol.refTable : '#'
         cells.push(
-          <td key={Math.floor(Math.random() * 1000000)}>
+          <td key={Math.floor(Math.random() * 1000000)} tabIndex={0}>
             <Link
               to={`/f/${refTab}/${val || '#'}`}
               title={props.cols[col].label}
@@ -89,6 +90,7 @@ export function TableRow(props: ITableRowProps) {
         <td
           key={'table-data-' + ~~(Math.random() * 100000)}
           className='align-middle'
+          tabIndex={0}
         >
           {new Date(val).toDateString() || ''}
         </td>
@@ -99,6 +101,7 @@ export function TableRow(props: ITableRowProps) {
           <td
             key={'table-data-' + ~~(Math.random() * 100000)}
             style={{ textAlign: 'center' }}
+            tabIndex={0}
           >
             <Checkbox
               id={col + ~~(Math.random() * 100000)}
@@ -117,6 +120,7 @@ export function TableRow(props: ITableRowProps) {
             key={'table-data-' + ~~(Math.random() * 100000)}
             style={{ textAlign: 'center' }}
             className='align-middle'
+            tabIndex={0}
           >
             {val === true || (val === 1 && '×') || ''}
           </td>
@@ -127,6 +131,7 @@ export function TableRow(props: ITableRowProps) {
         <td
           key={'table-data-' + ~~(Math.random() * 100000)}
           className='align-middle'
+          tabIndex={0}
         >
           {typeof val === 'string' ? val : ''}
         </td>

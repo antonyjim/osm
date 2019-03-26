@@ -61,9 +61,9 @@ export function sqlToJsType(type: string) {
   return returnType
 }
 
-export default async function constructSchema() {
+export default async function constructSchema(): Promise<ISchema> {
   return new Promise(async (resolve) => {
-    if (tables) return resolve(tables)
+    // if (tables) return resolve(tables)
     tables = {}
     const tableConstructorEmitter = new EventEmitter()
     const gotTables: any[] | void = await simpleQuery('SELECT ??, ?? FROM ??', [
@@ -199,7 +199,7 @@ export default async function constructSchema() {
   })
 }
 
-export function getTables() {
+export function getTables(): ISchema {
   if (tables) {
     if (process.env.NODE_ENV === 'development') constructSchema()
     return tables
