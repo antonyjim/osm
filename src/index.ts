@@ -4,29 +4,35 @@
 
 import { readFile } from 'fs'
 import { resolve } from 'path'
-import { getPool } from './server/lib/connection'
 
 async function testDBConn(): Promise<boolean> {
-  try {
-    getPool().getConnection((err, conn) => {
-      if (err) return false
-      else {
-        conn.release()
-        return true
-      }
-    })
-  } catch (err) {
-    return false
-  }
+  return new Promise((resolveDbConnection) => {
+    try {
+      require('./server/lib/connection')
+        .getPool()
+        .getConnection((err, conn) => {
+          if (err) {
+            console.error(err)
+            return resolveDbConnection(false)
+          } else {
+            conn.release()
+            return resolveDbConnection(true)
+          }
+        })
+    } catch (err) {
+      console.error(err)
+      return resolveDbConnection(false)
+    }
+  })
 }
 
 // Load environment variables
 readFile(
   resolve(__dirname, '../dot.env'),
   { encoding: 'utf8' },
-  (err: Error, data: string) => {
-    if (err) {
-      console.error(err)
+  (dotEnvReadErr: Error, data: string) => {
+    if (dotEnvReadErr) {
+      console.error(dotEnvReadErr)
       console.error(
         '[STARTUP] dot.env not found in cwd. Defaulting to environment variables.'
       )
@@ -43,12 +49,23 @@ readFile(
         .then((status) => {
           if (status) {
             // Start the web server
+            console.log(
+              '[STARTUP] Successfully established database connection. Starting http listener'
+            )
             require('./server/app').routes()
           } else {
+            console.log(
+              '[STARTUP] Failed to establish database connection. Defaulting to fallback http listener'
+            )
             require('./server/app').internalError()
           }
         })
-        .catch(() => {
+        .catch((err) => {
+          console.error(err)
+          console.log(
+            '[STARTUP] Failed to establish database connection with error %s. Defaulting to fallback http listener',
+            err
+          )
           require('./server/app').internalError()
         })
     } // end if
@@ -71,12 +88,23 @@ readFile(
       .then((status) => {
         if (status) {
           // Start the web server
+          console.log(
+            '[STARTUP] Successfully established database connection. Starting http listener'
+          )
           require('./server/app').routes()
         } else {
+          console.log(
+            '[STARTUP] Failed to establish database connection. Defaulting to fallback http listener'
+          )
           require('./server/app').internalError()
         }
       })
-      .catch(() => {
+      .catch((dbConnectionErr) => {
+        console.error(dbConnectionErr)
+        console.log(
+          '[STARTUP] Failed to establish database connection with error %s. Defaulting to fallback http listener',
+          dbConnectionErr
+        )
         require('./server/app').internalError()
       })
   }

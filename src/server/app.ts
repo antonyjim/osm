@@ -20,6 +20,7 @@ import generateHooks from './lib/api/hooks/generateHooks'
 import { syncDbSchema } from './lib/api/schema/dbSchemaGen'
 import { fstat, readFile, createReadStream } from 'fs'
 import { resolve } from 'path'
+import { staticRoutes } from './routes/static'
 
 export function routes() {
   if (process.env.NODE_ENV === 'production') {
@@ -81,7 +82,9 @@ export function internalError() {
   const app = express()
   const port = parseInt(process.env.SERVER_PORT, 10) || 8020
 
-  app.all('*', (req, res) => {
+  app.use('/public', staticRoutes)
+
+  app.get('*', (req, res) => {
     try {
       res.writeHead(200, { 'Content-Type': 'text/html' })
       createReadStream(resolve(__dirname, '../../static/error505.html')).pipe(
