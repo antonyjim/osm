@@ -161,7 +161,6 @@ export function syncDbSchema() {
 }
 
 async function createTableIfNotExists(tableName) {
-  console.log('[CONSTRUCT_SCHEMA] Getting sys_id for table %s', tableName)
   const table = await simpleQuery(
     'SELECT sys_id FROM sys_db_object where name = ?',
     [tableName]

@@ -50,7 +50,6 @@ async function simpleQuery(query: string, params?: any[]): Promise<any> {
     })
     getPool().query(query, params, (err: Error, results: any[]) => {
       if (err) throw err
-      console.table(results)
       return resolveQuery(results)
     })
   })

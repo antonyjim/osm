@@ -12,7 +12,6 @@ async function testDBConn(): Promise<boolean> {
         .getPool()
         .getConnection((err, conn) => {
           if (err) {
-            console.error(err)
             return resolveDbConnection(false)
           } else {
             conn.release()
@@ -20,7 +19,6 @@ async function testDBConn(): Promise<boolean> {
           }
         })
     } catch (err) {
-      console.error(err)
       return resolveDbConnection(false)
     }
   })
@@ -36,15 +34,6 @@ readFile(
       console.error(
         '[STARTUP] dot.env not found in cwd. Defaulting to environment variables.'
       )
-      for (const envVar in process.env) {
-        if (!envVar.startsWith('npm')) {
-          console.log(
-            '[STARTUP] Setting environment variable %s to value %s',
-            envVar,
-            process.env[envVar]
-          )
-        }
-      }
       testDBConn()
         .then((status) => {
           if (status) {

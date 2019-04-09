@@ -6,6 +6,8 @@
 // Node Modules
 import * as cluster from 'cluster'
 import { cpus } from 'os'
+import { createReadStream } from 'fs'
+import { resolve } from 'path'
 
 // NPM Modules
 import * as express from 'express'
@@ -18,8 +20,6 @@ import constructSchema from './lib/api/schema/constructSchema'
 import { constructForms } from './lib/api/forms/constructForms'
 import generateHooks from './lib/api/hooks/generateHooks'
 import { syncDbSchema } from './lib/api/schema/dbSchemaGen'
-import { fstat, readFile, createReadStream } from 'fs'
-import { resolve } from 'path'
 import { staticRoutes } from './routes/static'
 
 export function routes() {

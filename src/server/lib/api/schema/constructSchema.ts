@@ -124,6 +124,13 @@ export default async function constructSchema(): Promise<ISchema> {
         const tableColumns = await simpleQuery(statement, params).catch((err) =>
           console.error(err)
         ) // I know I'm trying to avoid static queries, but come on
+        if (tableColumns.length === 0) {
+          console.error(
+            'Table %s does not have any fields associated with it',
+            tableName
+          )
+          return Promise.resolve()
+        }
         tables[tableName].tableId = tableColumns[0].table_name
         if (tableColumns) {
           tableColumns.map((col) => {
