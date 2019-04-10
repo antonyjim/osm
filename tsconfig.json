@@ -1,8 +1,8 @@
 {
     "compilerOptions": {
-        "outDir": "dist/",
+        "outDir": "./dist/",
         "sourceMap": true,
-        "rootDir": "src/",
+        "rootDir": "./src/",
         "removeComments": true,
         "allowJs": true,
         "jsx": "react",
@@ -19,16 +19,17 @@
             "express",
             "mysql",
             "uuid",
+            "lodash",
             "bcrypt",
             "jsonwebtoken",
             "nodemailer"
         ]
     },
     "include": [
-        "src/server/**/*", "src/index.ts"
+        "./src/server/**/*", "./src/index.ts"
     ],
     "exclude": [
         "node_modules",
-        "src/client/**/*"
+        "./src/client/**/*"
     ]
 }

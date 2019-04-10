@@ -40,7 +40,10 @@ function getPool(): Pool {
 async function simpleQuery(query: string, params?: any[]): Promise<any> {
   return new Promise((resolveQuery) => {
     getPool().getConnection((err, conn) => {
-      if (err) conn.release()
+      if (err) {
+        if (conn) conn.release()
+        throw err
+      }
       try {
         console.log('[SQL_SIMPLE] %s', conn.format(query, params))
       } catch (e) {

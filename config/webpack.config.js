@@ -1,18 +1,13 @@
 const path = require('path')
 
-let BUILD_DIR = path.resolve(__dirname, 'public/scripts/bundles/')
-let APP_DIR = path.resolve(__dirname, 'src/client/view')
-let STYLE_DIR = path.resolve(__dirname, 'src/client/styles')
+const BUILD_DIR = path.resolve(__dirname, '..', 'public/scripts/bundles/')
+const APP_DIR = path.resolve(__dirname, '..', 'src/client/view')
+const STYLE_DIR = path.resolve(__dirname, '..', 'src/client/styles')
 
-let config = {
-    watch: true,
-    entry: APP_DIR + '/index.tsx',
+const config = {
+    entry: path.resolve(APP_DIR, 'index.tsx'),
     mode: 'development',
     devtool: 'inline-source-map',
-    devServer: {
-        contentBase: './',
-        disableHostCheck: true
-    },
     output: {
         globalObject: 'self',
         path: BUILD_DIR,
@@ -29,7 +24,7 @@ let config = {
             {
                 test: /\.tsx?/,
                 include: APP_DIR,
-                loader: 'awesome-typescript-loader'
+                loader: require.resolve('awesome-typescript-loader')
             },
             {
                 test: /\.css$/,
