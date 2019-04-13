@@ -16,11 +16,11 @@ declare global {
   }
 }
 
-export default function Hook(props: { id: string }) {
+export default function Hook(props: any) {
   const [hookInfo, setHookInfo] = React.useState({
     hook: '',
     hook_table: '',
-    sys_id: props.id,
+    sys_id: props.match.params.id,
     table: 'sys_db_hook',
     description: '',
     hook_table_display: '',
@@ -99,7 +99,7 @@ module.exports = function(sysId, action, incomingFields) {
   const handleSubmit = (e) => {
     e.preventDefault()
     let TowelQuery
-    if (props.id === 'new') {
+    if (props.match.params.id === 'new') {
       TowelQuery = new TowelRecord('sys_db_hook').create(
         {
           description: hookInfo.description,
@@ -110,12 +110,15 @@ module.exports = function(sysId, action, incomingFields) {
         'hook_table,hook,code,description,sys_id'
       )
     } else {
-      TowelQuery = new TowelRecord('sys_db_hook').update(props.id, {
-        description: hookInfo.description,
-        hook_table: hookInfo.hook_table,
-        hook: hookInfo.hook,
-        code: getEditorValue()
-      })
+      TowelQuery = new TowelRecord('sys_db_hook').update(
+        props.match.params.id,
+        {
+          description: hookInfo.description,
+          hook_table: hookInfo.hook_table,
+          hook: hookInfo.hook,
+          code: getEditorValue()
+        }
+      )
     }
     TowelQuery.then((res) => {
       if (res.okay() || res.status === 204) {
@@ -130,7 +133,7 @@ module.exports = function(sysId, action, incomingFields) {
   }
 
   React.useEffect(() => {
-    if (props.id !== 'new') getData()
+    if (props.match.params.id !== 'new') getData()
   }, [])
 
   return (
@@ -162,6 +165,7 @@ module.exports = function(sysId, action, incomingFields) {
             value={hookInfo.hook_table}
             display={hookInfo.hook_table_display}
             onChange={handleChange.bind(this)}
+            setValue={setHookInfo}
             className='col-lg-6 col-md-12'
             type='text'
             references='sys_db_object'

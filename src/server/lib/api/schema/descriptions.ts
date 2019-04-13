@@ -8,7 +8,7 @@
 // NPM Modules
 
 // Local Modules
-import constructSchema, { sqlToJsType, getTables } from './constructSchema'
+import constructSchema, { getTables } from './constructSchema'
 import { Querynator, simpleQuery } from '../../queries'
 
 // Constants and global variables
@@ -102,11 +102,11 @@ export default class Description extends Querynator {
         const colDetails: {
           type: string
           readonly: boolean
-          reference: boolean
+          reference: string
           boundTo: string
           refTable?: string
           maxLength?: number
-        } = { type: 'string', readonly: true, reference: false, boundTo: null }
+        } = { type: 'string', readonly: true, reference: null, boundTo: null }
         colDetails.type = thisCol.type
         colDetails.readonly = !!thisCol.readonly
         colDetails.reference = thisCol.reference

@@ -70,11 +70,11 @@ export default function() {
       if (existsSync(HOOKS_DIR)) removeRecursively(HOOKS_DIR)
       mkdirSync(HOOKS_DIR)
       hooks.data.map((hook) => {
-        const hookFile = `${hook.hook}_${hook.hook_table_display}.js`
+        const HOOK_FILE = `${hook.hook}_${hook.hook_table_display}.js`
 
-        writeFile(resolve(HOOKS_DIR, hookFile), hook.code, (err) => {
+        writeFile(resolve(HOOKS_DIR, HOOK_FILE), hook.code, (err) => {
           if (err) console.error(err)
-          console.log(`[HOOK_GENERATOR] Generated hook file ${hookFile}`)
+          console.log(`[HOOK_GENERATOR] Generated hook file ${HOOK_FILE}`)
         })
       })
     } else {

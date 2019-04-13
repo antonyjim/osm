@@ -99,7 +99,7 @@ async function serializeFormFromRow(row: IFormRow) {
 export async function constructForms() {
   // Attempt to get forms from the sys_form table
   const allForms = {}
-  const towel = new Towel('sys_form')
+  const towel = new Towel('sys_form_back')
   towel.setFields([
     'sys_id',
     'form_id',
@@ -144,7 +144,7 @@ export async function constructForms() {
           'SELECT t1.sys_id AS id FROM sys_db_dictionary t1 LEFT JOIN sys_db_object t2 ON t1.table_name = t2.sys_id WHERE t2.name = ? AND t1.column_name = ? LIMIT 1',
           [table, col]
         )
-        const initialForm = [
+        const initialForm: string[] | null = [
           uuid(), // sys_id
           initialFormId, // form_id
           table, // form_name

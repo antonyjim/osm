@@ -19,7 +19,7 @@ export default class Column extends Component<any, any> {
     super(props)
     this.state = {
       error: false,
-      sys_id: props.id,
+      sys_id: props.match.params.id,
       generalInfo: {},
       modifiedFields: {},
       disableSubmit: {
@@ -42,10 +42,10 @@ export default class Column extends Component<any, any> {
         'required_on_update',
         'required_on_create'
       ],
-      loaded: props.id !== 'new' ? false : true
+      loaded: props.match.params.id !== 'new' ? false : true
     }
 
-    if (props.id !== 'new') {
+    if (props.match.params.id !== 'new') {
       this.getInfo()
     }
   }

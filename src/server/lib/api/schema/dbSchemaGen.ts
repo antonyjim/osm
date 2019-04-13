@@ -34,6 +34,28 @@ export function syncDbSchema() {
               simpleQuery('DESCRIBE ??', [tableName]).then((columns) => {
                 const theseColumns = []
                 const existingColumns = existingTables[tableName].columns
+                const allColumns = [
+                  'sys_id',
+                  'reference_id',
+                  'column_name',
+                  'visible',
+                  'admin_view',
+                  'readonly',
+                  'nullable',
+                  'label',
+                  'hint',
+                  'type',
+                  'len',
+                  'default_value',
+                  'required_on_create',
+                  'required_on_update',
+                  'table_name',
+                  'default_view',
+                  'update_key',
+                  'col_order',
+                  'enum',
+                  'display_field'
+                ]
                 let hasSetDisplay = false
                 columns.map((col, i) => {
                   if (tables[tableName].columns[col.Field]) {
@@ -61,7 +83,7 @@ export function syncDbSchema() {
                       true, // visible
                       false, // admin_view
                       false, // readonly
-                      col.Null === 'NO' ? true : false, // nullable
+                      col.Null === 'NO', // nullable
                       col.Field, // label
                       null, // hint
                       parseType(col.Type).dataType.toUpperCase(), // type
@@ -80,7 +102,8 @@ export function syncDbSchema() {
                 })
 
                 if (theseColumns.length > 0) {
-                  simpleQuery('INSERT INTO sys_db_dictionary VALUES ?', [
+                  simpleQuery('INSERT INTO sys_db_dictionary (??) VALUES ?', [
+                    allColumns,
                     theseColumns
                   ])
                 }
@@ -151,6 +174,11 @@ export function syncDbSchema() {
         returnType.dataLength = null
         break
       }
+      case 'enu': {
+        returnType.dataType = 'varchar'
+        returnType.dataLength = 40 // Maxlength of an enum
+        break
+      }
       default: {
         returnType.dataType = sqlType
         returnType.dataLength = null
@@ -174,7 +202,7 @@ async function createTableIfNotExists(tableName) {
     // ])
     const tableInfo = await simpleQuery(`CALL create_table(?, ?)`, [
       tableName,
-      uuid
+      uuid()
     ])
     return tableInfo[0].sys_id
   }

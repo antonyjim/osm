@@ -1,6 +1,10 @@
 import * as express from 'express'
 import { IFieldError } from './api'
 
+export interface IDictionary {
+  [key: string]: string | number
+}
+
 export interface IValidationFields {
   isInvalid: boolean
   fieldName: string

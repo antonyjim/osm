@@ -103,7 +103,7 @@ export class TableSearch extends Component<
               className='btn btn-primary'
               to={`/f/${this.props.table.slice(0, -5)}/new`}
             >
-              New
+              {'New'}
             </Link>
           </div>
         </Can>

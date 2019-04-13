@@ -350,7 +350,7 @@ export class Querynator extends EventEmitter {
     const hookHandle = loadModule(this.tableName, createHook)
     let insertFields = { ...providedFields }
     // Execute hook handle
-    if (hookHandle) {
+    if (typeof hookHandle === 'function') {
       try {
         console.log(
           '[HOOK_LOADER] RUNNING ' + createHook + ' ON ' + this.tableName
@@ -418,12 +418,13 @@ export class Querynator extends EventEmitter {
     const hookHandle = loadModule(this.tableName, updateHook)
     let updateFields = {}
     // Execute hook handle
-    if (hookHandle) {
+    if (typeof hookHandle === 'function') {
       try {
         console.log(
           '[HOOK_LOADER] RUNNING ' + updateHook + ' ON ' + this.tableName
         )
-        updateFields = hookHandle(fields[this.primaryKey], fields).fields
+        updateFields = hookHandle(fields[this.primaryKey], fields)
+          .confirmedFields
       } catch (err) {
         console.log(
           '[HOOK_LOADER] ENCOUNTERED ERROR AT ' +
@@ -486,7 +487,7 @@ export class Querynator extends EventEmitter {
     } else {
       const afterUpdateHook = 'onAfterUpdated'
       const handle = loadModule(this.tableName, afterUpdateHook)
-      if (handle) {
+      if (handle && typeof handle === 'function') {
         ;(async () => {
           try {
             handle(this.context.req.params.id, validatedFields.valid)
@@ -500,6 +501,11 @@ export class Querynator extends EventEmitter {
             )
           }
         })()
+      } else {
+        console.log(
+          '[HOOK_LOADER] Hook was found, but typeof hook was %s',
+          typeof handle
+        )
       }
     }
 

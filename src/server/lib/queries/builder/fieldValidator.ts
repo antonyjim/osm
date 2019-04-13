@@ -25,7 +25,7 @@ export async function validateFieldIsValid(
   ) {
     throw new Error(`Value cannot be null`)
   } else if (fieldInfo.reference && fieldInfo.refTable) {
-    const row = await simpleQuery('SELECT DISTINCT ?? FROM ?? WHERE ?? = ??', [
+    const row = await simpleQuery('SELECT DISTINCT ?? FROM ?? WHERE ?? = ?', [
       fieldInfo.reference,
       fieldInfo.refTable,
       fieldInfo.reference,
@@ -33,8 +33,9 @@ export async function validateFieldIsValid(
     ]).catch((e) => {
       throw new Error('Invalid reference')
     })
-    if (Array.isArray(row) && row.length !== 0) return true
-    else throw new Error('Invalid reference')
+    if (Array.isArray(row) && row.length !== 0) {
+      return row[0][fieldInfo.reference]
+    } else throw new Error('Invalid reference')
   } else if (fieldInfo.type === 'boolean') {
     if (isBoolean(fieldValue)) {
       return !!fieldValue

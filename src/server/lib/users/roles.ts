@@ -32,16 +32,9 @@ export class Roles {
     return new Promise((resolve, reject) => {
       let sql = ``
       if (role) {
-        sql = `
-                    SELECT role_priv
-                    FROM sys_role
-                    WHERE rpId = ${pool.escape(role)}
-                `
+        sql = `SELECT role_priv FROM sys_role WHERE rpId = ${pool.escape(role)}`
       } else {
-        sql = `
-                    SELECT DISTINCT role_priv
-                    FROM sys_role
-                `
+        sql = `SELECT DISTINCT role_priv FROM sys_role`
       }
       pool.query(sql, (err: Error, results) => {
         if (err) {

@@ -8,6 +8,10 @@ function Reference(props) {
     e: React.MouseEvent<HTMLAnchorElement, MouseEvent>
   ) => {
     if (e.target instanceof HTMLAnchorElement) {
+      if (props.setValue) {
+        console.log({ [props.name]: e.target.getAttribute('data-key') })
+        props.setValue({ [props.name]: e.target.getAttribute('data-key') })
+      }
       props.onChange({
         target: {
           id: props.id,

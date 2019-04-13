@@ -70,10 +70,10 @@
     "webpack-cli": "^3.1.2"
   },
   "scripts": {
-    "postinstall": "tsc -p ./config",
+    "postinstall": "tsc -p .",
     "build": "webpack --config ./config/webpack.config.js",
-    "watch": "tsc -w -p ./config",
-    "debug": "nodemon --ignore ./dist/server/lib/hooks --legacy-watch --watch ./dist --inspect=127.0.0.1:9229 --nolazy ./dist/",
+    "watch": "tsc -w -p .",
+    "debug": "nodemon --ignore ./dist/server/lib/hooks --legacy-watch --watch ./dist --inspect --nolazy ./dist/",
     "docker-debug": "docker-compose up",
     "client-watch": "webpack  --config ./config/webpack.config.js --watch",
     "start": "tsc -p ./config && node dist",

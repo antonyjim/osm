@@ -280,7 +280,7 @@ export default function Form(props) {
   // First check for a special form
   if (specialForms[props.match.params.table]) {
     const ThisForm = specialForms[props.match.params.table]
-    return <ThisForm />
+    return <ThisForm {...props} />
   } else if (form && pills) {
     // If forms have been initialized, render the form contained in the form state
     return <Pills pills={pills} />

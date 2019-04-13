@@ -22,7 +22,7 @@ export interface ITableField {
   readonly?: boolean
   refTable?: string
   localRef?: string
-  reference?: boolean
+  reference?: string
   requiredCreate?: boolean
   requiredUpdate?: boolean
   displayAs?: string

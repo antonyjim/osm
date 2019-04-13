@@ -8,6 +8,7 @@ import { resolve } from 'path'
 
 // NPM Modules
 import { Pool, PoolConfig, createPool } from 'mysql'
+import { IDictionary } from '../../types/server'
 
 // Local Modules
 
@@ -45,9 +46,14 @@ async function simpleQuery(query: string, params?: any[]): Promise<any> {
         throw err
       }
       try {
-        console.log('[SQL_SIMPLE] %s', conn.format(query, params))
+        if (!params) {
+          console.log('[SQL_SIMPLE] No params provided')
+        }
+        // console.log('[SQL_SIMPLE] %s', conn.format(query, params))
       } catch (e) {
+        console.error('[SQL_SIMPLE] %s', e.message)
         console.error(e)
+        throw e
       }
       conn.release()
     })
