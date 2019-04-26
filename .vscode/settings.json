@@ -1,5 +1,5 @@
 {
-    "debug.node.autoAttach": "off",
+    "debug.node.autoAttach": "on",
     "tslint.alwaysShowRuleFailuresAsWarnings": true,
     "prettier.tslintIntegration": false,
     "editor.formatOnSave": true,

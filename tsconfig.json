@@ -1,35 +1,24 @@
 {
-    "compilerOptions": {
-        "outDir": "./dist/",
-        "sourceMap": true,
-        "rootDir": "./src/",
-        "removeComments": true,
-        "allowJs": true,
-        "jsx": "react",
-        "allowSyntheticDefaultImports": true,
-        "typeRoots": ["./src/types"],
-        "lib": [
-            "es6",
-            "esnext.asynciterable",
-            "es2016",
-            "dom"
-        ],
-        "types": [
-            "node",
-            "express",
-            "mysql",
-            "uuid",
-            "lodash",
-            "bcrypt",
-            "jsonwebtoken",
-            "nodemailer"
-        ]
-    },
-    "include": [
-        "./src/server/**/*", "./src/index.ts"
-    ],
-    "exclude": [
-        "node_modules",
-        "./src/client/**/*"
+  "compilerOptions": {
+    "outDir": "./dist/",
+    "sourceMap": true,
+    "rootDir": "./src/",
+    "removeComments": true,
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "typeRoots": ["./src/types"],
+    "lib": ["es6", "esnext.asynciterable", "es2016"],
+    "types": [
+      "node",
+      "express",
+      "mysql",
+      "uuid",
+      "lodash",
+      "bcrypt",
+      "jsonwebtoken",
+      "nodemailer"
     ]
+  },
+  "include": ["./src/**/*"],
+  "exclude": ["node_modules"]
 }
