@@ -1,10 +1,10 @@
 {
-  "name": "thq",
+  "name": "service-tomorrow",
   "version": "0.1.0",
   "author": "Anthony Jund<antonyjund@gmail.com>",
   "description": "",
   "main": "dist/index.js",
-  "repository": "https://github.com/antonyjim/THQ-Reboot",
+  "repository": "https://github.com/antonyjim/service-tomorrow",
   "dependencies": {
     "bcrypt": "^3.0.2",
     "body-parser": "^1.18.3",
