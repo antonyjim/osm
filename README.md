@@ -1,4 +1,4 @@
-# Code Name THQ
+# Service Tomorrow
 
 This project contains the source code for a Node.js based API and a website that is driven from said API. The API/Server side code is written in 100% Typescript, while the client code is written in typescript using React and Bootstrap as the front end framework.
 
@@ -16,6 +16,8 @@ To debug in VSCode:
 
 1.  Launch debugger
 2.  Run task "Launch via NPM"
+
+_This repository is in no way affiliated with ServiceNow or any of its services._
 
 ###### FAIR USE STATEMENT
 

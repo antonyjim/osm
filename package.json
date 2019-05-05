@@ -41,7 +41,6 @@
   },
   "scripts": {
     "postinstall": "tsc -p .",
-    "build": "webpack --config ./config/webpack.config.js",
     "watch": "tsc -w -p .",
     "debug": "nodemon --ignore ./dist/lib/hooks --legacy-watch --watch ./dist --inspect --nolazy ./dist/",
     "docker-debug": "docker-compose up",
