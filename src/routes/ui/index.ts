@@ -15,6 +15,9 @@ import { tokenValidation } from './../middleware/authentication'
 import loginRoutes from './login'
 import verifyRoutes from './verification'
 import { getServerStatus } from '../../lib/utils'
+// import * as routes from '../../../../service-tomorrow-client/server'
+// import * as routes from 'serve-client'
+const routes = require('../../../../service-tomorrow-client/index')
 
 // Constants and global variables
 const uiRoutes = Router()
@@ -26,17 +29,18 @@ uiRoutes.use('/verify', verifyRoutes)
 
 uiRoutes.get('/logout', (req: Request, res: Response) => {
   res.cookie('token', null)
-  res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' })
-  const fileStream = createReadStream(
-    resolve(__dirname, '../../../../static/login.html')
-  )
-  fileStream.on('data', (data) => {
-    res.write(data)
-  })
-  fileStream.on('end', () => {
-    res.end()
-    return
-  })
+  routes.getLogin(req, res)
+  // res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' })
+  // const fileStream = createReadStream(
+  //   resolve(__dirname, '../../../../static/login.html')
+  // )
+  // fileStream.on('data', (data) => {
+  //   res.write(data)
+  // })
+  // fileStream.on('end', () => {
+  //   res.end()
+  //   return
+  // })
 })
 
 uiRoutes.get('/stats', (req: Request, res: Response) => {
@@ -59,32 +63,34 @@ uiRoutes.get('/wetty', (req: Request, res: Response) => {
   })
 })
 
-uiRoutes.get('*', (req: Request, res: Response) => {
-  if (req.auth.iA && req.auth.u) {
-    res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' })
-    const fileStream = createReadStream(
-      resolve(__dirname, '../../../../static/index.html')
-    )
-    fileStream.on('data', (data) => {
-      res.write(data)
-    })
-    fileStream.on('end', () => {
-      res.end()
-      return
-    })
-  } else {
-    res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' })
-    const fileStream = createReadStream(
-      resolve(__dirname, '../../../../static/login.html')
-    )
-    fileStream.on('data', (data) => {
-      res.write(data)
-    })
-    fileStream.on('end', () => {
-      res.end()
-      return
-    })
-  }
-})
+uiRoutes.all('*', routes.routes)
+
+// uiRoutes.get('*', (req: Request, res: Response) => {
+//   if (req.auth.iA && req.auth.u) {
+//     res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' })
+//     const fileStream = createReadStream(
+//       resolve(__dirname, '../../../../static/index.html')
+//     )
+//     fileStream.on('data', (data) => {
+//       res.write(data)
+//     })
+//     fileStream.on('end', () => {
+//       res.end()
+//       return
+//     })
+//   } else {
+//     res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' })
+//     const fileStream = createReadStream(
+//       resolve(__dirname, '../../../../static/login.html')
+//     )
+//     fileStream.on('data', (data) => {
+//       res.write(data)
+//     })
+//     fileStream.on('end', () => {
+//       res.end()
+//       return
+//     })
+//   }
+// })
 
 export { uiRoutes }

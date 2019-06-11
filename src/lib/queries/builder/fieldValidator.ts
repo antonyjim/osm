@@ -11,7 +11,7 @@ import { isBoolean } from 'util'
 // Local Modules
 import { simpleQuery } from '../../connection'
 import { ITableField } from '../../../types/forms'
-import { getTables } from '../../api/schema/constructSchema'
+import { getTables } from '../../model/constructSchema'
 
 // Constants and global variables
 

@@ -1,4 +1,4 @@
-import constructSchema from './constructSchema'
+import constructSchema from '../../model/constructSchema'
 import { getPool, simpleQuery } from '../../connection'
 import { v4 as uuid } from 'uuid'
 

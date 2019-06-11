@@ -14,7 +14,7 @@ import { Pool, PoolConnection } from 'mysql'
 import loadModule from '../api/hooks/loadHook'
 import { IResponseMessage, IPagination } from '../../types/server'
 import { IFieldError } from '../../types/api'
-import { getTables } from '../api/schema/constructSchema'
+import { getTables } from '../model/constructSchema'
 import { getPool } from '../connection'
 import { Log } from '../log'
 import {

@@ -10,7 +10,7 @@
 
 // Local Modules
 import { Querynator } from '../../queries'
-import { getTables } from './constructSchema'
+import { getTables } from '../../model/constructSchema'
 
 // Constants and global variables
 

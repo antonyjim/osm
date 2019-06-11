@@ -1,4 +1,4 @@
-import { getTables } from '../../api/schema/constructSchema'
+import { getTables } from '../../model/constructSchema'
 
 export async function queryBuilder(
   tableName: string,

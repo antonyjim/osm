@@ -12,7 +12,7 @@ import { Querynator } from '../../queries'
 import { Log } from '../../log'
 import { rootQueries } from './queries'
 import rootMutations from './mutations'
-import { getTables } from './constructSchema'
+import { getTables } from '../../model/constructSchema'
 import {
   genericTableQuery,
   genericTableDelete,

@@ -20,7 +20,6 @@ import cell from '../lib/excel/cell'
 // Constants and global variables
 const router = Router()
 
-router.use('/public', staticRoutes)
 // Advanced logging
 router.use((req, res, next) => {
   console.log(req.method, req.path)

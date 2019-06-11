@@ -7,9 +7,9 @@
 import { EventEmitter } from 'events'
 
 // Local Modules
-import { simpleQuery } from '../../connection'
-import Towel from '../../queries/towel/towel'
-import { ITableField, ITableSchema } from '../../../types/forms'
+import { simpleQuery } from '../connection'
+import Towel from '../queries/towel/towel'
+import { ITableField, ITableSchema } from '../../types/forms'
 
 // Constants and global module variables
 const SYS_DB_OBJECT = 'sys_db_object'

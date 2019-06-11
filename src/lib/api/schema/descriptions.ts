@@ -8,7 +8,7 @@
 // NPM Modules
 
 // Local Modules
-import constructSchema, { getTables } from './constructSchema'
+import constructSchema, { getTables } from '../../model/constructSchema'
 import { Querynator, simpleQuery } from '../../queries'
 
 // Constants and global variables

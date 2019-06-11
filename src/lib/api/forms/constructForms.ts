@@ -10,7 +10,7 @@
 import { v4 as uuid } from 'uuid'
 
 // Local Modules
-import { getTables } from '../schema/constructSchema'
+import { getTables } from '../../model/constructSchema'
 import Towel from '../../queries/towel/towel'
 import { simpleQuery } from '../../connection'
 import { IFormDetails, IFormTab } from '../../../types/forms'

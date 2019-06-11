@@ -8,7 +8,7 @@ import { resolve } from 'path'
 async function testDBConn(): Promise<boolean> {
   return new Promise((resolveDbConnection) => {
     try {
-      require('./server/lib/connection')
+      require('./lib/connection')
         .getPool()
         .getConnection((err, conn) => {
           if (err) {
@@ -41,12 +41,12 @@ readFile(
             console.log(
               '[STARTUP] Successfully established database connection. Starting http listener'
             )
-            require('./server/app').routes()
+            require('./app').routes()
           } else {
             console.log(
               '[STARTUP] Failed to establish database connection. Defaulting to fallback http listener'
             )
-            require('./server/app').internalError()
+            require('./app').internalError()
           }
         })
         .catch((err) => {
@@ -55,7 +55,7 @@ readFile(
             '[STARTUP] Failed to establish database connection with error %s. Defaulting to fallback http listener',
             err
           )
-          require('./server/app').internalError()
+          require('./app').internalError()
         })
     } // end if
     const lines: string[] | number[] = data.split('\n')
@@ -63,11 +63,11 @@ readFile(
       const key: string = line.split('=')[0]
       const value: string = line.split('=')[1]
       if (value && value[0] === "'") {
-        console.log(
-          '[STARTUP] Setting environment variable %s to value %s',
-          key,
-          value
-        )
+        // console.log(
+        //   '[STARTUP] Setting environment variable %s to value %s',
+        //   key,
+        //   value
+        // )
         process.env[key] = value.slice(1, -1)
       } else {
         process.env[key] = value
@@ -80,12 +80,12 @@ readFile(
           console.log(
             '[STARTUP] Successfully established database connection. Starting http listener'
           )
-          require('./server/app').routes()
+          require('./app').routes()
         } else {
           console.log(
             '[STARTUP] Failed to establish database connection. Defaulting to fallback http listener'
           )
-          require('./server/app').internalError()
+          require('./app').internalError()
         }
       })
       .catch((dbConnectionErr) => {
@@ -94,7 +94,7 @@ readFile(
           '[STARTUP] Failed to establish database connection with error %s. Defaulting to fallback http listener',
           dbConnectionErr
         )
-        require('./server/app').internalError()
+        require('./app').internalError()
       })
   }
 )

@@ -13,7 +13,7 @@ import * as uuid from 'uuid'
 // Local Modules
 import { getPool } from '../connection'
 import { UserTypes } from '../../types/users'
-import { NavigationSettings, IRolePermissions } from '../../types/roles'
+import { IRolePermissions, ILinks } from '../../types/roles'
 import { Validation } from '../validation'
 import { IStatusMessage } from '../../types/server'
 
@@ -22,7 +22,7 @@ const pool = getPool()
 
 export class Navigation {
   private user?: UserTypes.IAuthToken
-  private links?: NavigationSettings.ILinks[]
+  private links?: ILinks[]
 
   /**
    * Create
@@ -32,7 +32,7 @@ export class Navigation {
     linkInfo
   }: {
     userInfo?: UserTypes.IAuthToken
-    linkInfo?: NavigationSettings.ILinks[]
+    linkInfo?: ILinks[]
   }) {
     this.user = userInfo
     this.links = linkInfo
@@ -169,7 +169,7 @@ export class Navigation {
    * Insert the link and validate that it hasn't already been added
    * @param link Link to be added
    */
-  private createLink(link: NavigationSettings.ILinks) {
+  private createLink(link: ILinks) {
     return new Promise((resolve, reject) => {
       if (link.navHref) {
         link.navPathName = link.navHref.split('?')[0]
@@ -191,7 +191,7 @@ export class Navigation {
           }
         })
       }
-      const navLinkToBeEntered: NavigationSettings.ILinks = validator.defaults({
+      const navLinkToBeEntered: ILinks = validator.defaults({
         navQueryString: null,
         navActive: true
       })
@@ -351,70 +351,67 @@ export class Navigation {
             sanitizedUpdate.navHeader = null
             sanitizedUpdate.navMenu = null
           }
-          pool.query(
-            findNav,
-            (err: Error, results: NavigationSettings.ILinks[]) => {
-              if (err) {
-                throw {
-                  error: true,
-                  message: err
+          pool.query(findNav, (err: Error, results: ILinks[]) => {
+            if (err) {
+              throw {
+                error: true,
+                message: err
+              }
+            } else {
+              if (results.length === 1) {
+                console.log(JSON.stringify(sanitizedUpdate))
+                if (sanitizedUpdate.navPriv) {
+                  const updateStatement = `UPDATE sys_navigation SET ? WHERE sys_id = ?`
+                  pool.query(
+                    updateStatement,
+                    [sanitizedUpdate, sanitizedUpdate.sys_id],
+                    (updateErr: Error) => {
+                      if (updateErr) {
+                        throw {
+                          error: true,
+                          message: updateErr
+                        }
+                      } else {
+                        this.verPriv(sanitizedUpdate.navPriv)
+                        resolve({
+                          error: false,
+                          message: 'Updated',
+                          details: sanitizedUpdate
+                        })
+                      }
+                    }
+                  )
+                } else {
+                  const updateStatement = `UPDATE sys_navigation SET ? WHERE sys_id = ?`
+                  pool.query(
+                    updateStatement,
+                    [sanitizedUpdate, sanitizedUpdate.sys_id],
+                    (updateErr: Error) => {
+                      if (updateErr) {
+                        throw {
+                          error: true,
+                          message: updateErr
+                        }
+                      } else {
+                        this.verPriv(sanitizedUpdate.navPriv)
+                        resolve({
+                          error: false,
+                          message: 'Updated',
+                          details: sanitizedUpdate
+                        })
+                      }
+                    }
+                  )
                 }
               } else {
-                if (results.length === 1) {
-                  console.log(JSON.stringify(sanitizedUpdate))
-                  if (sanitizedUpdate.navPriv) {
-                    const updateStatement = `UPDATE sys_navigation SET ? WHERE sys_id = ?`
-                    pool.query(
-                      updateStatement,
-                      [sanitizedUpdate, sanitizedUpdate.sys_id],
-                      (updateErr: Error) => {
-                        if (updateErr) {
-                          throw {
-                            error: true,
-                            message: updateErr
-                          }
-                        } else {
-                          this.verPriv(sanitizedUpdate.navPriv)
-                          resolve({
-                            error: false,
-                            message: 'Updated',
-                            details: sanitizedUpdate
-                          })
-                        }
-                      }
-                    )
-                  } else {
-                    const updateStatement = `UPDATE sys_navigation SET ? WHERE sys_id = ?`
-                    pool.query(
-                      updateStatement,
-                      [sanitizedUpdate, sanitizedUpdate.sys_id],
-                      (updateErr: Error) => {
-                        if (updateErr) {
-                          throw {
-                            error: true,
-                            message: updateErr
-                          }
-                        } else {
-                          this.verPriv(sanitizedUpdate.navPriv)
-                          resolve({
-                            error: false,
-                            message: 'Updated',
-                            details: sanitizedUpdate
-                          })
-                        }
-                      }
-                    )
-                  }
-                } else {
-                  reject({
-                    error: true,
-                    message: 'Could not locate link',
-                    details: sanitizedUpdate
-                  })
-                }
+                reject({
+                  error: true,
+                  message: 'Could not locate link',
+                  details: sanitizedUpdate
+                })
               }
             }
-          )
+          })
         }
       }
     })

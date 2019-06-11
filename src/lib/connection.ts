@@ -38,15 +38,21 @@ function getPool(): Pool {
   return pool
 }
 
+/**
+ * @description Performs a query with no authorization. To be used for system calls
+ * @param query String with SQL
+ * @param params Unescaped values to be injected
+ */
 async function simpleQuery(query: string, params?: any[]): Promise<any> {
-  return new Promise((resolveQuery) => {
+  return new Promise((resolveQuery, rejectQuery) => {
     getPool().getConnection((err, conn) => {
       if (err) {
         if (conn) conn.release()
-        throw err
+        return rejectQuery(err)
       }
       if (query.indexOf('FROM  LIMIT') > -1) {
-        throw new Error('Blank query')
+        console.error(query)
+        return rejectQuery('Blank query')
       }
       try {
         if (!params) {
@@ -56,12 +62,16 @@ async function simpleQuery(query: string, params?: any[]): Promise<any> {
       } catch (e) {
         console.error('[SQL_SIMPLE] %s', e.message)
         console.error(e)
-        throw e
+        return rejectQuery(e)
       }
-      conn.release()
+      try {
+        conn.release()
+      } catch (e) {
+        return rejectQuery()
+      }
     })
     getPool().query(query, params, (err: Error, results: any[]) => {
-      if (err) throw err
+      if (err) rejectQuery(err)
       return resolveQuery(results)
     })
   })
