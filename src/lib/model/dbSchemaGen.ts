@@ -12,7 +12,9 @@ export function syncDbSchema() {
       return Promise.all([
         tables,
         constructSchema(),
-        simpleQuery("SHOW TABLES WHERE NOT Tables_in_thq LIKE '%_list'")
+        simpleQuery(
+          `SHOW TABLES WHERE NOT Tables_in_${process.env.DB_DB} LIKE '%_list'`
+        )
       ])
     })
     .then(([tables, existingTables, allTables]) => {
