@@ -78,7 +78,7 @@ export default class Towel extends TowelRecord {
       this.primaryKey,
       this.tableName
     ])
-    const queryParams = await queryBuilder(this.tableName, this.queryFieldsArr) // The query with necessary joins
+    const queryParams = queryBuilder(this.tableName, this.queryFieldsArr) // The query with necessary joins
     if (
       this.pagination.limit &&
       this.pagination.limit !== null &&
@@ -154,7 +154,7 @@ export default class Towel extends TowelRecord {
   }
 
   public static async rawQuery(query, params?): Promise<any> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       simpleQuery(query, params)
         .then((rows) => {
           resolve(rows)
@@ -162,7 +162,7 @@ export default class Towel extends TowelRecord {
         .catch((err) => {
           console.error('[TOWEL] ERROR OCCURRED AT RAW QUERY')
           console.error('[TOWEL] \n' + err.message)
-          throw err
+          reject(err)
         })
     })
   }

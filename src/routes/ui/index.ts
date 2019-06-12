@@ -17,6 +17,8 @@ import verifyRoutes from './verification'
 import { getServerStatus } from '../../lib/utils'
 // import * as routes from '../../../../service-tomorrow-client/server'
 // import * as routes from 'serve-client'
+/* tslint:disable:no-var-requires */
+
 const routes = require('../../../../service-tomorrow-client/index')
 
 // Constants and global variables

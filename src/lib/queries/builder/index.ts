@@ -1,9 +1,6 @@
 import { getTables } from '../../model/constructSchema'
 
-export async function queryBuilder(
-  tableName: string,
-  fields: string[] | string
-) {
+export function queryBuilder(tableName: string, fields: string[] | string) {
   const warnings = []
   const schema = getTables()
   const tableCols = schema[tableName].columns

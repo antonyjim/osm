@@ -10,9 +10,9 @@
 import { Router, Request, Response } from 'express'
 
 // Local Modules
-import Description from './../../lib/api/schema/descriptions'
+import Description from '../../lib/model/descriptions'
 import Towel from '../../lib/queries/towel/towel'
-import getForm from '../../lib/api/forms/constructForms'
+import getForm from '../../lib/model/forms/constructForms'
 
 // Constants and global variables
 const descriptions = Router()
@@ -30,6 +30,7 @@ descriptions.get('/:table', (req: Request, res: Response) => {
       res.status(200).json(fields)
     })
     .catch((err) => {
+      res.status(500).send()
       console.error(err)
     })
 })

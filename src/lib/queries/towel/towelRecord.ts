@@ -169,7 +169,7 @@ export class TowelRecord {
     if (typeof id !== 'string') {
       throw new TypeError(this.primaryKey + ' must be in string format')
     }
-    const queryParams = await queryBuilder(this.tableName, this.queryFieldsArr)
+    const queryParams = queryBuilder(this.tableName, this.queryFieldsArr)
     queryParams.query += ' WHERE ??.?? = ?'
     queryParams.params.push(
       queryParams.aliases[this.tableName],

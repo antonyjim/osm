@@ -17,10 +17,9 @@ import { router } from './routes/index'
 import { Log } from './lib/log'
 import { getPool } from './lib/connection'
 import constructSchema from './lib/model/constructSchema'
-import { constructForms } from './lib/api/forms/constructForms'
+import { constructForms } from './lib/model/forms/constructForms'
 import generateHooks from './lib/api/hooks/generateHooks'
-import { syncDbSchema } from './lib/api/schema/dbSchemaGen'
-import { staticRoutes } from './routes/static'
+import { syncDbSchema } from './lib/model/dbSchemaGen'
 
 export function routes() {
   if (process.env.NODE_ENV === 'production') {
@@ -55,37 +54,34 @@ export function routes() {
       new Log('Pool connections closed').info()
     })
 
-    app.listen(port, () => {
-      new Log(`Listening at port ${port} on process ${process.pid}`).info()
+    syncDbSchema()
 
-      syncDbSchema()
-
-      constructSchema()
-        .then((tables) => {
-          console.log('Completed bulding schema')
-          return constructForms()
+    constructSchema()
+      .then((tables) => {
+        console.log('Completed bulding schema')
+        app.listen(port, () => {
+          new Log(`Listening at port ${port} on process ${process.pid}`).info()
         })
-        .then(() => {
-          console.log('[STARTUP] Finished constructing forms')
-          generateHooks()
-        })
-        .catch((err) => {
-          console.error(
-            `[CONSTRUCT_SCHEMA] CRITICAL ERROR WHEN STARTING SERVER ${
-              err.message
-            }`
-          )
-          getPool().end()
-        })
-    })
+        return constructForms()
+      })
+      .then(() => {
+        console.log('[STARTUP] Finished constructing forms')
+        generateHooks()
+      })
+      .catch((err) => {
+        console.error(
+          `[CONSTRUCT_SCHEMA] CRITICAL ERROR WHEN STARTING SERVER ${
+            err.message
+          }`
+        )
+        getPool().end()
+      })
   }
 }
 
 export function internalError() {
   const app = express()
   const port = parseInt(process.env.SERVER_PORT, 10) || 8020
-
-  app.use('/public', staticRoutes)
 
   app.get('*', (req, res) => {
     try {

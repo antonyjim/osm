@@ -528,11 +528,50 @@ CREATE TABLE sys_authorization (
         ON UPDATE CASCADE
 );
 
+CREATE TABLE sys_lib (
+    PRIMARY KEY(sys_id),
+    sys_id CHAR(36),
+    last_modified DATETIME,
+    last_modified_by CHAR(36),
+    title VARCHAR(40),
+    version_of INT,
+    metadata JSON,
+    body LONGTEXT,
+
+    FOREIGN KEY (last_modified_by) 
+        REFERENCES sys_user(sys_id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+) CHARSET = utf8;
+
+CREATE TABLE sys_component (
+    PRIMARY KEY(sys_id),
+    sys_id CHAR(36),
+    last_modified DATETIME,
+    last_modified_by CHAR(36),
+    title VARCHAR(40),
+    lib CHAR(36),
+    metadata JSON,
+    version_of INT,
+    body LONGTEXT,
+
+    FOREIGN KEY (last_modified_by) 
+        REFERENCES sys_user(sys_id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+
+    FOREIGN KEY (lib)
+        REFERENCES sys_lib(sys_id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+) CHARSET = utf8;
+
 CREATE TABLE sys_form (
     PRIMARY KEY(sys_id),
     sys_id CHAR(36),
-    form_name VARCHAR(40), -- Name of the form
-    has_state BOOLEAN -- To be used in the future
+    form_name VARCHAR(40), -- Path to navigatie to /f/${form_name}
+    form_title VARCHAR(40), -- Title shown in ui
+    form_args VARCHAR(100) -- Hide Tabs, etc
 ) CHARSET = utf8;
 
 CREATE TABLE sys_form_tab (
@@ -541,30 +580,24 @@ CREATE TABLE sys_form_tab (
     form_id CHAR(36), -- Reference to sys_form
     tab_name VARCHAR(40) DEFAULT 'General',
     tab_title VARCHAR(40) DEFAULT 'General Information',
-    validation_script CHAR(36),
+    table_ref CHAR(36),
+    table_args VARCHAR(100),
+    fields JSON,
+    custom_component CHAR(36), -- Path pointing to custom component
 
     FOREIGN KEY(form_id)
         REFERENCES sys_form(sys_id)
         ON DELETE CASCADE
-        ON UPDATE CASCADE
-) CHARSET = utf8;
-
-CREATE TABLE sys_form_body (
-    PRIMARY KEY(sys_id),
-    sys_id CHAR(36),
-    tab_id CHAR(36),
-    table_ref CHAR(36),
-    table_args VARCHAR(100),
-    field_name CHAR(36),
+        ON UPDATE CASCADE,
 
     FOREIGN KEY(table_ref)
         REFERENCES sys_db_object(sys_id)
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
-    
-    FOREIGN KEY(field_name)
-        REFERENCES sys_db_dictionary(sys_id)
-        ON DELETE CASCADE
+
+    FOREIGN KEY(custom_component)
+        REFERENCES sys_component(sys_id)
+        ON DELETE RESTRICT
         ON UPDATE CASCADE
 ) CHARSET = utf8;
 

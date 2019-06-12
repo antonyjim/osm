@@ -13,7 +13,6 @@ import * as bodyParser from 'body-parser'
 // Local Modules
 import { apiRoutes } from './api/index'
 import { uiRoutes } from './ui/index'
-import { staticRoutes } from './static'
 import { Log, RequestLog } from '../lib/log'
 import cell from '../lib/excel/cell'
 

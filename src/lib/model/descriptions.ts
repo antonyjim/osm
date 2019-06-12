@@ -3,15 +3,9 @@
  * Provide descriptions for views and tables
  */
 
-// Node Modules
-
-// NPM Modules
-
 // Local Modules
-import constructSchema, { getTables } from '../../model/constructSchema'
-import { Querynator, simpleQuery } from '../../queries'
-
-// Constants and global variables
+import { getTables } from './constructSchema'
+import { Querynator, simpleQuery } from '../queries'
 
 export default class Description extends Querynator {
   constructor(context, table) {
@@ -19,14 +13,14 @@ export default class Description extends Querynator {
     if (table.toLowerCase().slice(-5) === '_list') {
       this.tableName = table.slice(0, -5)
     } else this.tableName = table
-    this.verifyAndReturnFields()
+    // this.verifyAndReturnFields()
   }
 
   /**
    * Return the columns that are visible and queryable on any given table
    */
   public async verifyAndReturnFields() {
-    return new Promise(async (resolve) => {
+    return new Promise((resolve, reject) => {
       /* Message to be returned with the response */
       const message: string = 'Details for view ' + this.tableName
       /* Provide the key to be used when pushing updates */
@@ -38,8 +32,7 @@ export default class Description extends Querynator {
       const privs: string[] = []
 
       const schema = getTables()
-      const thisTable = schema[this.tableName]
-      if (!thisTable) {
+      if (!schema[this.tableName]) {
         return resolve({
           errors: [
             {
@@ -48,13 +41,14 @@ export default class Description extends Querynator {
           ]
         })
       }
+
       const userAuthPermissions = {
         create: false,
         edit: false,
         read: false,
         delete: false
       }
-      const usersPermissions = await simpleQuery(
+      simpleQuery(
         'SELECT ??, ??, ??, ??, ??, ??, ??, ?? FROM ?? WHERE ?? IN (SELECT ?? FROM ?? WHERE ?? = ?) ORDER BY ??, ??, ??, ??, ??, ??, ??, ?? DESC;',
         [
           'auth_can_read',
@@ -81,49 +75,53 @@ export default class Description extends Querynator {
           'auth_can_delete_own'
         ]
       )
-      usersPermissions.map((perm) => {
-        if (perm.auth_can_create || perm.auth_can_create_own) {
-          userAuthPermissions.create = true
-        }
-        if (perm.auth_can_edit || perm.auth_can_edit_own) {
-          userAuthPermissions.edit = true
-        }
-        if (perm.auth_can_delete || perm.auth_can_delete_own) {
-          userAuthPermissions.delete = true
-        }
-        if (perm.auth_can_read || perm.auth_can_read_own) {
-          userAuthPermissions.read = true
-        }
-      })
+        .then((usersPermissions) => {
+          usersPermissions.forEach((perm) => {
+            if (perm.auth_can_create || perm.auth_can_create_own) {
+              userAuthPermissions.create = true
+            }
+            if (perm.auth_can_edit || perm.auth_can_edit_own) {
+              userAuthPermissions.edit = true
+            }
+            if (perm.auth_can_delete || perm.auth_can_delete_own) {
+              userAuthPermissions.delete = true
+            }
+            if (perm.auth_can_read || perm.auth_can_read_own) {
+              userAuthPermissions.read = true
+            }
+          })
 
-      Object.keys(thisTable.columns).map((col) => {
-        if (col.endsWith('_display')) return false
-        const thisCol = thisTable.columns[col]
-        const colDetails: {
-          type: string
-          readonly: boolean
-          reference: string
-          boundTo: string
-          refTable?: string
-          maxLength?: number
-        } = { type: 'string', readonly: true, reference: null, boundTo: null }
-        colDetails.type = thisCol.type
-        colDetails.readonly = !!thisCol.readonly
-        colDetails.reference = thisCol.reference
-        colDetails.boundTo = col
-        colDetails.maxLength = thisCol.maxLength
+          return resolve({
+            ...schema[this.tableName],
+            permissions: userAuthPermissions
+          })
+        })
+        .catch(reject)
 
-        if (thisCol.reference) {
-          const displayCol = thisTable.columns[col + '_display']
-          colDetails.refTable = displayCol.refTable
-          colDetails.boundTo = col + '_display'
-        }
-        formattedFields[thisCol.label] = colDetails
-      })
-      return resolve({
-        ...schema[this.tableName],
-        permissions: userAuthPermissions
-      })
+      // Object.keys(thisTable.columns).forEach((col) => {
+      //   if (col.endsWith('_display')) return false
+      //   const thisCol = thisTable.columns[col]
+      //   const colDetails: {
+      //     type: string
+      //     readonly: boolean
+      //     reference: string
+      //     boundTo: string
+      //     refTable?: string
+      //     maxLength?: number
+      //   } = { type: 'string', readonly: true, reference: null, boundTo: null }
+      //   colDetails.type = thisCol.type
+      //   colDetails.readonly = !!thisCol.readonly
+      //   colDetails.reference = thisCol.reference
+      //   colDetails.boundTo = col
+      //   colDetails.maxLength = thisCol.maxLength
+
+      //   if (thisCol.reference) {
+      //     const displayCol = thisTable.columns[col + '_display']
+      //     colDetails.refTable = displayCol.refTable
+      //     colDetails.boundTo = col + '_display'
+      //   }
+      //   formattedFields[thisCol.label] = colDetails
+      // })
     })
   }
 }

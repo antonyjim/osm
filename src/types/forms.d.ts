@@ -31,6 +31,28 @@ export interface ITableField {
   visible: boolean
 }
 
+export interface ISysForm {
+  sys_id: string
+  form_name: string
+  table_reference?: string
+}
+
+export interface ISysFormTab {
+  sys_id: string
+  form_id: string
+  tab_name: string
+  tab_title: string
+  table_ref?: string
+  table_args?: string
+  fields?: string
+  custom_component?: string
+}
+
+export interface ISysFormBody {
+  sys_id: string
+  tab_id: string
+}
+
 export interface IFormTab {
   title: string
   name: string

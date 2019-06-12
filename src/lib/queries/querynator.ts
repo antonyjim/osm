@@ -131,7 +131,15 @@ export class Querynator extends EventEmitter {
   ): Promise<any[] | any> {
     return new Promise((resolveQuery, rejectQuery) => {
       this.pool.getConnection((err: Error, conn: PoolConnection) => {
-        if (err) return rejectQuery(err)
+        if (err) {
+          // Try to acquire another pool instance
+          try {
+            this.pool = getPool(true)
+          } catch (refreshPoolErr) {
+            return rejectQuery(refreshPoolErr)
+          }
+          return rejectQuery(err)
+        }
         this.validate(conn, query, action !== null ? action : null)
           .then((authorized) => {
             if (authorized === true || authorized === 1) {
@@ -146,7 +154,7 @@ export class Querynator extends EventEmitter {
                   conn.rollback()
                   conn.release()
                   console.error('[QUERYNATOR] ERROR IN QUERY %s', qErr.message)
-                  throw qErr
+                  rejectQuery(qErr)
                 }
                 conn.commit((commitErr) => {
                   conn.release()

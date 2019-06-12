@@ -30,6 +30,10 @@ export function LoginException(message: string, details?: Error) {
   this.error = true
 }
 
+export function handleError(err) {
+  return Promise.reject(err)
+}
+
 export async function getServerStatus(): Promise<IServerStats> {
   const cpuCount = cpus().length
   const architecture = arch()

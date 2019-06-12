@@ -5,6 +5,7 @@
 
 // Node Modules
 import { resolve } from 'path'
+import { MysqlError } from 'mysql'
 
 // NPM Modules
 import { Pool, PoolConfig, createPool } from 'mysql'
@@ -25,8 +26,8 @@ const jwtSecret = process.env.JWT_KEY || 'secret'
 const HOOKS_DIR = resolve(__dirname, './hooks')
 
 let pool: Pool
-function getPool(): Pool {
-  if (pool) {
+function getPool(refresh?: boolean): Pool {
+  if (pool && !refresh) {
     return pool
   }
   console.log(
@@ -34,6 +35,7 @@ function getPool(): Pool {
     poolConfig.user,
     poolConfig.host
   )
+
   pool = createPool(poolConfig)
   return pool
 }
@@ -47,7 +49,17 @@ async function simpleQuery(query: string, params?: any[]): Promise<any> {
   return new Promise((resolveQuery, rejectQuery) => {
     getPool().getConnection((err, conn) => {
       if (err) {
-        if (conn) conn.release()
+        if (conn) {
+          try {
+            conn.release()
+          } catch (er) {
+            // Attempt to reconnect
+            // since this usually errors out due to
+            // connection being closed
+            pool = getPool(true)
+            return rejectQuery(er)
+          }
+        }
         return rejectQuery(err)
       }
       if (query.indexOf('FROM  LIMIT') > -1) {
@@ -56,7 +68,8 @@ async function simpleQuery(query: string, params?: any[]): Promise<any> {
       }
       try {
         if (!params) {
-          console.log('[SQL_SIMPLE] No params provided')
+          console.log('[SQL_SIMPLE] No params provided for statement %s', query)
+          params = ['']
         }
         // console.log('[SQL_SIMPLE] %s', conn.format(query, params))
       } catch (e) {
@@ -67,11 +80,24 @@ async function simpleQuery(query: string, params?: any[]): Promise<any> {
       try {
         conn.release()
       } catch (e) {
-        return rejectQuery()
+        // Attempt to reconnect
+        // since this usually errors out due to
+        // connection being closed
+        pool = getPool(true)
+        return rejectQuery(e)
       }
     })
-    getPool().query(query, params, (err: Error, results: any[]) => {
-      if (err) rejectQuery(err)
+    // console.log('[SQL_SIMPLE] %s %s', query, params)
+    getPool().query(query, params, (err: MysqlError, results: any[]) => {
+      if (err) {
+        // Attempt to reconnect
+        // since this usually errors out due to
+        // connection being closed
+        if (err.code === 'POOL_CLOSED') {
+          pool = getPool(true)
+        }
+        return rejectQuery(err)
+      }
       return resolveQuery(results)
     })
   })

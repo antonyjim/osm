@@ -8,15 +8,19 @@ import { EventEmitter } from 'events'
 
 // Local Modules
 import { simpleQuery } from '../connection'
-import Towel from '../queries/towel/towel'
 import { ITableField, ITableSchema } from '../../types/forms'
 
 // Constants and global module variables
 const SYS_DB_OBJECT = 'sys_db_object'
 const SYS_DB_DICTIONARY = 'sys_db_dictionary'
 
+// This will eventually become the schema object
 let tables: ISchema = null
+
+// This will store references that have to be resolved separately
 const references = []
+
+// This will provide a template for every table
 const TEMPLATE_TABLE: ITableSchema = {
   columns: {},
   defaultFields: [],
@@ -27,6 +31,123 @@ const TEMPLATE_TABLE: ITableSchema = {
 
 interface ISchema {
   [table: string]: ITableSchema
+}
+
+function getTableDescription(tableName: string): Promise<void> {
+  return new Promise((resolveTableDetails, rejectTableDetails) => {
+    tables[tableName] = {
+      columns: {},
+      defaultFields: [],
+      displayField: '',
+      primaryKey: '',
+      tableId: ''
+    }
+    // Find the column name, reference field,
+    // selectablility, table_name, table_display_name
+    const statement =
+      'SELECT `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??,   \
+      `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??,  \
+      `t2`.?? AS ??, `t3`.?? AS ??, `t4`.?? AS ?? FROM ?? `t1` LEFT   \
+      JOIN ?? `t2` ON `t1`.?? = `t2`.?? INNER JOIN ?? `t3` ON `t1`.?? \
+      = `t3`.?? LEFT JOIN ?? `t4` ON `t2`.?? = `t4`.?? WHERE `t3`.??  \
+      = ? ORDER BY `t1`.??'
+    const params = [
+      'column_name',
+      'display_field',
+      'nullable',
+      'label',
+      'type',
+      'table_name',
+      'required_on_update',
+      'required_on_create',
+      'default_view',
+      'update_key',
+      'len',
+      'readonly',
+      'visible',
+      'column_name',
+      /* AS */ 'reference_id_display',
+      'name',
+      /* AS */ 'table_name_display',
+      'name',
+      /* AS */ 'reference_id_table_name_display',
+      SYS_DB_DICTIONARY,
+      SYS_DB_DICTIONARY,
+      'reference_id',
+      'sys_id',
+      'sys_db_object',
+      'table_name',
+      'sys_id',
+      'sys_db_object',
+      'table_name',
+      'sys_id',
+      'name',
+      tableName,
+      'col_order'
+    ]
+
+    simpleQuery(statement, params)
+      .then((tableColumns) => {
+        if (tableColumns.length === 0) {
+          console.error(
+            'Table %s does not have any fields associated with it',
+            tableName
+          )
+          return resolveTableDetails()
+        }
+        // Assign a default template
+        if (!tables[tableName]) {
+          tables[tableName] = {
+            columns: {},
+            defaultFields: [],
+            displayField: '',
+            primaryKey: '',
+            tableId: ''
+          }
+        }
+
+        // Set the sys_id
+        tables[tableName].tableId = tableColumns[0].table_name
+        if (tableColumns) {
+          tableColumns.forEach((col) => {
+            tables[tableName].columns[col.column_name] = {
+              type: sqlToJsType(col.type),
+              nullable: col.nullable,
+              readonly: col.readonly,
+              maxLength: col.len,
+              reference: col.reference_id_display || false,
+              refTable: col.reference_id_table_name_display,
+              label: col.label,
+              visible: col.visible || false,
+              requiredUpdate: col.required_on_update,
+              requiredCreate: col.required_on_create
+            }
+            if (col.default_view) {
+              tables[tableName].defaultFields.push(col.column_name)
+            }
+            if (col.reference_id_display) {
+              references.push({
+                col: col.column_name,
+                table: tableName,
+                refTable: col.reference_id_table_name_display,
+                refCol: col.reference_id_display
+              })
+            }
+
+            if (col.display_field) {
+              tables[tableName].displayField = col.column_name
+            }
+            if (col.update_key) {
+              tables[tableName].primaryKey = col.column_name
+            }
+          })
+        }
+        return resolveTableDetails()
+      })
+      .catch((err) => {
+        rejectTableDetails(err)
+      })
+  })
 }
 
 /**
@@ -68,8 +189,8 @@ export function sqlToJsType(type: string) {
   return returnType
 }
 
-export default async function constructSchema(): Promise<ISchema> {
-  return new Promise((resolveTables) => {
+export default function constructSchema(): Promise<ISchema> {
+  return new Promise((resolveTables, rejectTables) => {
     // if (tables) return resolve(tables)
     tables = {}
     const tableConstructorEmitter = new EventEmitter()
@@ -78,7 +199,7 @@ export default async function constructSchema(): Promise<ISchema> {
      * table object, then add in all of the reference columns.
      */
     tableConstructorEmitter.once('done', () => {
-      references.map((ref) => {
+      references.forEach((ref) => {
         const colName = ref.col + '_display'
         const colTable = ref.table
         const refTable = ref.refTable
@@ -107,123 +228,39 @@ export default async function constructSchema(): Promise<ISchema> {
         if (!Array.isArray(gotTables)) {
           throw new Error('No tables found')
         }
-        gotTables.map((tableInfo, i) => {
-          ;(async () => {
-            const tableName: string = tableInfo.name
-            tables[tableName] = {
-              primaryKey: '',
-              tableId: '',
-              displayField: '',
-              defaultFields: [],
-              columns: {}
-            }
-            /* Find the column name, reference field, selectablility, table_name, table_display_name */
-            const statement =
-              'SELECT `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t2`.?? AS ??, `t3`.?? AS ??, `t4`.?? AS ?? FROM ?? `t1` LEFT JOIN ?? `t2` ON `t1`.?? = `t2`.?? INNER JOIN ?? `t3` ON `t1`.?? = `t3`.?? LEFT JOIN ?? `t4` ON `t2`.?? = `t4`.?? WHERE `t3`.?? = ? ORDER BY `t1`.??'
-            const params = [
-              'column_name',
-              'display_field',
-              'nullable',
-              'label',
-              'type',
-              'table_name',
-              'required_on_update',
-              'required_on_create',
-              'default_view',
-              'update_key',
-              'len',
-              'readonly',
-              'visible',
-              'column_name',
-              /* AS */ 'reference_id_display',
-              'name',
-              /* AS */ 'table_name_display',
-              'name',
-              /* AS */ 'reference_id_table_name_display',
-              SYS_DB_DICTIONARY,
-              SYS_DB_DICTIONARY,
-              'reference_id',
-              'sys_id',
-              'sys_db_object',
-              'table_name',
-              'sys_id',
-              'sys_db_object',
-              'table_name',
-              'sys_id',
-              'name',
-              tableName,
-              'col_order'
-            ]
-            const tableColumns = await simpleQuery(statement, params).catch(
-              (err) => console.error(err)
-            ) // I know I'm trying to avoid static queries, but come on
-            if (tableColumns.length === 0) {
-              console.error(
-                'Table %s does not have any fields associated with it',
-                tableName
-              )
-              return Promise.resolve()
-            }
-            if (!tables[tableName]) tables[tableName] = { ...TEMPLATE_TABLE }
-            tables[tableName].tableId = tableColumns[0].table_name
-            if (tableColumns) {
-              tableColumns.map((col) => {
-                tables[tableName].columns[col.column_name] = {
-                  type: sqlToJsType(col.type),
-                  nullable: col.nullable,
-                  readonly: col.readonly,
-                  maxLength: col.len,
-                  reference: col.reference_id_display || false,
-                  refTable: col.reference_id_table_name_display,
-                  label: col.label,
-                  visible: col.visible || false,
-                  requiredUpdate: col.required_on_update,
-                  requiredCreate: col.required_on_create
-                }
-                if (col.default_view) {
-                  tables[tableName].defaultFields.push(col.column_name)
-                }
-                if (col.reference_id_display) {
-                  references.push({
-                    col: col.column_name,
-                    table: tableName,
-                    refTable: col.reference_id_table_name_display,
-                    refCol: col.reference_id_display
-                  })
-                }
-
-                if (col.display_field) {
-                  tables[tableName].displayField = col.column_name
-                }
-                if (col.update_key) {
-                  tables[tableName].primaryKey = col.column_name
-                }
+        return Promise.all(
+          gotTables.map(
+            (tableInfo, i): Promise<void> => {
+              return getTableDescription(tableInfo.name).catch((err) => {
+                console.error(err)
               })
             }
-            return Promise.resolve()
-          })()
-            .then(() => {
-              if (i === gotTables.length - 1) {
-                tableConstructorEmitter.emit('done')
-              }
-            })
-            .catch((err) => {
-              console.error(err)
-            })
-        })
+          )
+        )
+      })
+      .then(() => {
+        tableConstructorEmitter.emit('done')
       })
       .catch((err) => {
+        console.error('Error at: %s ', __dirname + __filename)
         console.error(err)
+        rejectTables(err)
       })
   })
 }
 
-export function getTables(): ISchema {
-  if (tables) {
+export function getTables(
+  tableName?: string
+): ISchema | Promise<ISchema> | ITableSchema {
+  if (tables && Object.keys(tables).length > 0) {
+    if (tableName) {
+      return tables[tableName]
+    }
     // if (process.env.NODE_ENV === 'development') constructSchema()
     return tables
   } else {
-    constructSchema()
-    return tables
+    return constructSchema()
   }
 }
+
+export { tables }

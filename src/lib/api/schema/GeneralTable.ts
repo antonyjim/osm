@@ -20,11 +20,19 @@ export async function genericTableQuery(
   context,
   pagination?
 ) {
-  if (context.req.params.id) {
-    return await new GenericTable(context, queryFields).getById(args)
-  } else {
-    return await new GenericTable(context, queryFields).where(args, pagination)
-  }
+  return new Promise((resolve, reject) => {
+    if (context.req.params.id) {
+      new GenericTable(context, queryFields)
+        .getById(args)
+        .then(resolve)
+        .catch(reject)
+    } else {
+      new GenericTable(context, queryFields)
+        .where(args, pagination)
+        .then(resolve)
+        .catch(reject)
+    }
+  })
 }
 
 export async function genericTableDelete(
@@ -78,25 +86,23 @@ class GenericTable extends Querynator {
   }
 
   public async where(args, pagination) {
-    if (args === null || args === undefined) {
-      this.all(pagination)
-        .then((queryResults) => {
-          return queryResults
-        })
-        .catch((queryErr) => {
-          console.log('[GENERIC_TABLE] Query Error %s', queryErr.message)
-          throw queryErr
-        })
-    } else {
-      this.byFields({ fields: args }, pagination)
-        .then((queryResults) => {
-          return queryResults
-        })
-        .catch((queryErr) => {
-          console.log('[GENERIC_TABLE] Query Error %s', queryErr.message)
-          throw queryErr
-        })
-    }
+    return new Promise((resolve, reject) => {
+      if (args === null || args === undefined) {
+        this.all(pagination)
+          .then(resolve)
+          .catch((queryErr) => {
+            console.log('[GENERIC_TABLE] Query Error %s', queryErr.message)
+            reject(queryErr)
+          })
+      } else {
+        this.byFields({ fields: args }, pagination)
+          .then(resolve)
+          .catch((queryErr) => {
+            console.log('[GENERIC_TABLE] Query Error %s', queryErr.message)
+            reject(queryErr)
+          })
+      }
+    })
   }
 
   public async create(fields) {

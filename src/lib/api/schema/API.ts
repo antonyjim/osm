@@ -342,24 +342,18 @@ export default class APICall extends Querynator {
       }
 
       handler(queryFields, args, this.context, pagination)
-        .then(
-          (rows: IAPIGETResponse) => {
-            if (rows.errors) this.response.body.errors.concat(rows.errors) // Allow non-terminating errors to be passed in the response
-            if (rows.warnings) this.response.body.warnings.concat(rows.warnings)
-            if (rows.meta) this.response.body.meta = rows.meta
-            if (rows.data) {
-              this.response.body.data[queryTable] = rows.data
-            } else {
-              this.response.body.data[queryTable] = rows
-            }
-            this.response.status = 200
-            this.sendResponse()
-          },
-          (failure) => {
-            console.error(`Rejected at ${queryTable} for reason ${failure}`)
-            this.handleError(failure, true)
+        .then((rows: IAPIGETResponse) => {
+          if (rows.errors) this.response.body.errors.concat(rows.errors) // Allow non-terminating errors to be passed in the response
+          if (rows.warnings) this.response.body.warnings.concat(rows.warnings)
+          if (rows.meta) this.response.body.meta = rows.meta
+          if (rows.data) {
+            this.response.body.data[queryTable] = rows.data
+          } else {
+            this.response.body.data[queryTable] = rows
           }
-        )
+          this.response.status = 200
+          this.sendResponse()
+        })
         .catch((err: Error) => {
           console.error(`[API] Caught at ${queryTable} for reason ${err}`)
           console.error(err.stack)
