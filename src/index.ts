@@ -12,6 +12,7 @@ async function testDBConn(): Promise<boolean> {
         .getPool()
         .getConnection((err, conn) => {
           if (err) {
+            console.error(err)
             return resolveDbConnection(false)
           } else {
             conn.release()

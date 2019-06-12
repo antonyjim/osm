@@ -86,9 +86,7 @@ export function internalError() {
   app.get('*', (req, res) => {
     try {
       res.writeHead(200, { 'Content-Type': 'text/html' })
-      createReadStream(resolve(__dirname, '../../static/error505.html')).pipe(
-        res
-      )
+      createReadStream(resolve(__dirname, '../static/error505.html')).pipe(res)
     } catch (err) {
       res.send('<html>Internal server error</html>')
     }
