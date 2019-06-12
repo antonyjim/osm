@@ -1,0 +1,14 @@
+# systemd unit file
+#
+# place in /etc/systemd/system
+# systemctl enable snt.service
+# systemctl start snt.service
+
+[Unit]
+Description=Service Tomorrow Server
+After=network.target
+[Service]
+WorkingDirectory=/var/www/service-tomorrow/
+ExecStart=/usr/bin/node /var/www/service-tomorrow/dist
+[Install]
+WantedBy=multi-user.target
