@@ -1,5 +1,6 @@
 import * as express from 'express'
 import { IFieldError } from './api'
+import { ITableSchema } from './forms'
 
 declare global {
   namespace Express {
@@ -13,11 +14,15 @@ declare global {
         t?: string
       }
     }
+
+    interface Application {
+      schema?: IDictionary<ITableSchema>
+    }
   }
 }
 
-export interface IDictionary {
-  [key: string]: string | number
+export interface IDictionary<T> {
+  [key: string]: T
 }
 
 export interface IValidationFields {

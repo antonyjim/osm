@@ -566,6 +566,14 @@ CREATE TABLE sys_component (
         ON UPDATE CASCADE
 ) CHARSET = utf8;
 
+CREATE TABLE sys_route_module (
+    host VARCHAR(80), -- Host that this module applies to
+    description VARCHAR(100), -- Short description
+    pre_auth BOOLEAN,
+    routing VARCHAR(255), -- What path to use for this module
+    file_path VARCHAR(255) -- Path pointing to the express module
+) CHARSET = utf8;
+
 CREATE TABLE sys_form (
     PRIMARY KEY(sys_id),
     sys_id CHAR(36),

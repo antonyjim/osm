@@ -516,7 +516,7 @@ BEGIN
     RETURN 0;
 END //
 
-DROP PROCEDURE IF EXISTS create_table //
+/* DROP PROCEDURE IF EXISTS create_table //
 CREATE PROCEDURE create_table (
     IN _table_name VARCHAR(40),
     IN _table_id CHAR(36)
@@ -554,5 +554,5 @@ BEGIN
 
     SELECT * FROM sys_db_object WHERE sys_id = _table_id;
 
-END //
+END // */
 DELIMITER ;

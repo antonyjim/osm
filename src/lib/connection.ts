@@ -19,6 +19,7 @@ const poolConfig: PoolConfig = {
   user: process.env.DB_USER || 'node',
   password: process.env.DB_PASS || 'development',
   database: process.env.DB_DB || 'thq',
+  port: parseInt(process.env.DB_PORT, 10) || 3306,
   connectionLimit: parseInt(process.env.DB_POOL_LIMIT, 10) || 1
 }
 

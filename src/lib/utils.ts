@@ -149,3 +149,7 @@ export function copyDirSync(sourceDir: string, destinationDir: string) {
     throw new Error(`${sourceDir} does not exist.`)
   }
 }
+
+export function getHostname(): string {
+  return hostname()
+}

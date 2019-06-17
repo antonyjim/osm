@@ -9,13 +9,14 @@ import { EventEmitter } from 'events'
 // Local Modules
 import { simpleQuery } from '../connection'
 import { ITableField, ITableSchema } from '../../types/forms'
+import { IDictionary } from '../../types/server'
 
 // Constants and global module variables
 const SYS_DB_OBJECT = 'sys_db_object'
 const SYS_DB_DICTIONARY = 'sys_db_dictionary'
 
 // This will eventually become the schema object
-let tables: ISchema = null
+let tables: IDictionary<ITableSchema> = null
 
 // This will store references that have to be resolved separately
 const references = []
@@ -27,10 +28,6 @@ const TEMPLATE_TABLE: ITableSchema = {
   displayField: '',
   primaryKey: '',
   tableId: ''
-}
-
-interface ISchema {
-  [table: string]: ITableSchema
 }
 
 function getTableDescription(tableName: string): Promise<void> {
@@ -189,9 +186,9 @@ export function sqlToJsType(type: string) {
   return returnType
 }
 
-export default function constructSchema(): Promise<ISchema> {
+export default function constructSchema(): Promise<IDictionary<ITableSchema>> {
   return new Promise((resolveTables, rejectTables) => {
-    // if (tables) return resolve(tables)
+    if (tables) return resolveTables(tables)
     tables = {}
     const tableConstructorEmitter = new EventEmitter()
     /**
@@ -251,7 +248,7 @@ export default function constructSchema(): Promise<ISchema> {
 
 export function getTables(
   tableName?: string
-): ISchema | Promise<ISchema> | ITableSchema {
+): IDictionary<ITableSchema> | ITableSchema {
   if (tables && Object.keys(tables).length > 0) {
     if (tableName) {
       return tables[tableName]
@@ -259,7 +256,10 @@ export function getTables(
     // if (process.env.NODE_ENV === 'development') constructSchema()
     return tables
   } else {
-    return constructSchema()
+    // This should not ever happen
+    throw new Error(
+      '[CONSTRUCT_SCHEMA] getTables was called before schema was initialized.'
+    )
   }
 }
 

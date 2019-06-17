@@ -19,9 +19,26 @@ import { UserTypes } from '../../types/users'
 import { Login, getToken } from '../../lib/users/login'
 import { Log } from '../../lib/log'
 import User, { forgotPassword } from '../../lib/api/users/users'
+import { createReadStream } from 'fs'
+import { resolve } from 'path'
 
 // Constants and global variables
 const loginRoutes = Router()
+
+loginRoutes.get('/', (req: Request, res: Response) => {
+  res.cookie('token', null)
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' })
+  const fileStream = createReadStream(
+    resolve(__dirname, '../../../static/login.html')
+  )
+  fileStream.on('data', (data) => {
+    res.write(data)
+  })
+  fileStream.on('end', () => {
+    res.end()
+    return
+  })
+})
 
 loginRoutes.get('/navigation', (req: Request, res: Response) => {
   getRoleAuthorizedNavigation(req.auth.u, req.auth.c)

@@ -16,7 +16,7 @@ import * as express from 'express'
 import { router } from './routes/index'
 import { Log } from './lib/log'
 import { getPool } from './lib/connection'
-import constructSchema from './lib/model/constructSchema'
+import constructSchema, { tables } from './lib/model/constructSchema'
 import { constructForms } from './lib/model/forms/constructForms'
 import generateHooks from './lib/api/hooks/generateHooks'
 import { syncDbSchema } from './lib/model/dbSchemaGen'
@@ -54,10 +54,14 @@ export function routes() {
       new Log('Pool connections closed').info()
     })
 
-    syncDbSchema()
+    // @ts-ignore
+    global.app = app
 
-    constructSchema()
-      .then((tables) => {
+    syncDbSchema()
+      .then(() => {
+        // We need to assign the resulting tables object to **something** so that
+        // the garbage collector does not collect it.
+        app.schema = tables
         console.log('Completed bulding schema')
         app.listen(port, () => {
           new Log(`Listening at port ${port} on process ${process.pid}`).info()

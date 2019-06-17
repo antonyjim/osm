@@ -17,6 +17,7 @@ export interface IFormDetails {
 }
 
 export interface ITableField {
+  columnName?: string
   label: string
   maxLength?: number
   nullable?: boolean
@@ -56,10 +57,21 @@ export interface ISysFormBody {
 export interface IFormTab {
   title: string
   name: string
-  primaryKey: string
+  // PrimaryKey is what is used for the match.params.id
+  // It is also what gets passed as the parameter when
+  // making any changes to a row
+  primaryKey?: string
   fields?: {
     [fieldId: string]: ITableField
   }
+
+  // It is possible for tabs to have custom components (ie Not a simple table or form)
+  // In that case, customComponent will have a url string pointing to the script
+  // to load the component from.
+  customComponent?: string
+
+  // In the event the tab is a reference table, these fields will be used to
+  // render the table in the ui
   table?: {
     name: string
     args: string

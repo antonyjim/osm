@@ -11,10 +11,12 @@ import * as cookieParser from 'cookie-parser'
 import * as bodyParser from 'body-parser'
 
 // Local Modules
-import { apiRoutes } from './api/index'
-import { uiRoutes } from './ui/index'
 import { Log, RequestLog } from '../lib/log'
 import cell from '../lib/excel/cell'
+import { simpleQuery } from '../lib/queries'
+import { getHostname } from '../lib/utils'
+import { apiRoutes } from './api'
+import uiRoutes from './ui'
 
 // Constants and global variables
 const router = Router()
@@ -26,17 +28,46 @@ router.use((req, res, next) => {
   return next()
 })
 
-router.get('/excel', (req, res) => {
-  cell().then((status) => {
-    res.status(200).json(status)
+simpleQuery(
+  'SELECT routing, file_path FROM sys_route_module WHERE (host = ? OR host = ?) AND pre_auth = 1',
+  [getHostname(), '*']
+)
+  .then((results: { file_path: string; routing: string }[]) => {
+    results.forEach((moduleInfo) => {
+      try {
+        const routeHandler = require(moduleInfo.file_path)
+        console.log(
+          '[STARTUP] Using module located at %s for route %s',
+          moduleInfo.file_path,
+          moduleInfo.routing
+        )
+        router.use(moduleInfo.routing, routeHandler)
+      } catch (e) {
+        console.error(
+          '[STARTUP] Could not require route %s',
+          moduleInfo.file_path
+        )
+        console.error(e)
+      }
+    })
+    return 0
   })
-})
-router.use(bodyParser.json())
-// Require token in query string for api calls
-router.use('/api', apiRoutes)
-// Parse cookies on routes that return a webpage
-router.use(cookieParser())
+  .then(() => {
+    router.get('/excel', (req, res) => {
+      cell().then((status) => {
+        res.status(200).json(status)
+      })
+    })
 
-router.use('/', uiRoutes)
+    router.use(bodyParser.json())
+    // Require token in query string for api calls
+    router.use('/api', apiRoutes)
+    // Parse cookies on routes that return a webpage
+    router.use(cookieParser())
 
+    return uiRoutes()
+  })
+  .then((withUiRoutes: Router) => {
+    router.use('/', withUiRoutes)
+  })
 export { router }

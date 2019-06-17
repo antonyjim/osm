@@ -17,11 +17,13 @@ import {
   IFormDetails,
   IFormTab,
   ISysForm,
-  ISysFormTab
+  ISysFormTab,
+  ITableField
 } from '../../../types/forms'
 import { TowelRecord } from '../../queries/towel/towelRecord'
 import { ITowelQueryResponse } from '../../../types/towelRecord'
 import { handleError } from '../../utils'
+import { IDictionary } from '../../../types/server'
 
 // Constants and global variables
 let forms: { [table: string]: IFormDetails } = {}
@@ -41,39 +43,39 @@ interface IFormRow {
 
 export default function getForm(table) {
   constructForms()
-  if (forms && forms.hasOwnProperty('sys_form')) return forms[table]
+  if (forms && forms[table]) return forms[table]
   // else constructForms()
   else return {}
 }
 
-async function serializeFormFromRow(row: IFormRow) {
+function serializeFormFromRow(row: ISysFormTab, formPath: string): IFormTab {
   const schema = getTables()
   const tab: IFormTab = {
     name: row.tab_name,
-    title: row.tab_title,
-    primaryKey: schema[row.form_name].primaryKey
+    title: row.tab_title
   }
   if (row.table_ref && row.table_args) {
     tab.table = {
-      name: row.table_ref_display,
+      name: row.table_ref,
       args: row.table_args
     }
+  } else if (row.custom_component) {
+    tab.customComponent = row.custom_component
   } else {
     if (!tab.fields) tab.fields = {}
-    tab.fields[row.field_name_display] =
-      schema[row.form_name].columns[row.field_name_display]
+    tab.fields = JSON.parse(row.fields).fields
   }
 
-  if (!forms[row.form_name]) {
+  if (!forms[formPath]) {
     // At this point, the forms object for this table should be blank
-    forms[row.form_name] = {
-      title: row.form_name,
-      table: row.form_name,
+    forms[formPath] = {
+      title: formPath,
+      table: null,
       tabs: {
         [row.tab_title]: tab
       }
     }
-  } else if (forms[row.form_name].tabs) {
+  } else if (forms[formPath].tabs) {
     // Now there are already tabs in existence,
     // so there is no need to re-declare title and table.
 
@@ -83,33 +85,39 @@ async function serializeFormFromRow(row: IFormRow) {
       //   row.tab_name,
       //   row.form_name
       // )
-      const thisTab: IFormTab = forms[row.form_name].tabs[row.tab_title]
-      if (thisTab.fields && row.field_name) {
-        const field = schema[row.form_name].columns[row.field_name_display]
-        forms[row.form_name].tabs[row.tab_title].fields[
-          row.field_name_display
-        ] = field
+      const thisTab: IFormTab = forms[formPath].tabs[row.tab_title]
+      if (thisTab.fields && row.fields) {
+        const allFields: IDictionary<ITableField> = JSON.parse(row.fields)
+          .fields
+        Object.keys(allFields).forEach((fieldName: string) => {
+          const field = schema[formPath].columns[fieldName]
+          forms[formPath].tabs[row.tab_title].fields[fieldName] = field
+        })
       } else {
-        forms[row.form_name].tabs[row.tab_title].table = {
-          name: row.table_ref_display,
+        forms[formPath].tabs[row.tab_title].table = {
+          name: row.table_ref,
           args: row.table_args
         }
       }
     } else {
       console.log('[FORM_GENERATOR] Creating tab %s', row.tab_name)
     }
+    return tab
   } else {
-    forms[row.form_name].tabs[row.tab_name].fields = {}
+    forms[formPath].tabs[row.tab_name].fields = {}
   }
 }
 
+/**
+ * @description Gets forms from sys_form and builds a json data structure representing form controls
+ */
 export async function constructForms() {
   return new Promise((resolveFormCreation, rejectFormCreation) => {
     // Attempt to get forms from the sys_form table
     const allForms = {}
 
     // First we need to get the disinct list of forms from sys_form
-    return new Promise((resolveFormList, rejectFormList) => {
+    new Promise((resolveFormList, rejectFormList) => {
       const formListQuery: string =
         'SELECT sys_id, form_name, form_title , form_args FROM sys_form'
 
@@ -133,16 +141,21 @@ export async function constructForms() {
         ])
       })
       .then(([tableList, ...formTabs]: [ISysForm[], ISysFormTab[]]) => {
-        console.log(formTabs)
+        // Now we have the list of forms, and the tabs associated with each list
         return new Promise((resolve) => {
           tableList.forEach((table: ISysForm) => {
             allForms[table.form_name] = {
               title: table.form_name || '',
-              tabs: []
+              tabs: {}
             }
 
-            formTabs.forEach((formTab) => {
-              allForms[table.form_name].tabs.push(formTab[0])
+            // allForms[table.form_name] = serializeFormFromRow(formTab)
+
+            formTabs.forEach((formTab: [ISysFormTab]) => {
+              allForms[table.form_name].tabs[
+                formTab[0].tab_name
+              ] = serializeFormFromRow(formTab[0], table.form_name)
+              // allForms[table.form_name].tabs.push(formTab[0])
             })
           })
           resolve([tableList, formTabs])
@@ -165,16 +178,16 @@ export async function constructForms() {
               handleError
             )
 
-            const fields = []
+            const fields = {}
             Object.keys(allTables[table].columns).forEach((col) => {
               if (
                 allTables[table].columns[col] &&
                 (allTables[table].columns[col].visible ||
                   col === allTables[table].primaryKey)
               ) {
-                const thisCol = allTables[table].columns[col]
+                const thisCol: ITableField = allTables[table].columns[col]
                 thisCol.label = col || ''
-                fields.push(thisCol)
+                fields[col] = thisCol
               }
             })
 
@@ -227,7 +240,7 @@ export async function constructForms() {
     // }
 
     // if (customForms && customForms.data && customForms.data.length !== 0) {
-    //   customForms.data.map((formDetail: IFormRow) => {
+    //   customForms.data.map((formDetail: ISysFormTab) => {
     //     // const tableName = formDetail.form_name
     //     serializeFormFromRow(formDetail)
     //   })
