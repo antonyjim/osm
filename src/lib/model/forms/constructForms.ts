@@ -42,10 +42,10 @@ interface IFormRow {
 }
 
 export default function getForm(table) {
-  constructForms()
+  // constructForms()
   if (forms && forms[table]) return forms[table]
   // else constructForms()
-  else return {}
+  else return null
 }
 
 function serializeFormFromRow(row: ISysFormTab, formPath: string): IFormTab {
@@ -54,27 +54,26 @@ function serializeFormFromRow(row: ISysFormTab, formPath: string): IFormTab {
     name: row.tab_name,
     title: row.tab_title
   }
+
+  // Figure out if this tab is for a table
   if (row.table_ref && row.table_args) {
     tab.table = {
       name: row.table_ref,
       args: row.table_args
     }
+    // If not, check if it's a custom component
   } else if (row.custom_component) {
     tab.customComponent = row.custom_component
+    // If it's neither, then it must be a standard form
   } else {
     if (!tab.fields) tab.fields = {}
     tab.fields = JSON.parse(row.fields).fields
   }
 
-  if (!forms[formPath]) {
+  if (tab.fields) {
     // At this point, the forms object for this table should be blank
-    forms[formPath] = {
-      title: formPath,
-      table: null,
-      tabs: {
-        [row.tab_title]: tab
-      }
-    }
+
+    return tab
   } else if (forms[formPath].tabs) {
     // Now there are already tabs in existence,
     // so there is no need to re-declare title and table.
@@ -85,13 +84,14 @@ function serializeFormFromRow(row: ISysFormTab, formPath: string): IFormTab {
       //   row.tab_name,
       //   row.form_name
       // )
-      const thisTab: IFormTab = forms[formPath].tabs[row.tab_title]
-      if (thisTab.fields && row.fields) {
+      const thisTab: IFormTab = forms[formPath].tabs[row.tab_name]
+      // const thisTab: ISysFormTab = row
+      if (thisTab && thisTab.fields && row.fields) {
         const allFields: IDictionary<ITableField> = JSON.parse(row.fields)
           .fields
         Object.keys(allFields).forEach((fieldName: string) => {
           const field = schema[formPath].columns[fieldName]
-          forms[formPath].tabs[row.tab_title].fields[fieldName] = field
+          forms[formPath].tabs[row.tab_name].fields[fieldName] = field
         })
       } else {
         forms[formPath].tabs[row.tab_title].table = {
@@ -114,7 +114,7 @@ function serializeFormFromRow(row: ISysFormTab, formPath: string): IFormTab {
 export async function constructForms() {
   return new Promise((resolveFormCreation, rejectFormCreation) => {
     // Attempt to get forms from the sys_form table
-    const allForms = {}
+    const allForms = forms
 
     // First we need to get the disinct list of forms from sys_form
     new Promise((resolveFormList, rejectFormList) => {
@@ -140,21 +140,25 @@ export async function constructForms() {
           })
         ])
       })
-      .then(([tableList, ...formTabs]: [ISysForm[], ISysFormTab[]]) => {
+      .then(([tableList, ...formTabs]: [ISysForm[], ...ISysFormTab[]]) => {
         // Now we have the list of forms, and the tabs associated with each list
         return new Promise((resolve) => {
-          tableList.forEach((table: ISysForm) => {
+          tableList.forEach((table: ISysForm, i: number) => {
             allForms[table.form_name] = {
               title: table.form_name || '',
+              table: null,
               tabs: {}
             }
 
-            // allForms[table.form_name] = serializeFormFromRow(formTab)
+            // tableList will of course be a list of tables,
+            // formTabs will be an array of an array of tabs associated with each list.
+            // @ts-ignore
+            const thisFormsTabs: ISysFormTab[] = formTabs[i]
 
-            formTabs.forEach((formTab: [ISysFormTab]) => {
+            thisFormsTabs.forEach((formTab: ISysFormTab) => {
               allForms[table.form_name].tabs[
-                formTab[0].tab_name
-              ] = serializeFormFromRow(formTab[0], table.form_name)
+                formTab.tab_name
+              ] = serializeFormFromRow(formTab, table.form_name)
               // allForms[table.form_name].tabs.push(formTab[0])
             })
           })

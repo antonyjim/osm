@@ -9,6 +9,7 @@
 
 // Local Modules
 import { Querynator } from '../../queries'
+import constructSchema from '../../model/constructSchema'
 
 // Constants and global variables
 
@@ -32,7 +33,14 @@ export default class Column extends Querynator {
   }
 
   public async update(fields) {
-    return await this.createUpdate(fields)
+    return new Promise((resolveUpdate, rejectUpdate) => {
+      this.createUpdate(fields)
+        .then((updRes) => {
+          constructSchema()
+          return resolveUpdate(updRes)
+        })
+        .catch(rejectUpdate)
+    })
   }
 
   public async getFields(fields, pagination) {

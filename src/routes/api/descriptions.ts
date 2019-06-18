@@ -25,7 +25,13 @@ descriptions.get('/form/:table', (req: Request, res: Response) => {
       message: 'Retrieved form',
       data: form
     })
-  } else res.status(404).send()
+  } else {
+    res.status(404).send({
+      errors: {
+        message: 'No data found for form ' + req.params.table
+      }
+    })
+  }
 })
 
 descriptions.get('/:table', (req: Request, res: Response) => {
