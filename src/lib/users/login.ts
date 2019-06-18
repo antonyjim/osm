@@ -20,7 +20,7 @@ import { Log } from '../log'
 const pool = getPool()
 const tokenExpiration = process.env.TOKEN_EXPIRATION || '10h'
 
-export async function Login(credentials: UserTypes.ICredentials) {
+export async function login(credentials: UserTypes.ICredentials) {
   this.credentials = credentials
 
   this.validatePassword = async (hashed) => {

@@ -1,5 +1,5 @@
 import * as express from 'express'
-import { IFieldError } from './api'
+import { IFieldMessage } from './api'
 import { ITableSchema } from './forms'
 
 declare global {
@@ -45,9 +45,9 @@ export interface IQueryResponse {
 }
 
 export interface IResponseMessage {
-  errors?: IFieldError[]
-  warnings?: IFieldError[]
-  info?: IFieldError[]
+  errors?: IFieldMessage[]
+  warnings?: IFieldMessage[]
+  info?: IFieldMessage[]
   data?: any
 }
 

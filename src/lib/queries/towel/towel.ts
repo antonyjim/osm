@@ -18,12 +18,20 @@ import { getTables } from '../../model/constructSchema'
 import generateHooks from '../../api/hooks/generateHooks'
 import { ITableField, ITableSchema } from '../../../types/forms'
 import { byFields as _byFields } from '../builder/byFields'
-import { IFieldError } from '../../../types/api'
+import {
+  IFieldMessage,
+  IAPIGetByFieldsResponse,
+  IAPIByIdResponse
+} from '../../../types/api'
 import { TowelRecord } from './towelRecord'
-import { IPagination, IResponseMessage } from '../../../types/server'
+import {
+  IPagination,
+  IResponseMessage,
+  IDictionary
+} from '../../../types/server'
 import { ITowelQueryResponse } from '../../../types/towelRecord'
 import { queryBuilder } from '../builder'
-// Constants and global variables
+import { Queries } from '../../../types/queries'
 
 export default class Towel extends TowelRecord {
   private args: {
@@ -73,7 +81,7 @@ export default class Towel extends TowelRecord {
     })
   }
 
-  private async all(): Promise<ITowelQueryResponse> {
+  private async all(): Promise<IAPIGetByFieldsResponse> {
     const count = await simpleQuery('SELECT COUNT(??) AS COUNT FROM ??', [
       this.primaryKey,
       this.tableName
@@ -122,30 +130,45 @@ export default class Towel extends TowelRecord {
       offset?: number
       limit?: number
     }
-  ) {
-    const fieldParams = await _byFields(
-      {
-        fields: this.requestedFields,
-        args: fields,
-        table: this.tableName
-      },
-      pagination
-    )
-    this.warnings.concat(fieldParams.warnings)
-    if (fieldParams.warnings) {
-      console.log(
-        '[TOWEL_RECORD] %d warnings received in query builder: %s',
-        fieldParams.warnings.length,
-        fieldParams.warnings
+  ): Promise<IAPIGetByFieldsResponse> {
+    return new Promise((resolveByFields, rejectByFields) => {
+      // First we  build the query
+      _byFields(
+        {
+          fields: this.requestedFields,
+          args: fields,
+          table: this.tableName
+        },
+        pagination
       )
-    }
-    return {
-      meta: fieldParams.meta,
-      data: await simpleQuery(
-        fieldParams.queryParams.query,
-        fieldParams.queryParams.params
-      )
-    }
+        .then((fieldParams: Queries.IByFieldsQueryBuilder) => {
+          // We'll take care of some logging
+          if (fieldParams.warnings) {
+            console.log(
+              '[TOWEL_RECORD] %d warnings received in query builder: %s',
+              fieldParams.warnings.length,
+              fieldParams.warnings
+            )
+          }
+
+          // This will eventually make it's way back to the response
+          this.warnings.concat(fieldParams.warnings)
+          return Promise.all([
+            fieldParams.meta,
+            simpleQuery(
+              fieldParams.queryParams.query,
+              fieldParams.queryParams.params
+            )
+          ])
+        })
+        .then(([metaData, data]: [Queries.IMetaInfo, IDictionary<any>]) => {
+          return resolveByFields({
+            meta: metaData,
+            data,
+            warnings: this.warnings
+          })
+        })
+    })
   }
 
   public static refreshHooks(): void {

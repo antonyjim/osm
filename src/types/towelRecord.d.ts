@@ -1,4 +1,4 @@
-import { IFieldError } from './api'
+import { IFieldMessage } from './api'
 
 export interface ITowelQueryResponse {
   meta: {
@@ -6,6 +6,6 @@ export interface ITowelQueryResponse {
     from: number
     to: number
   }
-  warnings: IFieldError[]
+  warnings: IFieldMessage[]
   data: any[]
 }

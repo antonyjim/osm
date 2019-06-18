@@ -77,6 +77,7 @@ export function queryBuilder(tableName: string, fields: string[] | string) {
       })
     }
   })
+
   return {
     query: `${baseStatement} ${fieldPlaceholders.join(', ')} ${fromStatement}`,
     params: Array.prototype.concat(validFields, tableParams),

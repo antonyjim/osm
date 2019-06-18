@@ -13,7 +13,7 @@ import { Pool, PoolConnection } from 'mysql'
 // Local Modules
 import loadModule from '../api/hooks/loadHook'
 import { IResponseMessage, IPagination } from '../../types/server'
-import { IFieldError } from '../../types/api'
+import { IFieldMessage } from '../../types/api'
 import { getTables } from '../model/constructSchema'
 import { getPool } from '../connection'
 import { Log } from '../log'
@@ -183,7 +183,11 @@ export class Querynator extends EventEmitter {
   }
   protected async validateNewFields(
     providedFields: any
-  ): Promise<{ errors: IFieldError[]; warnings: IFieldError[]; valid: any }> {
+  ): Promise<{
+    errors: IFieldMessage[]
+    warnings: IFieldMessage[]
+    valid: any
+  }> {
     const returnVal = {
       errors: [],
       warnings: [],
@@ -228,7 +232,11 @@ export class Querynator extends EventEmitter {
    */
   protected async validateUpdatedFields(
     providedFields: any
-  ): Promise<{ errors: IFieldError[]; warnings: IFieldError[]; valid: any }> {
+  ): Promise<{
+    errors: IFieldMessage[]
+    warnings: IFieldMessage[]
+    valid: any
+  }> {
     const returnVal = {
       errors: [],
       warnings: [],

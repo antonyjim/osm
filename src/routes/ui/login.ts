@@ -13,19 +13,19 @@
 import { Router, Request, Response } from 'express'
 
 // Local Modules
-import { getRoleAuthorizedNavigation } from '../../lib/navigation/navigation'
 import { IStatusMessage, IResponseMessage } from '../../types/server'
 import { UserTypes } from '../../types/users'
-import { Login, getToken } from '../../lib/users/login'
+import { login, getToken } from '../../lib/users/login'
 import { Log } from '../../lib/log'
-import User, { forgotPassword } from '../../lib/api/users/users'
+import User, { forgotPassword } from '../../lib/users/users'
 import { createReadStream } from 'fs'
 import { resolve } from 'path'
+import { NextFunction } from 'express-serve-static-core'
 
 // Constants and global variables
-const loginRoutes = Router()
+const authRoutes = Router()
 
-loginRoutes.get('/', (req: Request, res: Response) => {
+authRoutes.get('/login', (req: Request, res: Response) => {
   res.cookie('token', null)
   res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' })
   const fileStream = createReadStream(
@@ -40,22 +40,23 @@ loginRoutes.get('/', (req: Request, res: Response) => {
   })
 })
 
-loginRoutes.get('/navigation', (req: Request, res: Response) => {
-  getRoleAuthorizedNavigation(req.auth.u, req.auth.c)
-    .then(
-      (onResolved: IStatusMessage) => {
-        res.status(200).json(onResolved)
-      },
-      (onFailure: IStatusMessage) => {
-        res.status(200).json(onFailure)
-      }
-    )
-    .catch((err: IStatusMessage) => {
-      res.status(200).json(err)
-    })
+// There's no reason to store the login elsewhere
+authRoutes.get('/logout', (req: Request, res: Response) => {
+  res.cookie('token', null)
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' })
+  const fileStream = createReadStream(
+    resolve(__dirname, '../../../static/login.html')
+  )
+  fileStream.on('data', (data) => {
+    res.write(data)
+  })
+  fileStream.on('end', () => {
+    res.end()
+    return
+  })
 })
 
-loginRoutes.post('/', (req: Request, res: Response) => {
+authRoutes.post('/login', (req: Request, res: Response, next: NextFunction) => {
   let responseBody: IResponseMessage
   let tokenPayload: UserTypes.IAuthToken = null
   if (
@@ -64,31 +65,23 @@ loginRoutes.post('/', (req: Request, res: Response) => {
     req.body.user.username &&
     req.body.user.password
   ) {
-    Login(req.body.user)
-      .then(
-        (onUserAuthenticated: IStatusMessage) => {
-          tokenPayload = {
-            iA: true,
-            u: onUserAuthenticated.details.sys_id,
-            r: onUserAuthenticated.details.userRole,
-            c: onUserAuthenticated.details.userNonsig
-          }
-          const token = getToken(tokenPayload)
-          responseBody = {
-            info: [{ message: 'Success' }],
-            data: {
-              token
-            }
-          }
-          res.status(200).json(responseBody)
-        },
-        (onUserNotAuthenticated: IStatusMessage) => {
-          responseBody = {
-            errors: [{ message: onUserNotAuthenticated.message }]
-          }
-          res.status(200).json(responseBody)
+    login(req.body.user)
+      .then((onUserAuthenticated: IStatusMessage) => {
+        tokenPayload = {
+          iA: true,
+          u: onUserAuthenticated.details.sys_id,
+          r: onUserAuthenticated.details.userRole,
+          c: onUserAuthenticated.details.userNonsig
         }
-      )
+        const token = getToken(tokenPayload)
+        responseBody = {
+          info: [{ message: 'Success' }],
+          data: {
+            token
+          }
+        }
+        res.status(200).json(responseBody)
+      })
       .catch((err: Error) => {
         new Log(err.message).error(2)
         responseBody = {
@@ -104,12 +97,13 @@ loginRoutes.post('/', (req: Request, res: Response) => {
     }
     res.status(200).json(responseBody)
   }
+  return true
 })
 
 /**
  * Send forgot password emails to users
  */
-loginRoutes.post('/forgot', (req: Request, res: Response) => {
+authRoutes.post('/forgot', (req: Request, res: Response) => {
   if (!req.body.email) {
     res.status(200).json({
       error: true,
@@ -124,7 +118,7 @@ loginRoutes.post('/forgot', (req: Request, res: Response) => {
   }
 })
 
-loginRoutes.post('/newUser', (req: Request, res: Response) => {
+authRoutes.post('/newUser', (req: Request, res: Response) => {
   new User()
     .create(req.body)
     .then(
@@ -143,4 +137,4 @@ loginRoutes.post('/newUser', (req: Request, res: Response) => {
     })
 })
 
-export default loginRoutes
+export default authRoutes

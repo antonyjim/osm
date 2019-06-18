@@ -12,7 +12,7 @@ import { Router, Request, Response } from 'express'
 
 // Local Modules
 import { tokenValidation } from './../middleware/authentication'
-import loginRoutes from './login'
+import authRoutes from './login'
 import verifyRoutes from './verification'
 import { getServerStatus, getHostname } from '../../lib/utils'
 import { simpleQuery } from '../../lib/queries'
@@ -24,24 +24,8 @@ export default function(): Promise<Router> {
     const uiRoutes = Router()
 
     uiRoutes.use(tokenValidation())
-    uiRoutes.use('/login', loginRoutes)
+    uiRoutes.use('/auth', authRoutes)
     uiRoutes.use('/verify', verifyRoutes)
-
-    // There's no reason to store the login elsewhere
-    uiRoutes.get('/logout', (req: Request, res: Response) => {
-      res.cookie('token', null)
-      res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' })
-      const fileStream = createReadStream(
-        resolve(__dirname, '../../../static/login.html')
-      )
-      fileStream.on('data', (data) => {
-        res.write(data)
-      })
-      fileStream.on('end', () => {
-        res.end()
-        return
-      })
-    })
 
     uiRoutes.get('/stats', (req: Request, res: Response) => {
       getServerStatus().then((stats) => {

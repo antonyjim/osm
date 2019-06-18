@@ -8,18 +8,22 @@
 // NPM Modules
 
 // Local Modules
-import { Querynator } from '../../queries'
-import { Log } from '../../log'
-import { rootQueries } from './queries'
-import rootMutations from './mutations'
-import { getTables } from '../../model/constructSchema'
+import { Querynator } from '../queries'
+import { Log } from '../log'
+import { rootQueries } from './schema/queries'
+import rootMutations from './schema/mutations'
+import { getTables } from '../model/constructSchema'
 import {
   genericTableQuery,
   genericTableDelete,
   genericTableUpdate,
   genericTableCreate
-} from './GeneralTable'
-import { IFieldError, IAPIGETResponse } from '../../../types/api'
+} from './schema/GeneralTable'
+import {
+  IFieldMessage,
+  IAPIByIdResponse,
+  IAPIGetByFieldsResponse
+} from '../../types/api'
 
 // Constants and global variables
 
@@ -64,7 +68,7 @@ export default class APICall extends Querynator {
    * @param terminatingError Whether the response should be sent or should wait until data is received
    */
   protected handleError(
-    err: Error | IFieldError[],
+    err: Error | IFieldMessage[],
     terminatingError?: boolean
   ) {
     // Use this for sending an internal server error response
@@ -317,7 +321,7 @@ export default class APICall extends Querynator {
       // If both the ID and table is provided, query the single record
       handler(queryFields, this.context.req.params.id, this.context)
         .then(
-          (rows: IAPIGETResponse) => {
+          (rows: IAPIByIdResponse) => {
             if (rows.errors) this.response.body.errors.concat(rows.errors) // Allow non-terminating errors to be passed in the response
             if (rows.warnings) this.response.body.warnings.concat(rows.warnings)
             if (rows.data) {
@@ -342,7 +346,7 @@ export default class APICall extends Querynator {
       }
 
       handler(queryFields, args, this.context, pagination)
-        .then((rows: IAPIGETResponse) => {
+        .then((rows: IAPIGetByFieldsResponse) => {
           if (rows.errors) this.response.body.errors.concat(rows.errors) // Allow non-terminating errors to be passed in the response
           if (rows.warnings) this.response.body.warnings.concat(rows.warnings)
           if (rows.meta) this.response.body.meta = rows.meta

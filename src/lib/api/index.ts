@@ -9,7 +9,7 @@
 import { Request, Response } from 'express'
 
 // Local Modules
-import APICall from './API'
+import APICall from './apiServer'
 
 // Constants and global variables
 

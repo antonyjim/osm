@@ -19,11 +19,12 @@ import { v4 as uuid } from 'uuid'
 // Local Modules
 import { byFields as _byFields } from '../builder/byFields'
 import { ITableSchema } from '../../../types/forms'
-import { IFieldError } from '../../../types/api'
+import { IFieldMessage, IAPIByIdResponse } from '../../../types/api'
 import { getTables } from '../../model/constructSchema'
 import { simpleQuery } from '../../connection'
 import { queryBuilder } from '../builder'
 import { validateFieldIsValid } from '../builder/fieldValidator'
+import { IDictionary } from '../../../types/server'
 
 // Constants and global variables
 
@@ -32,7 +33,7 @@ export class TowelRecord {
   protected tableSchema: ITableSchema // Schema from the sys_db_dictionary table
   protected queryFieldsArr: string[] // List of fields to return from query
   protected primaryKey: string // Duh
-  protected warnings: IFieldError[] // Errors encountered in the fields
+  protected warnings: IFieldMessage[] // Errors encountered in the fields
   protected hasAggregate: boolean
   protected aggregates: {
     [aggregate: string]: string
@@ -66,7 +67,11 @@ export class TowelRecord {
 
   protected async validateNewFields(
     providedFields: any
-  ): Promise<{ errors: IFieldError[]; warnings: IFieldError[]; valid: any }> {
+  ): Promise<{
+    errors: IFieldMessage[]
+    warnings: IFieldMessage[]
+    valid: any
+  }> {
     const returnVal = {
       errors: [],
       warnings: [],
@@ -165,20 +170,31 @@ export class TowelRecord {
     return returnObject
   }
 
-  public async byId(id: string) {
-    if (typeof id !== 'string') {
-      throw new TypeError(this.primaryKey + ' must be in string format')
-    }
-    const queryParams = queryBuilder(this.tableName, this.queryFieldsArr)
-    queryParams.query += ' WHERE ??.?? = ?'
-    queryParams.params.push(
-      queryParams.aliases[this.tableName],
-      this.primaryKey,
-      id
-    )
-    return {
-      warnings: this.warnings,
-      data: await simpleQuery(queryParams.query, queryParams.params)
-    }
+  public async byId(id: string): Promise<IAPIByIdResponse> {
+    return new Promise((resolveById, rejectById) => {
+      if (typeof id !== 'string') {
+        rejectById(new TypeError(this.primaryKey + ' must be in string format'))
+      }
+      const queryParams = queryBuilder(this.tableName, this.queryFieldsArr)
+      queryParams.query += ' WHERE ??.?? = ?'
+      queryParams.params.push(
+        queryParams.aliases[this.tableName],
+        this.primaryKey,
+        id
+      )
+
+      if (queryParams.warnings) {
+        this.warnings.concat(queryParams.warnings)
+      }
+
+      simpleQuery(queryParams.query, queryParams.params).then(
+        (data: IDictionary<any>) => {
+          return resolveById({
+            warnings: this.warnings,
+            data
+          })
+        }
+      )
+    })
   }
 }

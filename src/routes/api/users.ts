@@ -8,7 +8,7 @@
 
 // NPM Modules
 import { Router, Request, Response } from 'express'
-import User from '../../lib/api/users/users'
+import User from '../../lib/users/users'
 import { Log } from '../../lib/log'
 
 // Local Modules

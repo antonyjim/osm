@@ -9,7 +9,7 @@
 import { Router, Request, Response } from 'express'
 
 // Local Modules
-import API from '../../lib/api/schema'
+import API from '../../lib/api/index'
 
 // Constants and global variables
 const q = Router()

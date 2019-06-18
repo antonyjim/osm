@@ -154,6 +154,7 @@ export function apiTokenValidation() {
             error: true,
             message: 'User unauthenticated or token expired'
           })
+          res.end()
         }
       )
     }

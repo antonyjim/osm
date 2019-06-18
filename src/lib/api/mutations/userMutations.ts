@@ -8,7 +8,7 @@
 // NPM Modules
 
 // Local Modules
-import User from '../users/users'
+import User from '../../users/users'
 
 // Constants and global variables
 

@@ -11,19 +11,19 @@ import { verify } from 'jsonwebtoken'
 import uuid = require('uuid')
 
 // Local Modules
-import { Querynator, simpleQuery } from './../../queries'
-import { jwtSecret } from '../../connection'
-import { Nonsig } from '../../users/maintenance'
-import { Validation } from '../../validation'
+import { Querynator, simpleQuery } from '../queries'
+import { jwtSecret } from '../connection'
+import { Nonsig } from './maintenance'
+import { Validation } from '../validation'
 import {
   sendConfirmation,
   sendFailedPasswordReset,
   sendPasswordReset
-} from '../../email/emails'
-import { UserTypes } from '../../../types/users'
-import { Customer } from '../customers/customers'
+} from '../email/emails'
+import { UserTypes } from '../../types/users'
+import { Customer } from '../api/customers/customers'
 import { resolve } from 'path'
-import { Log } from '../../log'
+import { Log } from '../log'
 
 // Constants and global variables
 const saltRounds = 10

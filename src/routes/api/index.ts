@@ -15,7 +15,7 @@ import {
   apiTokenValidation
 } from '../middleware/authentication'
 import { adminRoutes } from './admin'
-import { Login, getToken } from './../../lib/users/login'
+import { login, getToken } from './../../lib/users/login'
 import { IStatusMessage } from '../../types/server'
 import { jwtSecret } from '../../lib/connection'
 import { q } from './q'
@@ -24,13 +24,14 @@ import { UserTypes } from '../../types/users'
 import useradminRoutes from './users'
 import descriptions from './descriptions'
 import { excelRoute } from './excel'
+import { getRoleAuthorizedNavigation } from '../../lib/navigation/navigation'
 
 // Constants and global variables
 const apiRoutes = Router()
 
 apiRoutes.get('/getToken', (req: Request, res: Response) => {
   if (req.query.username && req.query.password) {
-    Login({ username: req.query.username, password: req.query.password })
+    login({ username: req.query.username, password: req.query.password })
       .then(
         (onSuccessfulAuthentication: IStatusMessage) => {
           const payload: UserTypes.IAuthToken = {
@@ -77,6 +78,15 @@ apiRoutes.use('/excel', excelRoute)
 apiRoutes.use(apiTokenValidation())
 apiRoutes.use('/describe', descriptions)
 apiRoutes.use('/q', q) // q is for general api queries
+apiRoutes.get('/navigation', (req: Request, res: Response) => {
+  getRoleAuthorizedNavigation(req.auth.u, req.auth.c)
+    .then((onResolved: IStatusMessage) => {
+      res.status(200).json(onResolved)
+    })
+    .catch((err: IStatusMessage) => {
+      res.status(200).json(err)
+    })
+})
 apiRoutes.use(endpointAuthentication())
 apiRoutes.use(bodyParser.json())
 apiRoutes.use('/admin', adminRoutes) // admin is for site-administration duties
