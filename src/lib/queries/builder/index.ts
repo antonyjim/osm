@@ -1,4 +1,5 @@
 import { getTables } from '../../model/constructSchema'
+import { ITableField } from '../../../types/forms'
 
 export function queryBuilder(tableName: string, fields: string[] | string) {
   const warnings = []
@@ -23,10 +24,13 @@ export function queryBuilder(tableName: string, fields: string[] | string) {
     }
   } else fieldArr = fields
 
-  fieldArr.map((qField) => {
-    const refCol = tableCols[qField]
+  fieldArr.forEach((qField) => {
+    const refCol: ITableField = tableCols[qField]
     if (validFields.includes(qField)) return false // Prevent duplicate fields in queries
     if (refCol) {
+      if (!refCol.visible) {
+        return false
+      }
       if (!refCol.localRef && !tableAliases[tableName]) {
         tableAliases[tableName] = `t${tableAliasIndex}` // Add the table to aliases
         fromStatement += ' ?? ?? ' // Provide for table alias e.g. `sys_user` `t1`

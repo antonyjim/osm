@@ -74,9 +74,9 @@ export default class APICall extends Querynator {
     // Use this for sending an internal server error response
     const requestFailure = () => {
       if (this.response.body.errors.length > 0) {
-        this.context.res.status(500).send(this.response.body)
+        this.context.res.status(200).send(this.response.body)
       } else {
-        this.context.res.status(500).send(this.response.body)
+        this.context.res.status(200).send(this.response.body)
       }
     }
     let message = null

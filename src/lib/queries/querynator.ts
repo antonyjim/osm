@@ -333,7 +333,7 @@ export class Querynator extends EventEmitter {
       this.tableName,
       this.queryFieldsArr
     ) // The query with necessary joins
-    if (limit && limit !== null && !isNaN(limit) && limit <= 100) {
+    if (limit && limit !== null && !isNaN(limit) && limit <= 1000) {
       // Put a hard limit on 100 rows
       queryParams.query += ' LIMIT ' + limit
     } else {
