@@ -11,6 +11,7 @@
     "cookie-parser": "^1.4.3",
     "ejs": "^2.6.1",
     "express": "^4.16.3",
+    "formidable": "^1.2.1",
     "jsonwebtoken": "^8.4.0",
     "lodash": "^4.17.11",
     "monaco-editor": "^0.15.6",
