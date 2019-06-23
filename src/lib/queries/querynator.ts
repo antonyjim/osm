@@ -343,7 +343,8 @@ export class Querynator extends EventEmitter {
       offset = count[0].COUNT - limit < 0 ? 0 : count[0].COUNT - limit
     }
     // Limit the offset to the max number of results
-    else if (offset === null || isNaN(offset)) offset = 0 // Fallback to an offset of 0 if an invalid offset is provided
+    // Fallback to an offset of 0 if an invalid offset is provided
+    else if (offset === null || isNaN(offset) || offset < 0) offset = 0
     queryParams.query += ' OFFSET ' + offset
 
     return {
