@@ -86,7 +86,7 @@ export default class APICall extends Querynator {
       this.response.body.errors = this.response.body.errors.concat(err)
       console.log('[API] Error in request %s', err)
       console.log(err)
-    } else if (err && err.message) {
+    } else if (err) {
       if (typeof err === 'string') {
         message = err
       } else if (err && err.message) {

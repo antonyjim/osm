@@ -91,7 +91,7 @@ export class Querynator extends EventEmitter {
     query: string,
     actionOverride?: string
   ) {
-    return new Promise((resolveAuthorized) => {
+    return new Promise((resolveAuthorized, rejectAuthorized) => {
       if (actionOverride === 'CALL' || this.worker) {
         return resolveAuthorized(true)
       }
@@ -109,7 +109,7 @@ export class Querynator extends EventEmitter {
       conn.query('SELECT ?? (?) AS AUTHED', params, (err, authed) => {
         if (err) {
           new Log(err.message).error(1)
-          throw err
+          return rejectAuthorized(err)
         }
         if (authed[0]) {
           return resolveAuthorized(authed[0].AUTHED || false)
@@ -151,13 +151,24 @@ export class Querynator extends EventEmitter {
               }
               conn.query(query, params, (qErr: Error, results: any[]) => {
                 if (qErr) {
-                  conn.rollback()
-                  conn.release()
-                  console.error('[QUERYNATOR] ERROR IN QUERY %s', qErr.message)
-                  rejectQuery(qErr)
+                  try {
+                    conn.rollback()
+                    conn.release()
+                    console.error(
+                      '[QUERYNATOR] ERROR IN QUERY %s',
+                      qErr.message
+                    )
+                    rejectQuery(qErr)
+                  } catch (rollbackErr) {
+                    rejectQuery(rollbackErr)
+                  }
                 }
                 conn.commit((commitErr) => {
-                  conn.release()
+                  try {
+                    conn.release()
+                  } catch (releaseErr) {
+                    rejectQuery(releaseErr)
+                  }
                   if (commitErr) {
                     conn.rollback()
                     return rejectQuery(commitErr)
@@ -174,7 +185,7 @@ export class Querynator extends EventEmitter {
             try {
               conn.release()
             } catch (releaseConnErr) {
-              console.error(releaseConnErr)
+              return rejectQuery(releaseConnErr)
             }
             return rejectQuery(queryErr.message)
           })

@@ -18,7 +18,8 @@ import {
   IFormTab,
   ISysForm,
   ISysFormTab,
-  ITableField
+  ITableField,
+  ITableSchema
 } from '../../../types/forms'
 import { TowelRecord } from '../../queries/towel/towelRecord'
 import { ITowelQueryResponse } from '../../../types/towelRecord'
@@ -48,8 +49,13 @@ export default function getForm(table) {
   else return null
 }
 
+/**
+ * Constructs the individual tabs for each form we are building
+ * @param row Column information from sys_form_tab
+ * @param formPath The name of the form which we are building
+ */
 function serializeFormFromRow(row: ISysFormTab, formPath: string): IFormTab {
-  const schema = getTables()
+  const schema = getTables(row.tab_name)
   const tab: IFormTab = {
     name: row.tab_name,
     title: row.tab_title
@@ -66,13 +72,11 @@ function serializeFormFromRow(row: ISysFormTab, formPath: string): IFormTab {
     tab.customComponent = row.custom_component
     // If it's neither, then it must be a standard form
   } else {
-    if (!tab.fields) tab.fields = {}
-    tab.fields = JSON.parse(row.fields).fields
+    if (!tab.fields) tab.fields = JSON.parse(row.fields).fields
   }
 
   if (tab.fields) {
     // At this point, the forms object for this table should be blank
-
     return tab
   } else if (forms[formPath].tabs) {
     // Now there are already tabs in existence,
@@ -85,14 +89,17 @@ function serializeFormFromRow(row: ISysFormTab, formPath: string): IFormTab {
       //   row.form_name
       // )
       const thisTab: IFormTab = forms[formPath].tabs[row.tab_name]
-      // const thisTab: ISysFormTab = row
+
+      // Lets build a standard input form
       if (thisTab && thisTab.fields && row.fields) {
+        thisTab.primaryKey = schema.primaryKey as string
         const allFields: IDictionary<ITableField> = JSON.parse(row.fields)
           .fields
         Object.keys(allFields).forEach((fieldName: string) => {
           const field = schema[formPath].columns[fieldName]
-          forms[formPath].tabs[row.tab_name].fields[fieldName] = field
+          thisTab.fields[fieldName] = field
         })
+        forms[formPath].tabs[row.tab_name] = thisTab
       } else {
         forms[formPath].tabs[row.tab_title].table = {
           name: row.table_ref,

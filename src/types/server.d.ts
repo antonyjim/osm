@@ -81,3 +81,13 @@ export interface IPagination {
   offset?: number
   limit?: number
 }
+
+export interface IFileUpload {
+  sys_id?: string
+  content_type: string
+  referenced_table: string
+  referenced_table_record: string
+  file_name: string
+  file_size: number
+  file_contents: Buffer
+}

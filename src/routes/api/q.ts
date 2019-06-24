@@ -10,10 +10,12 @@ import { Router, Request, Response } from 'express'
 
 // Local Modules
 import API from '../../lib/api/index'
+import { fileRouter } from './fileHandler'
 
 // Constants and global variables
 const q = Router()
 
+q.use('/sys_attachment', fileRouter)
 q.get('/:table', API())
 q.get('/:table/:id', API())
 q.post('/:table', API())

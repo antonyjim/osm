@@ -526,7 +526,28 @@ CREATE TABLE sys_authorization (
         REFERENCES sys_priv(priv)
         ON DELETE CASCADE
         ON UPDATE CASCADE
-);
+) CHARSET=utf8;
+
+CREATE TABLE sys_attachment (
+    PRIMARY KEY (sys_id),
+    sys_id CHAR(36),
+    last_modified DATETIME,
+    last_modified_by CHAR(36),
+    content_type VARCHAR(40),
+    referenced_table CHAR(36),
+    referenced_table_record CHAR(36),
+    file_name VARCHAR(40),
+    file_name_upper VARCHAR(40),
+    file_size INT,
+    file_contents LONGBLOB,
+    UNIQUE(referenced_table_record, file_name),
+
+    FOREIGN KEY (last_modified_by)
+        REFERENCES sys_user(sys_id),
+
+    FOREIGN KEY (referenced_table)
+        REFERENCES sys_db_object(sys_id)
+) CHARSET=utf8;
 
 CREATE TABLE sys_lib (
     PRIMARY KEY(sys_id),
