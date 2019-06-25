@@ -17,7 +17,7 @@ import { router } from './routes/index'
 import { Log } from './lib/log'
 import { getPool } from './lib/connection'
 import constructSchema, { tables } from './lib/model/constructSchema'
-import { constructForms } from './lib/model/forms/constructForms'
+import { constructForms } from './lib/model/constructForms'
 import generateHooks from './lib/api/hooks/generateHooks'
 import { syncDbSchema } from './lib/model/dbSchemaGen'
 

@@ -15,7 +15,6 @@ import { fileRouter } from './fileHandler'
 // Constants and global variables
 const q = Router()
 
-q.use('/sys_attachment', fileRouter)
 q.get('/:table', API())
 q.get('/:table/:id', API())
 q.post('/:table', API())

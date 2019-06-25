@@ -1,6 +1,7 @@
 import constructSchema from './constructSchema'
 import { getPool, simpleQuery } from '../connection'
 import { v4 as uuid } from 'uuid'
+import { createDefaultAuthorizationSchema } from './createAuthorization'
 
 /**
  * Copy everything using SHOW TABLES
@@ -24,7 +25,7 @@ export function syncDbSchema() {
             return new Promise(
               (resolveTableDescription, rejectTableDescription) => {
                 const tableName = table['Tables_in_' + process.env.DB_DB]
-                let currTableId = ''
+                let currTableId: string = ''
                 // if (tables[tableName] && tables[tableName].tableId !== '') {
                 //   console.log(
                 //     'Table %s already exists in table schema with %s',
@@ -221,22 +222,52 @@ export function syncDbSchema() {
   }
 }
 
-async function createTableIfNotExists(tableName: string) {
-  const table = await simpleQuery(
-    'SELECT sys_id FROM sys_db_object where name = ?',
-    [tableName]
-  )
-  if (table && table.length > 0) {
-    return table[0].sys_id
-  } else {
-    // const id = uuid()
-    // await simpleQuery('INSERT INTO sys_db_object VALUES (?)', [
-    //   [id, tableName, tableName, null, null]
-    // ])
-    const tableInfo = await simpleQuery(
-      `INSERT INTO sys_db_object (name, label, sys_id) VALUES ?`,
-      [[[tableName, tableName, uuid()]]]
-    )
-    return tableInfo[0].sys_id
-  }
+function createTableIfNotExists(tableName: string): Promise<string> {
+  return new Promise((resolveCreatedTable, rejectCreatedTable) => {
+    simpleQuery(
+      'SELECT sdo.sys_id, sa.auth_priv FROM sys_db_object sdo LEFT JOIN sys_authorization sa ON sdo.sys_id = sa.auth_table WHERE sdo.name = ?',
+      [tableName]
+    ).then((tables: { sys_id: string; auth_priv: string | null }[]) => {
+      if (tables && tables.length > 0) {
+        let hasAdminPrivs = false
+        tables.forEach((table) => {
+          if (table.auth_priv && table.auth_priv === '6') {
+            hasAdminPrivs = true
+          }
+        })
+
+        if (!hasAdminPrivs) {
+          return createDefaultAuthorizationSchema(tables[0].sys_id)
+        }
+      } else {
+        // const id = uuid()
+        // await simpleQuery('INSERT INTO sys_db_object VALUES (?)', [
+        //   [id, tableName, tableName, null, null]
+        // ])
+        const newId = uuid()
+        simpleQuery(
+          `INSERT INTO sys_db_object (name, label, sys_id) VALUES ?`,
+          [[[tableName, tableName, newId]]]
+        )
+          .then(() => {
+            return createDefaultAuthorizationSchema(newId)
+          })
+
+          .then(() => {
+            resolveCreatedTable(newId)
+            console.log(
+              '[STARTUP] Inserted default authorization values for table %s',
+              tableName
+            )
+          })
+          .catch((err) => {
+            rejectCreatedTable(err)
+            console.error(
+              '[STARTUP] Error inserting default values for table %s',
+              tableName
+            )
+          })
+      }
+    })
+  })
 }

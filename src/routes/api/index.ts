@@ -25,6 +25,7 @@ import useradminRoutes from './users'
 import descriptions from './descriptions'
 import { excelRoute } from './excel'
 import { getRoleAuthorizedNavigation } from '../../lib/navigation/navigation'
+import { fileRouter } from './fileHandler'
 
 // Constants and global variables
 const apiRoutes = Router()
@@ -91,6 +92,7 @@ apiRoutes.use(endpointAuthentication())
 apiRoutes.use(bodyParser.json())
 apiRoutes.use('/admin', adminRoutes) // admin is for site-administration duties
 apiRoutes.use('/users', useradminRoutes) // users is for user administration
+apiRoutes.use('/attachments', fileRouter)
 apiRoutes.get('/refresh', (req: Request, res: Response) => {
   if (req.auth.iA && req.auth.c) {
     const payload = {

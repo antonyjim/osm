@@ -549,15 +549,14 @@ CREATE TABLE sys_attachment (
         REFERENCES sys_db_object(sys_id)
 ) CHARSET=utf8;
 
-CREATE TABLE sys_lib (
+CREATE TABLE sys_component (
     PRIMARY KEY(sys_id),
     sys_id CHAR(36),
     last_modified DATETIME,
     last_modified_by CHAR(36),
     title VARCHAR(40),
-    version_of INT,
     metadata JSON,
-    body LONGTEXT,
+    version_of INT,
 
     FOREIGN KEY (last_modified_by) 
         REFERENCES sys_user(sys_id)
@@ -565,24 +564,26 @@ CREATE TABLE sys_lib (
         ON UPDATE CASCADE
 ) CHARSET = utf8;
 
-CREATE TABLE sys_component (
-    PRIMARY KEY(sys_id),
+CREATE TABLE sys_component_file (
+    PRIMARY KEY (sys_id),
     sys_id CHAR(36),
+    parent_component CHAR(36) NOT NULL,
     last_modified DATETIME,
     last_modified_by CHAR(36),
-    title VARCHAR(40),
-    lib CHAR(36),
-    metadata JSON,
+    file_name VARCHAR(60),
+    file_type VARCHAR(40),
+    purpose VARCHAR(20),
     version_of INT,
-    body LONGTEXT,
+    contents LONGTEXT,
+    UNIQUE(parent_component, file_name, version_of),
 
     FOREIGN KEY (last_modified_by) 
         REFERENCES sys_user(sys_id)
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
 
-    FOREIGN KEY (lib)
-        REFERENCES sys_lib(sys_id)
+    FOREIGN KEY (parent_component)
+        REFERENCES sys_component(sys_id)
         ON DELETE RESTRICT
         ON UPDATE CASCADE
 ) CHARSET = utf8;
