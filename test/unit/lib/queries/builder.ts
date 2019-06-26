@@ -1,4 +1,4 @@
-import { evaluateFieldOperator } from '../../../src/server/lib/queries/builder/evalOperator'
+import { evaluateFieldOperator } from '../../../../src/lib/queries/builder/evalOperator'
 import { expect } from 'chai'
 
 // return {

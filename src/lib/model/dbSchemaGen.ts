@@ -2,6 +2,8 @@ import constructSchema from './constructSchema'
 import { getPool, simpleQuery } from '../connection'
 import { v4 as uuid } from 'uuid'
 import { createDefaultAuthorizationSchema } from './createAuthorization'
+import { copyDirSync } from '../utils'
+import { join } from 'path'
 
 /**
  * Copy everything using SHOW TABLES
@@ -237,7 +239,11 @@ function createTableIfNotExists(tableName: string): Promise<string> {
         })
 
         if (!hasAdminPrivs) {
-          return createDefaultAuthorizationSchema(tables[0].sys_id)
+          createDefaultAuthorizationSchema(tables[0].sys_id)
+            .then(resolveCreatedTable)
+            .catch(rejectCreatedTable)
+        } else {
+          resolveCreatedTable(tables[0].sys_id)
         }
       } else {
         // const id = uuid()

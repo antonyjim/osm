@@ -3,7 +3,7 @@
  */
 import * as mocha from 'mocha'
 import { expect } from 'chai'
-import User from '../../../../src/server/lib/api/users/users'
+import User from '../../../../src/lib/users/users'
 // var expressStubs = require('./../../expressStubs')
 // var req = expressStubs.req
 import { stubs } from '../stubs'

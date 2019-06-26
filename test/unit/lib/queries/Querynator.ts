@@ -1,4 +1,4 @@
-import { getServerStatus } from '../../../../src/server/lib/utils'
+import { getServerStatus } from '../../../../src/lib/utils'
 import { expect } from 'chai'
 import * as mocha from 'mocha'
 

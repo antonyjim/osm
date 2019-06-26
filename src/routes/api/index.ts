@@ -26,6 +26,7 @@ import descriptions from './descriptions'
 import { excelRoute } from './excel'
 import { getRoleAuthorizedNavigation } from '../../lib/navigation/navigation'
 import { fileRouter } from './fileHandler'
+import { ccRoutes } from './customComponents'
 
 // Constants and global variables
 const apiRoutes = Router()
@@ -88,6 +89,8 @@ apiRoutes.get('/navigation', (req: Request, res: Response) => {
       res.status(200).json(err)
     })
 })
+// For now we are just going to go around endpoint authentication
+apiRoutes.use('/c', ccRoutes)
 apiRoutes.use(endpointAuthentication())
 apiRoutes.use(bodyParser.json())
 apiRoutes.use('/admin', adminRoutes) // admin is for site-administration duties

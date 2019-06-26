@@ -552,6 +552,7 @@ CREATE TABLE sys_attachment (
 CREATE TABLE sys_component (
     PRIMARY KEY(sys_id),
     sys_id CHAR(36),
+    name VARCHAR(40),
     last_modified DATETIME,
     last_modified_by CHAR(36),
     title VARCHAR(40),
@@ -570,6 +571,7 @@ CREATE TABLE sys_component_file (
     parent_component CHAR(36) NOT NULL,
     last_modified DATETIME,
     last_modified_by CHAR(36),
+    file_path VARCHAR(250),
     file_name VARCHAR(60),
     file_type VARCHAR(40),
     purpose VARCHAR(20),
@@ -587,6 +589,8 @@ CREATE TABLE sys_component_file (
         ON DELETE RESTRICT
         ON UPDATE CASCADE
 ) CHARSET = utf8;
+
+CREATE TABLE sys_component_deleted_file AS SELECT * FROM sys_component_file;
 
 CREATE TABLE sys_route_module (
     host VARCHAR(80), -- Host that this module applies to

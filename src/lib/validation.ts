@@ -6,6 +6,7 @@
 // Node Modules
 
 // NPM Modules
+import { isUndefined } from 'lodash'
 
 // Local Modules
 import { IValidationFields } from '../types/server'
@@ -135,10 +136,13 @@ export class Validation {
   public notEmpty(fields: any, minLen?: number) {
     const min = minLen || 0
     if (Array.isArray(fields)) {
-      const validFields = []
+      const validFields = {}
       fields.map((field) => {
-        if (typeof field === 'string' && field.length > min) {
-          validFields.push(field)
+        if (
+          !isUndefined(this.providedFields[field]) &&
+          this.providedFields[field].length > min
+        ) {
+          validFields[field] = this.providedFields[field]
         }
       })
       return validFields

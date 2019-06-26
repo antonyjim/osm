@@ -41,13 +41,13 @@ export async function exportExcel(table: string, fields: string[], opts?: any) {
         const data = q.data
         const queryTime = performance.now() // After query
         const bookFileName = uuid()
-        const tempPath = resolve(__dirname, '../../../../excel/temp/')
+        const tempPath = resolve(__dirname, '../../../../resources/excel/temp/')
         const bookPath = resolve(tempPath, bookFileName)
-        const outPath = resolve(__dirname, '../../../../excel/books/')
+        const outPath = resolve(__dirname, '../../../../resources/excel/books/')
 
         try {
           copyDirSync(
-            resolve(__dirname, '../../../../excel/template'),
+            resolve(__dirname, '../../../../resources/excel/template'),
             bookPath
           )
         } catch (e) {

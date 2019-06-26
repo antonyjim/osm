@@ -1,6 +1,6 @@
-import constructSchema from '../../../src/server/lib/api/schema/constructSchema'
-import { constructForms } from '../../../src/server/lib/api/forms/constructForms'
-import generateHooks from '../../../src/server/lib/api/hooks/generateHooks'
+import constructSchema from '../../../src/lib/model/constructSchema'
+import { constructForms } from '../../../src/lib/model/constructForms'
+import generateHooks from '../../../src/lib/api/hooks/generateHooks'
 
 constructSchema()
 generateHooks()

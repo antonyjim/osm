@@ -6,7 +6,7 @@
 import { assert } from 'chai'
 
 // Test Module
-import { simpleQuery } from '../../../src/server/lib/connection'
+import { simpleQuery } from '../../../src/lib/connection'
 
 export default function() {
   it('should make a query with no arguments', async function() {

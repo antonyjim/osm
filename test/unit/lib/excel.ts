@@ -1,4 +1,4 @@
-import sheet from '../../../src/server/lib/excel/cell'
+import sheet from '../../../src/lib/excel/cell'
 import { expect } from 'chai'
 
 export default function() {
