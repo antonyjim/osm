@@ -66,8 +66,8 @@ fileRouter.get(
 
 fileRouter.post(
   [
-    '/:referenced_table/:referenced_table_record/:file_name',
-    '/anonymous/:file_name'
+    '/anonymous/:file_name',
+    '/:referenced_table/:referenced_table_record/:file_name'
   ],
   (req: Request, res: Response) => {
     const form = new formidable.IncomingForm()

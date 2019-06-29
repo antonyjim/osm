@@ -91,11 +91,11 @@ apiRoutes.get('/navigation', (req: Request, res: Response) => {
 })
 // For now we are just going to go around endpoint authentication
 apiRoutes.use('/c', ccRoutes)
+apiRoutes.use('/attachments', fileRouter)
 apiRoutes.use(endpointAuthentication())
 apiRoutes.use(bodyParser.json())
 apiRoutes.use('/admin', adminRoutes) // admin is for site-administration duties
 apiRoutes.use('/users', useradminRoutes) // users is for user administration
-apiRoutes.use('/attachments', fileRouter)
 apiRoutes.get('/refresh', (req: Request, res: Response) => {
   if (req.auth.iA && req.auth.c) {
     const payload = {
