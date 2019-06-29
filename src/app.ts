@@ -20,6 +20,7 @@ import constructSchema, { tables } from './lib/model/constructSchema'
 import { constructForms } from './lib/model/constructForms'
 import generateHooks from './lib/api/hooks/generateHooks'
 import { syncDbSchema } from './lib/model/dbSchemaGen'
+import { Server } from 'http'
 
 export function routes() {
   if (process.env.NODE_ENV === 'production') {
@@ -46,11 +47,13 @@ export function routes() {
     // Constants and global variables
     const app = express()
     const port = parseInt(process.env.SERVER_PORT, 10) || 8020
+    let server: Server
     // Routes
     app.disable('x-powered-by')
     app.use('/', router)
     process.on('SIGTERM', (e) => {
       getPool().end()
+      server.close()
       new Log('Pool connections closed').info()
     })
 
@@ -63,7 +66,7 @@ export function routes() {
         // the garbage collector does not collect it.
         app.schema = tables
         console.log('Completed bulding schema')
-        app.listen(port, () => {
+        server = app.listen(port, () => {
           new Log(`Listening at port ${port} on process ${process.pid}`).info()
         })
         return constructForms()

@@ -78,7 +78,7 @@ fileRouter.post(
         const filesToUpload: IFileUpload[] = Object.keys(files).map((file) => {
           return {
             file_name: files[file].name,
-            file_size: files[file].bytesWritten,
+            file_size: files[file].size,
             file_contents: readFileSync(files[file].path),
             referenced_table: req.params.referenced_table,
             referenced_table_record: req.params.referenced_table_record,
