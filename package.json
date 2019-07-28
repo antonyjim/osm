@@ -1,10 +1,10 @@
 {
-  "name": "service-tomorrow",
+  "name": "open-service-management",
   "version": "0.1.0",
   "author": "Anthony Jund<antonyjund@gmail.com>",
   "description": "",
   "main": "dist/index.js",
-  "repository": "https://github.com/antonyjim/service-tomorrow",
+  "repository": "https://github.com/antonyjim/open-service-management",
   "dependencies": {
     "@babel/core": "^7.4.5",
     "@types/formidable": "^1.0.31",
@@ -13,6 +13,7 @@
     "bcrypt": "^3.0.2",
     "body-parser": "^1.18.3",
     "cookie-parser": "^1.4.3",
+    "dotenv": "^8.0.0",
     "ejs": "^2.6.1",
     "express": "^4.16.3",
     "formidable": "^1.2.1",
@@ -21,7 +22,7 @@
     "monaco-editor": "^0.15.6",
     "mysql": "^2.16.0",
     "nodemailer": "^4.7.0",
-    "serve-client": "file:../service-tomorrow-client/",
+    "serve-client": "file:../open-service-management-client/",
     "uuid": "^3.3.2",
     "webpack": "^4.35.0"
   },
@@ -39,7 +40,6 @@
     "@types/uuid": "^3.4.4",
     "chai": "^4.2.0",
     "mocha": "^5.2.0",
-    "node-sass": "^4.11.0",
     "nodemon": "^1.18.9",
     "ts-node": "^8.0.3",
     "tslint": "^5.14.0",

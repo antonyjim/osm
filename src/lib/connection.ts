@@ -104,4 +104,25 @@ async function simpleQuery(query: string, params?: any[]): Promise<any> {
   })
 }
 
-export { getPool, jwtSecret, simpleQuery, HOOKS_DIR }
+/**
+ * Validate the database connection
+ */
+async function testConnection(): Promise<boolean> {
+  return new Promise((resolveDbConnection) => {
+    try {
+      getPool().getConnection((err, conn) => {
+        if (err) {
+          console.error(err)
+          return resolveDbConnection(false)
+        } else {
+          conn.release()
+          return resolveDbConnection(true)
+        }
+      })
+    } catch (err) {
+      return resolveDbConnection(false)
+    }
+  })
+}
+
+export { getPool, jwtSecret, simpleQuery, testConnection, HOOKS_DIR }

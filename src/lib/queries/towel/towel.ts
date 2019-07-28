@@ -15,7 +15,7 @@
 // Local Modules
 import { simpleQuery } from '../'
 import { getTables } from '../../model/constructSchema'
-import generateHooks from '../../api/hooks/generateHooks'
+import generateHooks from '../../model/generateHooks'
 import { ITableField, ITableSchema } from '../../../types/forms'
 import { byFields as _byFields } from '../builder/byFields'
 import {

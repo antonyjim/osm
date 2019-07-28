@@ -197,13 +197,14 @@ export default function constructSchema(): Promise<IDictionary<ITableSchema>> {
      */
     tableConstructorEmitter.once('done', () => {
       references.forEach((ref) => {
-        const colName = ref.col + '_display'
+        // const colName = ref.col + '_display'
+        const colName = ref.col
         const colTable = ref.table
         const refTable = ref.refTable
         const refCol = ref.refCol
         const colDetails = tables[refTable].columns[refCol]
         tables[colTable].columns[colName] = {
-          label: '',
+          label: tables[colTable].columns[colName].label || '',
           visible: true,
           type: colDetails.type,
           readonly: colDetails.readonly,

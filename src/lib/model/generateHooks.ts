@@ -19,8 +19,8 @@ import { resolve } from 'path'
 // NPM Modules
 
 // Local Modules
-import Towel from '../../queries/towel/towel'
-import { HOOKS_DIR } from '../../connection'
+import Towel from '../queries/towel/towel'
+import { HOOKS_DIR } from '../connection'
 import { MysqlError } from 'mysql'
 
 // Constants and global variables

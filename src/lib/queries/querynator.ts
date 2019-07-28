@@ -11,7 +11,7 @@ import { v4 as uuid } from 'uuid'
 import { Pool, PoolConnection } from 'mysql'
 
 // Local Modules
-import loadModule from '../api/hooks/loadHook'
+import loadModule from '../model/loadHook'
 import { IResponseMessage, IPagination } from '../../types/server'
 import { IFieldMessage } from '../../types/api'
 import { getTables } from '../model/constructSchema'
@@ -122,7 +122,7 @@ export class Querynator extends EventEmitter {
 
   /**
    * Create a query and return a promise containing th results
-   * @param {object} queryParams Object containing the query and any params to be escaped
+   * @param {Object} queryParams Object containing the query and any params to be escaped
    * @param action Override the verb present in the query. CALL overrides all verbs
    */
   public async createQ(

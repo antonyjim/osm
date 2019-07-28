@@ -1,19 +1,20 @@
 import { getTables } from '../../model/constructSchema'
-import { ITableField } from '../../../types/forms'
+import { ITableField, ITableSchema } from '../../../types/forms'
+import { IDictionary } from '../../../types/server'
 
 export function queryBuilder(tableName: string, fields: string[] | string) {
   const warnings = []
-  const schema = getTables()
-  const tableCols = schema[tableName].columns
-  const validFields = []
-  const fieldPlaceholders = []
-  const tableAliases = {} // Every table gets it's own alias, something like `sys_user` `t1`
-  const baseStatement = 'SELECT '
-  const tableParams = []
-  const leftJoin = ' LEFT JOIN ?? ?? ON ??.?? = ??.?? '
-  let tableAliasIndex = 1
-  let fromStatement = ' FROM '
-  let fieldArr
+  const schema: ITableSchema | IDictionary<ITableSchema> = getTables()
+  const tableCols: { [id: string]: ITableField } = schema[tableName].columns
+  const validFields: string[] = []
+  const fieldPlaceholders: string[] = []
+  const tableAliases: { [id: string]: string } = {} // Every table gets it's own alias, something like `sys_user` `t1`
+  const baseStatement: string = 'SELECT '
+  const tableParams: string[] = []
+  const leftJoin: string = ' LEFT JOIN ?? ?? ON ??.?? = ??.?? '
+  let tableAliasIndex: number = 1
+  let fromStatement: string = ' FROM ?? ?? '
+  let fieldArr: string[]
   if ((fields && fields[0] === '*') || !fields) {
     fieldArr = schema[tableName].defaultFields
   } else if (!Array.isArray(fields) || fields.length === 0) {
@@ -24,7 +25,11 @@ export function queryBuilder(tableName: string, fields: string[] | string) {
     }
   } else fieldArr = fields
 
-  fieldArr.forEach((qField) => {
+  tableAliases[tableName] = `t${tableAliasIndex}`
+  tableAliasIndex++
+  tableParams.push(tableName, tableAliases[tableName])
+
+  fieldArr.forEach((qField: string) => {
     const refCol: ITableField = tableCols[qField]
     if (validFields.includes(qField)) return false // Prevent duplicate fields in queries
     if (refCol) {
@@ -63,15 +68,25 @@ export function queryBuilder(tableName: string, fields: string[] | string) {
           alias,
           refCol.reference
         )
+
         /*
           Params required for the select part of the query:
             1. table alias of table being joined
             2. column from joined table
             3. alias for this column
         */
-        validFields.push(alias, refCol.displayAs, qField)
-        fieldPlaceholders.push('??.?? AS ??')
+        validFields.push(
+          alias,
+          refCol.displayAs,
+          qField + '_display',
+          alias,
+          schema[refCol.refTable].primaryKey,
+          qField
+        )
+        fieldPlaceholders.push('??.?? AS ??', '??.?? AS ??')
       } else {
+        // When the table has already been added to tableAliases,
+        // all we have to do are add the query fields
         validFields.push(tableAliases[tableName], qField)
         fieldPlaceholders.push('??.??')
       }

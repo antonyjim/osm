@@ -64,6 +64,11 @@ describe('builds file structure from database', function() {
       files: []
     }
 
-    console.log(assert.deepEqual(buildFileStructure(testFiles), expectedResult))
+    console.log(
+      assert.deepEqual(
+        buildFileStructure(testFiles, 'customComponentLoader'),
+        expectedResult
+      )
+    )
   })
 })
