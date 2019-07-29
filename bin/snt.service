@@ -8,7 +8,7 @@
 Description=Service Tomorrow Server
 After=network.target
 [Service]
-WorkingDirectory=/var/www/service-tomorrow/
-ExecStart=/usr/bin/node /var/www/service-tomorrow/dist
+WorkingDirectory=/var/www/open-service-management/
+ExecStart=/usr/bin/node /var/www/open-service-management/dist
 [Install]
 WantedBy=multi-user.target
