@@ -169,7 +169,7 @@ export class Table extends Component<any, any> /* ITableProps, ITableState */ {
         if (response.columns) {
           const allowedCols: any = {}
           const fieldSearchSelections: JSX.Element[] = []
-          const hasSelectedInitialField = false
+          let hasSelectedInitialField: boolean = false
           const fields = { ...this.state.field }
 
           Object.keys(response.columns).map((col, key) => {
@@ -198,6 +198,11 @@ export class Table extends Component<any, any> /* ITableProps, ITableState */ {
             0,
             -5
           )
+
+          /*
+            If the primary key is not listed as a default field,
+            then  force it in to the 
+          */
 
           stateToBe = {
             cols: allowedCols,

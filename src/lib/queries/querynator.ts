@@ -12,7 +12,7 @@ import { Pool, PoolConnection } from 'mysql'
 
 // Local Modules
 import loadModule from '../model/loadHook'
-import { IResponseMessage, IPagination } from '../../types/server'
+import { IResponseMessage, IPagination, IDictionary } from '../../types/server'
 import { IFieldMessage } from '../../types/api'
 import { getTables } from '../model/constructSchema'
 import { getPool } from '../connection'
@@ -24,6 +24,7 @@ import {
 import { evaluateFieldOperator } from './builder/evalOperator'
 import { queryBuilder } from './builder'
 import { byFields as _byFields } from './builder/byFields'
+import { GenericFieldTypes } from '../../types/forms'
 
 // Constants and global variables
 
@@ -246,47 +247,81 @@ export class Querynator extends EventEmitter {
   ): Promise<{
     errors: IFieldMessage[]
     warnings: IFieldMessage[]
-    valid: any
+    valid: IDictionary<GenericFieldTypes>
   }> {
-    const returnVal = {
-      errors: [],
-      warnings: [],
-      valid: {}
-    }
-    const schema = getTables()
-    const tableSchema = schema[this.tableName].columns
-    delete providedFields[this.primaryKey] // Don't allow updates on primary keys
-    if (!providedFields) throw new Error('Missing fields')
-    Object.keys(providedFields).map(async (field: string) => {
-      if (field.endsWith('_display')) return false // Return for joined fields.
-      if (!(field in tableSchema)) {
-        return this.warnings.push({
-          message: `Field ${field} does not exist on table ${this.tableName}`,
-          field
-        })
+    return new Promise((updateFieldsValidated, updateFieldsRejected) => {
+      const returnVal = {
+        errors: [],
+        warnings: [],
+        valid: {}
       }
+      const schema = getTables()
+      const tableSchema = schema[this.tableName].columns
+      const queriedFields: string[] = []
+      delete providedFields[this.primaryKey] // Don't allow updates on primary keys
+      if (!providedFields) updateFieldsRejected(new Error('Missing fields'))
 
-      const validOrNot = await this.validateFieldIsValid(
-        tableSchema[field],
-        providedFields[field]
-      ).catch((err) => {
-        if (tableSchema[field].nullable) {
-          this.warnings.push({
-            message: err.message,
-            field
-          })
-        } else {
-          this.errors.push({
-            message: err.message,
-            field
-          })
-        }
-      })
+      /*
+        This logic will decide how updates are processed.
+        As it stands, we will only pass an update query
+        if all fields are valid.
+      */
+      Promise.all(
+        Object.keys(providedFields).map(
+          (field: string): Promise<GenericFieldTypes> | boolean => {
+            if (field.endsWith('_display')) {
+              return false // Return for joined fields.
+            }
+            if (!(field in tableSchema)) {
+              this.warnings.push({
+                message: `Field ${field} does not exist on table ${
+                  this.tableName
+                }`,
+                field
+              })
+              return null
+            }
 
-      returnVal.valid[field] = validOrNot
+            /*
+              queriedFields will be used after the promise
+              is resolved to link the resolved array
+              back to the original field the value belongs to.
+            */
+            queriedFields.push(field)
+            return this.validateFieldIsValid(
+              tableSchema[field],
+              providedFields[field]
+            )
+            // .then((validOrNot: boolean) => {
+            //   returnVal.valid[field] = validOrNot
+            // }).catch((err) => {
+            //   if (tableSchema[field].nullable) {
+            //     this.warnings.push({
+            //       message: err.message,
+            //       field
+            //     })
+            //   } else {
+            //     this.errors.push({
+            //       message: err.message,
+            //       field
+            //     })
+            //   }
+            // })
+          }
+        )
+      )
+        .then((allFieldsAreValid) => {
+          for (let i = 0; i < Object.keys(queriedFields).length; i++) {
+            const key: string = queriedFields[i]
+            returnVal.valid[key] = allFieldsAreValid[i]
+          }
+          return updateFieldsValidated(returnVal)
+        })
+        .catch((err: Error) => {
+          returnVal.errors.push(err)
+          return updateFieldsValidated(returnVal)
+        })
     })
-
-    return returnVal
   }
 
   protected async byId(reqId: string): Promise<IResponseMessage> {

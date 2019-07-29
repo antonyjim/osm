@@ -153,3 +153,13 @@ export function copyDirSync(sourceDir: string, destinationDir: string) {
 export function getHostname(): string {
   return hostname()
 }
+
+export function isBool(value): boolean {
+  if (typeof value === 'boolean') {
+    return true
+  } else if (value === 0 || value === 1) {
+    return true
+  } else {
+    return false
+  }
+}

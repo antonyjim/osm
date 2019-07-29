@@ -7,6 +7,7 @@ export function queryBuilder(tableName: string, fields: string[] | string) {
   const schema: ITableSchema | IDictionary<ITableSchema> = getTables()
   const tableCols: { [id: string]: ITableField } = schema[tableName].columns
   const validFields: string[] = []
+  const fieldPlaceholderValues: string[] = []
   const fieldPlaceholders: string[] = []
   const tableAliases: { [id: string]: string } = {} // Every table gets it's own alias, something like `sys_user` `t1`
   const baseStatement: string = 'SELECT '
@@ -40,7 +41,8 @@ export function queryBuilder(tableName: string, fields: string[] | string) {
         tableAliases[tableName] = `t${tableAliasIndex}` // Add the table to aliases
         fromStatement += ' ?? ?? ' // Provide for table alias e.g. `sys_user` `t1`
         tableParams.push(tableName, `t${tableAliasIndex}`) // Add params to field substution
-        validFields.push(tableAliases[tableName], qField) // Add field value to params with alias
+        validFields.push(qField)
+        fieldPlaceholderValues.push(tableAliases[tableName], qField) // Add field value to params with alias
         tableAliasIndex++
         fieldPlaceholders.push('??.??')
       } else if (refCol.localRef && refCol.refTable) {
@@ -75,7 +77,8 @@ export function queryBuilder(tableName: string, fields: string[] | string) {
             2. column from joined table
             3. alias for this column
         */
-        validFields.push(
+        validFields.push(qField)
+        fieldPlaceholderValues.push(
           alias,
           refCol.displayAs,
           qField + '_display',
@@ -87,7 +90,8 @@ export function queryBuilder(tableName: string, fields: string[] | string) {
       } else {
         // When the table has already been added to tableAliases,
         // all we have to do are add the query fields
-        validFields.push(tableAliases[tableName], qField)
+        validFields.push(qField)
+        fieldPlaceholderValues.push(tableAliases[tableName], qField)
         fieldPlaceholders.push('??.??')
       }
     } else {
@@ -99,9 +103,9 @@ export function queryBuilder(tableName: string, fields: string[] | string) {
 
   return {
     query: `${baseStatement} ${fieldPlaceholders.join(', ')} ${fromStatement}`,
-    params: Array.prototype.concat(validFields, tableParams),
+    params: Array.prototype.concat(fieldPlaceholderValues, tableParams),
     aliases: tableAliases,
-    countField: validFields[1],
+    countField: fieldPlaceholderValues[1],
     warnings
   }
 }

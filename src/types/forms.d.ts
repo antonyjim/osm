@@ -10,6 +10,8 @@
 //   ]
 // }
 
+export type GenericFieldTypes = boolean | string | number
+
 export interface IFormDetails {
   title: string
   table: string

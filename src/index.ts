@@ -9,8 +9,8 @@
 
 // std
 import { readFile, existsSync } from 'fs'
-import { resolve, join } from 'path'
-;(function() {
+import { resolve } from 'path'
+;(function startApplication() {
   // Since I'm too cheap for dotenv, I wrote my own parser
   // Of course, it's not nearly as full featured and should
   // really be replaced with dotenv

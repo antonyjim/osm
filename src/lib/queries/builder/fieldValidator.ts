@@ -4,56 +4,72 @@
  */
 
 // Node Modules
-import { isBoolean } from 'util'
 
 // NPM Modules
 
 // Local Modules
 import { simpleQuery } from '../../connection'
-import { ITableField } from '../../../types/forms'
+import { ITableField, GenericFieldTypes } from '../../../types/forms'
 import { getTables } from '../../model/constructSchema'
+import { isBool as isBoolean } from './../../utils'
 
 // Constants and global variables
 
 export async function validateFieldIsValid(
   fieldInfo: ITableField,
   fieldValue: string | boolean | number
-) {
-  if (
-    !fieldInfo.nullable &&
-    (fieldValue === null || fieldValue === undefined)
-  ) {
-    throw new Error(`Value cannot be null`)
-  } else if (fieldInfo.reference && fieldInfo.refTable) {
-    const row = await simpleQuery('SELECT DISTINCT ?? FROM ?? WHERE ?? = ?', [
-      fieldInfo.reference,
-      fieldInfo.refTable,
-      fieldInfo.reference,
-      fieldValue
-    ]).catch((e) => {
-      throw new Error('Invalid reference')
-    })
-    if (Array.isArray(row) && row.length !== 0) {
-      return row[0][fieldInfo.reference]
-    } else throw new Error('Invalid reference')
-  } else if (fieldInfo.type === 'boolean') {
-    if (isBoolean(fieldValue)) {
-      return !!fieldValue
-    } else {
-      throw new Error('Expected boolean')
-    }
-  } else if (fieldInfo.type === 'string' && typeof fieldValue === 'string') {
-    if (fieldInfo.maxLength) return fieldValue.slice(0, fieldInfo.maxLength)
-    else return fieldValue
-  } else if (fieldInfo.type === 'number') {
-    if (typeof fieldInfo === 'number') return fieldInfo
-    else if (
-      typeof fieldValue === 'string' &&
-      !isNaN(parseInt(fieldValue, 10))
+): Promise<GenericFieldTypes> {
+  return new Promise((resolveValidField, rejectValidField) => {
+    if (
+      !fieldInfo.nullable &&
+      (fieldValue === null || fieldValue === undefined)
     ) {
-      return parseInt(fieldValue, 10)
-    } else throw new Error('Expected number')
-  } else throw new Error('Unknown exception occurred')
+      rejectValidField(new Error(`Value cannot be null`))
+    } else if (fieldInfo.reference && fieldInfo.refTable) {
+      simpleQuery('SELECT DISTINCT ?? FROM ?? WHERE ?? = ?', [
+        fieldInfo.reference,
+        fieldInfo.refTable,
+        fieldInfo.reference,
+        fieldValue
+      ])
+        .then((row) => {
+          if (Array.isArray(row) && row.length !== 0) {
+            return resolveValidField(row[0][fieldInfo.reference])
+          } else {
+            rejectValidField(
+              new Error('Invalid reference for ' + fieldInfo.label)
+            )
+          }
+        })
+        .catch((e) => {
+          rejectValidField(
+            new Error('Invalid reference for ' + fieldInfo.label)
+          )
+        })
+    } else if (fieldInfo.type === 'boolean') {
+      if (isBoolean(fieldValue)) {
+        return resolveValidField(!!fieldValue)
+      } else {
+        rejectValidField(new Error('Expected boolean for ' + fieldInfo.label))
+      }
+    } else if (fieldInfo.type === 'string' && typeof fieldValue === 'string') {
+      if (fieldInfo.maxLength) {
+        return resolveValidField(fieldValue.slice(0, fieldInfo.maxLength))
+      } else return fieldValue
+    } else if (fieldInfo.type === 'number') {
+      if (typeof fieldInfo === 'number') return fieldInfo
+      else if (
+        typeof fieldValue === 'string' &&
+        !isNaN(parseInt(fieldValue, 10))
+      ) {
+        return resolveValidField(parseInt(fieldValue, 10))
+      } else {
+        rejectValidField(new Error('Expected number for ' + fieldInfo.label))
+      }
+    } else {
+      rejectValidField(new Error('Unknown exception occurred'))
+    }
+  })
 }
 
 /**
@@ -74,32 +90,60 @@ export function validateFieldsExist(
   }[] = []
 
   fields.map((field) => {
+    const thisField = {
+      validField: [],
+      placeHolder: '',
+      originalField: field
+    }
+    /*
+      Referenced fields that are queried need to be
+      treated a little differently by looking for the 
+      reference field displayAs property rather than the 
+      sys_id property.
+    */
+    if (field.endsWith('_display')) {
+      field = field.slice(0, -8)
+    }
+
+    /*
+      Verify that the table & column being queried against actually
+      exists and can be queried against. If not, return.
+    */
     if (schema[table] && schema[table].columns[field]) {
       const ref = schema[table].columns[field]
-      const thisField = {
-        validField: [],
-        placeHolder: '',
-        originalField: ''
-      }
+
       if (
         aliases &&
         aliases[ref.refTable] &&
         schema[ref.refTable] &&
         schema[ref.refTable].columns[ref.displayAs]
       ) {
+        /*
+          Look for references. If found,
+          add the referenced table to the 
+          return object.
+        */
         thisField.validField.push(aliases[ref.refTable], ref.displayAs)
         thisField.placeHolder = '??.??'
-        thisField.originalField = field
       } else if (aliases && aliases[table]) {
+        /*
+          If this is not a referenced object, then we
+          can simply return the raw alias
+        */
         thisField.validField.push(aliases[table], field)
         thisField.placeHolder = '??.??'
-        thisField.originalField = field
       } else if (aliases && !aliases[table]) {
+        /*
+          If we've gotten this far, then the table
+          does exist, but the column does not exist.
+        */
         return false
       } else {
+        /*
+          ???
+        */
         thisField.validField.push(field)
         thisField.placeHolder = '??'
-        thisField.originalField = field
       }
       validFields.push(thisField)
     }
