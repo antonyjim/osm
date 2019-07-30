@@ -2,6 +2,7 @@ import * as React from 'react'
 import { Alert } from './Alerts'
 // import $ from 'jquery'
 import { ContextMenu, IContextMenuProps } from './ContextMenu'
+import { generateKeyHash } from '../lib/util'
 
 export interface IPillBody {
   id: string
@@ -94,10 +95,6 @@ export default function Pills(props: { pills: IPillProps }) {
         // First pill is active by default
         newPillAs.push(
           <a
-            key={
-              /* key * Date.now() + (~~Math.random() * 10000)*/ pills[pill].id +
-              '-tab'
-            }
             onDoubleClick={handleDblClick}
             className='nav-link active'
             id={pills[pill].id + '-tab'}
@@ -106,17 +103,18 @@ export default function Pills(props: { pills: IPillProps }) {
             role='tab'
             aria-controls={pills[pill].id}
             aria-selected='true'
+            key={generateKeyHash()}
           >
             {pills[pill].label}
           </a>
         )
         newPillBodies.push(
           <div
-            key={pills[pill].id}
             className='tab-pane fade show active'
             id={pills[pill].id}
             role='tabpanel'
             aria-labelledby={pills[pill].id + '-tab'}
+            key={generateKeyHash()}
           >
             <div className='row'>
               <div className='col' />
@@ -130,10 +128,6 @@ export default function Pills(props: { pills: IPillProps }) {
       } else {
         newPillAs.push(
           <a
-            key={
-              /* key * Date.now() + (~~Math.random() * 1000)*/ pills[pill].id +
-              '-tab'
-            }
             onDoubleClick={handleDblClick}
             className='nav-link'
             id={pills[pill].id + '-tab'}
@@ -142,17 +136,18 @@ export default function Pills(props: { pills: IPillProps }) {
             role='tab'
             aria-controls={pills[pill].id}
             aria-selected='false'
+            key={generateKeyHash()}
           >
             {pills[pill].label}
           </a>
         )
         newPillBodies.push(
           <div
-            key={pills[pill].id}
             className='tab-pane fade'
             id={pills[pill].id}
             role='tabpanel'
             aria-labelledby={pills[pill].id + '-tab'}
+            key={generateKeyHash()}
           >
             <div className='row'>
               <div className='col' />
@@ -223,12 +218,22 @@ export default function Pills(props: { pills: IPillProps }) {
             {messages.errors &&
               messages.errors.map((errorsmessage) => {
                 return (
-                  <Alert alertType='info' message={errorsmessage.message} />
+                  <Alert
+                    alertType='info'
+                    message={errorsmessage.message}
+                    key={generateKeyHash()}
+                  />
                 )
               })}
             {messages.info &&
               messages.info.map((infomessage) => {
-                return <Alert alertType='info' message={infomessage.message} />
+                return (
+                  <Alert
+                    alertType='info'
+                    message={infomessage.message}
+                    key={generateKeyHash()}
+                  />
+                )
               })}
             {pillBodies}
           </div>

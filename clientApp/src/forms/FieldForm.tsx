@@ -12,6 +12,8 @@ import { IDictionary } from '../types/server'
 import { useState, useEffect } from 'react'
 import { TowelRecord } from '../lib/API'
 import * as H from 'history'
+import { generateKeyHash } from '../lib/util'
+import { IRefUpdate } from '../common/FormControls/Reference'
 
 /**
  * Renders a form populated with fields from a "fields" argument
@@ -218,6 +220,19 @@ export default function FieldForm(props: {
     }
   }
 
+  const setReference = (updatedRef: IRefUpdate): void => {
+    const newValues = {
+      [updatedRef.field]: updatedRef.newValue
+    }
+    setDataModel({
+      values: {
+        ...dataModel.values,
+        ...newValues
+      },
+      fields: dataModel.fields
+    })
+  }
+
   useEffect(() => {
     if (props.id !== 'new') {
       getData(props.table, props.id, Object.keys(props.form.fields))
@@ -226,13 +241,13 @@ export default function FieldForm(props: {
 
   const displayFields: (JSX.Element | null)[] = Object.keys(
     props.form.fields
-  ).map((fieldName: string) => {
+  ).map((fieldName: string, key: number) => {
+    const thisFieldInfo: ITableField = props.form.fields[fieldName]
     if (fieldName === props.primaryKey) {
-      // We don't need any of the following since the form updates
-      // are decided by the data model
-      // return null
-
-      // Push the primary key into a hidden field
+      /*
+        It really is superfluous to push the primary key
+        into a hidden field, but it makes sense for me.
+      */
       return (
         <input
           type='hidden'
@@ -240,10 +255,14 @@ export default function FieldForm(props: {
           name={fieldName}
           value={dataModel.values[fieldName]}
           onChange={handleChange}
-          key={`form-field-${fieldName}`}
+          key={generateKeyHash()}
         />
       )
     }
+
+    /*
+      Decide which kind of field to render
+    */
     const field = props.form.fields[fieldName]
     switch (field.type) {
       case 'string': {
@@ -253,11 +272,13 @@ export default function FieldForm(props: {
               label={field.label}
               id={fieldName}
               name={fieldName}
-              onChange={handleChange}
+              setReference={setReference}
               value={dataModel.values[fieldName]}
-              display={field.displayAs}
+              display={dataModel.values[fieldName + '_display']}
               className={'col-lg-6 col-md-12'}
               references={field.refTable}
+              key={generateKeyHash()}
+              readOnly={thisFieldInfo.readonly ? true : false}
             />
           )
         } else {
@@ -270,6 +291,8 @@ export default function FieldForm(props: {
               value={dataModel.values[fieldName]}
               maxLength={field.maxLength || 40}
               className={'col-lg-6 col-md-12'}
+              readOnly={thisFieldInfo.readonly ? true : false}
+              key={generateKeyHash()}
             />
           )
         }
@@ -283,6 +306,8 @@ export default function FieldForm(props: {
             value={dataModel.values[fieldName]}
             checked={!!dataModel.values[fieldName]}
             className={'col-lg-6 col-md-12'}
+            readOnly={thisFieldInfo.readonly ? true : false}
+            key={generateKeyHash()}
           />
         )
       }
@@ -295,33 +320,25 @@ export default function FieldForm(props: {
             onChange={handleChange}
             value={dataModel.values[fieldName]}
             className={'col-lg-6 col-md-12'}
+            readOnly={thisFieldInfo.readonly ? true : false}
+            key={generateKeyHash()}
           />
         )
       }
     }
-    // const thisField = formControlFromJson(
-    //   fieldName,
-    //   props.form.fields[fieldName],
-    //   handleChange,
-    //   dataModel
-    // )
-    // const FormField = thisField.component
-    // return (
-    //   <FormField
-    //     {...thisField.props}
-    //     key={`form-field-${thisField.props.name}`}
-    //   />
-    // )
   })
 
   return (
     <div>
       {errors}
-      <button className='btn btn-danger float-right' onClick={handleDelete}>
+      <button
+        className='btn btn-danger float-right ml-1'
+        onClick={handleDelete}
+      >
         Delete
       </button>
       <button className='btn btn-primary float-right' onClick={handleSubmit}>
-        Save
+        {props.id === 'new' ? 'Create' : 'Save'}
       </button>
       <h4>{'General Information'}</h4>
       <hr />

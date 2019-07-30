@@ -2,6 +2,7 @@ import * as React from 'react'
 import { Component } from 'react'
 import API from '../lib/API'
 import { Field, Reference, SelectField, Checkbox } from '../common/FormControls'
+import { IRefUpdate } from '../common/FormControls/Reference'
 
 interface IColumnGeneralInformationProps {
   sys_id: string
@@ -46,6 +47,18 @@ export class ColumnGeneralInformation extends Component<
       prevState.saveDisabled = {}
       this.setState(prevState)
     }
+  }
+
+  private setReference(updatedRef: IRefUpdate): void {
+    this.setState({
+      sys_id: this.state.sys_id,
+      fields: {
+        ...this.state.fields,
+        [updatedRef.field]: updatedRef.newValue
+      },
+      modifiedFields: [...this.state.fields],
+      saveDisabled: { ...this.state.disabled }
+    })
   }
 
   private handleSubmit() {
@@ -125,9 +138,8 @@ export class ColumnGeneralInformation extends Component<
             label='Table'
             value={this.state.fields.table_name}
             display={this.state.fields.table_name_display}
-            onChange={this.handleChange.bind(this)}
+            setReference={this.setReference}
             className='col-lg-6 col-md-12'
-            type='text'
             references='sys_db_object'
           />
           <Field
@@ -163,9 +175,8 @@ export class ColumnGeneralInformation extends Component<
             label='References'
             value={this.state.fields.reference_id}
             display={this.state.fields.reference_id_display}
-            onChange={this.handleChange.bind(this)}
+            setReference={this.setReference}
             className='col-lg-6 col-md-12'
-            type='text'
             references='sys_db_dictionary'
           />
           <Field

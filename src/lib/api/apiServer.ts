@@ -180,12 +180,20 @@ export default class APICall extends Querynator {
       handler(queryFields, updateBody, this.context)
         .then(
           (rows) => {
-            if (rows && rows.warnings) {
+            /*
+              Set default status code to 204 No Content
+            */
+            this.response.status = 204
+            if (rows && rows.warnings.length > 0) {
               console.log('Warnings received in the update for resource %s', id)
               console.log(rows.warnings)
+              this.response.status = 200
               this.response.body.warnings.push(rows.warnings) // Allow non-terminating errors to be passed in the response
             }
-            if (rows && rows.info) this.response.body.info.push(rows.info)
+            if (rows && rows.info) {
+              this.response.status = 200
+              this.response.body.info.push(rows.info)
+            }
             if (
               (rows && Array.isArray(rows.errors) && rows.errors.length > 0) ||
               (rows && rows.errors && rows.errors.message)
@@ -194,11 +202,11 @@ export default class APICall extends Querynator {
             }
 
             if (rows && rows.data) {
+              this.response.status = 200
               this.response.body.data[queryTable] = rows.data[0]
             } else {
               this.response.body.data[queryTable] = rows[0]
             }
-            this.response.status = 204
             return this.sendResponse()
           },
           (onRejection) => {

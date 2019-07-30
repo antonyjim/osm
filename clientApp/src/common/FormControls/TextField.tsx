@@ -11,7 +11,7 @@ interface ITextField {
   label: string
   attributes?: any
   isHidden?: boolean
-  readOnly?: string
+  readOnly?: boolean
   maxLength?: number
   onChange?: React.ChangeEventHandler<HTMLInputElement>
 }
@@ -41,6 +41,7 @@ function Field(props: ITextField): JSX.Element {
         value={props.value || ''}
         onChange={handleChange}
         maxLength={props.maxLength}
+        readonly={props.readOnly ? 'readonly' : false}
       />
     </div>
   ) : (

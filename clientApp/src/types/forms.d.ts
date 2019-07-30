@@ -1,3 +1,5 @@
+import { IDictionary } from './server'
+
 // allForms[table] = {
 //   title: title.plural || '',
 //   tabs: [
@@ -38,9 +40,7 @@ export interface IFormTab {
   title: string
   name: string
   primaryKey: string
-  fields: {
-    [fieldId: string]: ITableField
-  }
+  fields: IDictionary<ITableField>
   table?: {
     name: string
     args: string

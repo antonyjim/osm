@@ -5,6 +5,8 @@ import { E404 } from '../Errors'
 import { TableRow } from './TableRow'
 import { TableSearch } from './TableSearch'
 import { IDictionary } from '../../types/server'
+import { generateKeyHash, noop } from '../../lib/util'
+import { Alert } from '../Alerts'
 
 interface ITableColumn {
   [label: string]: {
@@ -19,19 +21,29 @@ interface ITableRow {
   }
 }
 
+interface IActionItem {
+  label: string
+  handler: (e: React.ChangeEvent<HTMLSelectElement>) => void
+}
+
 interface ITableProps {
   allCols?: ITableColumn
-  cols?: ITableColumn
-  table: string
-  args?: {
-    [arg: string]: string
-  }
+  cols?: ITableColumn | string[]
+  table?: string
+  args?: IDictionary<string>
+  rows?: ITableRow[]
+  onClick?: React.MouseEventHandler
+  hideActions?: boolean
+  limit?: number
+  actions?: IActionItem[]
+  showSearch?: boolean
+  selectReference?: (e: React.MouseEvent<HTMLAnchorElement>) => void
 }
 
 interface ITableState {
   allCols: ITableColumn
   args?: string
-  cols: ITableColumn
+  cols: ITableColumn | string[]
   rows: ITableRow[]
   handleClick: MouseEventHandler
   hideActions?: boolean
@@ -58,7 +70,7 @@ interface ITableState {
 /**
  * Show a list view from a table prop
  */
-export class Table extends Component<any, any> /* ITableProps, ITableState */ {
+export class Table extends Component<ITableProps, any> /* ITableState */ {
   /**
    * The options that can be passed to <Table/> are:
    * cols: an object describing the column headers
@@ -69,16 +81,18 @@ export class Table extends Component<any, any> /* ITableProps, ITableState */ {
    * table: the name of the database table
    * @param {object} props
    */
-  constructor(props: any) {
+  constructor(props: ITableProps) {
     super(props)
     let flatArgs = ''
-    if (this.props.args) {
-      Object.keys(this.props.args).map((arg) => {
-        flatArgs += `${arg}=${this.props.args[arg]}`
+    if (props.args) {
+      Object.keys(props.args).map((arg) => {
+        // @ts-ignore
+        flatArgs += `${arg}=${props.args[arg]}`
       })
     }
     this.state = {
       allCols: {},
+      error: null,
       cols: props.cols,
       rows: props.rows,
       handleClick: props.onClick,
@@ -103,6 +117,11 @@ export class Table extends Component<any, any> /* ITableProps, ITableState */ {
     else if (props.cols && !props.rows && props.table) this.getCols()
   }
 
+  /**
+   * Fetches data from API if no rows prop is defined or pagination
+   * is activated.
+   * @param param0 Arguments and offset info
+   */
   private getData({
     args = this.state.args,
     offset
@@ -149,9 +168,11 @@ export class Table extends Component<any, any> /* ITableProps, ITableState */ {
         } else this.setState({ error: 'No data received' })
       })
       .catch((err) => {
-        this.props.handleErrorMessage
-          ? this.props.handleErrorMessage(err)
-          : console.error(err)
+        this.setState({
+          ...this.state,
+          error: err,
+          loaded: true
+        })
       })
   }
 
@@ -177,7 +198,8 @@ export class Table extends Component<any, any> /* ITableProps, ITableState */ {
             if (
               (response.defaultFields &&
                 response.defaultFields.indexOf(col) > -1) ||
-              (this.props.cols && this.props.cols.indexOf(col) > -1) ||
+              (Array.isArray(this.props.cols) &&
+                this.props.cols.indexOf(col) > -1) ||
               response.primaryKey === col
             ) {
               allowedCols[col] = colObj
@@ -263,9 +285,7 @@ export class Table extends Component<any, any> /* ITableProps, ITableState */ {
       })
       .catch((err) => {
         console.error(err)
-        this.props.handleErrorMessage
-          ? this.props.handleErrorMessage(err)
-          : this.setState({ error: err, loaded: true })
+        this.setState({ ...this.state, error: err, loaded: true })
       })
   }
 
@@ -314,6 +334,11 @@ export class Table extends Component<any, any> /* ITableProps, ITableState */ {
     return updated
   }
 
+  /**
+   * Allows records in a table to be updated inline with the table.
+   * @param e Change event
+   * @expiramental
+   */
   private handleInlineUpdate(e: React.ChangeEvent) {
     if (e.target instanceof HTMLInputElement) {
       const updateId = e.target.value
@@ -335,7 +360,17 @@ export class Table extends Component<any, any> /* ITableProps, ITableState */ {
     }
   }
 
+  /**
+   * Fetches data from:
+   *  - The next page
+   *  - The previous page
+   *  - The first page
+   *  - The last page
+   * Based on the `data-page` attribute present on the button.
+   * @param e Click event from pagination arrows
+   */
   private handlePage(e: React.MouseEvent) {
+    e.preventDefault()
     if (e.target instanceof HTMLElement) {
       const dir = e.target.getAttribute('data-page') || '1'
       // const dir = parseInt(val, 10) // Get the pagination value from the element
@@ -358,10 +393,10 @@ export class Table extends Component<any, any> /* ITableProps, ITableState */ {
       API.get({
         path: '/api/q/' + this.state.table,
         query: {
-          args: this.state.args,
-          offset: nextOffset,
-          limit: this.state.field.limit,
-          fields: Object.keys(this.state.cols).join(',')
+          args: this.state.args, // Information from search
+          offset: nextOffset, // Skip over what's on the page now
+          limit: this.state.field.limit, // How many to fetch
+          fields: Object.keys(this.state.cols).join(',') // Get only what we need
         }
       })
         .then((response: any) => {
@@ -408,7 +443,7 @@ export class Table extends Component<any, any> /* ITableProps, ITableState */ {
     }
   }
 
-  public render() {
+  public render(): JSX.Element {
     const headers: JSX.Element[] = []
     const nextPage =
       this.state.nextOffset >= this.state.count ? { disabled: true } : false
@@ -417,13 +452,9 @@ export class Table extends Component<any, any> /* ITableProps, ITableState */ {
         ? { disabled: true }
         : false
 
-    if (this.state.error) {
-      return <E404 />
-    }
-
     if (!this.state.hideActions) {
       headers.push(
-        <th scope='col' key={'header-' + ~~(Math.random() * 10000)}>
+        <th scope='col' key={generateKeyHash()}>
           <input className='position-static' type='checkbox' />
         </th>
       )
@@ -437,11 +468,7 @@ export class Table extends Component<any, any> /* ITableProps, ITableState */ {
           continue
         }
         headers.push(
-          <th
-            scope='col'
-            data-bind={col}
-            key={'col-' + Math.floor(Math.random() * 10000)}
-          >
+          <th scope='col' data-bind={col} key={generateKeyHash()}>
             {this.state.cols[col].label}
           </th>
         )
@@ -453,12 +480,12 @@ export class Table extends Component<any, any> /* ITableProps, ITableState */ {
       for (const row of this.state.rows) {
         rows.push(
           <TableRow
-            key={'tablerow-' + ~~(Math.random() * 100000)}
+            key={generateKeyHash()}
             showSelect={!this.state.hideActions}
             cells={row}
             cols={this.state.cols}
             id={this.state.id}
-            onSelectKey={this.props.onSelectKey}
+            onSelectKey={this.props.selectReference}
             handleInlineUpdate={this.handleInlineUpdate.bind(this)}
             permissions={this.state.permissions}
           />
@@ -470,6 +497,9 @@ export class Table extends Component<any, any> /* ITableProps, ITableState */ {
       <>
         {this.state.loaded && (
           <>
+            {this.state.error && (
+              <Alert alertType='danger' message={this.state.error} />
+            )}
             {this.props.showSearch && (
               <TableSearch
                 onSearchKeyDown={this.handleSearchKeyDown.bind(this)}
@@ -487,7 +517,7 @@ export class Table extends Component<any, any> /* ITableProps, ITableState */ {
                       <tr>{headers}</tr>
                     </thead>
                     <tbody>
-                      {rows.length === 0 && (
+                      {rows.length === 0 && this.state.loaded && (
                         <tr>
                           <td
                             colSpan={headers.length}

@@ -2,6 +2,7 @@ import * as React from 'react'
 import { MouseEventHandler, ChangeEventHandler } from 'react'
 import { Link } from 'react-router-dom'
 import { Checkbox } from '../FormControls'
+import { generateKeyHash } from '../../lib/util'
 
 interface ITableRowProps {
   showSelect?: boolean
@@ -38,7 +39,7 @@ export function TableRow(props: ITableRowProps) {
     if (thisCol.reference || thisCol.display) {
       if (props.onSelectKey && thisCol.display) {
         cells.push(
-          <td key={Math.floor(Math.random() * 1000000)} tabIndex={0}>
+          <td key={generateKeyHash()} tabIndex={0}>
             <div className='data-table-text-cell'>
               <a
                 href='#'
@@ -53,17 +54,13 @@ export function TableRow(props: ITableRowProps) {
         )
       } else if (props.onSelectKey && thisCol.reference) {
         cells.push(
-          <td
-            key={Math.floor(Math.random() * 1000000)}
-            className='align-middle'
-            tabIndex={0}
-          >
+          <td key={generateKeyHash()} className='align-middle' tabIndex={0}>
             {val || ''}
           </td>
         )
       } else if (thisCol.display) {
         cells.push(
-          <td key={Math.floor(Math.random() * 1000000)} tabIndex={0}>
+          <td key={generateKeyHash()} tabIndex={0}>
             <div className='data-table-text-cell'>
               <Link
                 to={`/f/${thisCol.display}/${props.cells[props.id] || '#'}`}
@@ -78,7 +75,7 @@ export function TableRow(props: ITableRowProps) {
         const refCol = props.cols[col]
         const refTable = refCol ? refCol.refTable : '#'
         cells.push(
-          <td key={Math.floor(Math.random() * 1000000)} tabIndex={0}>
+          <td key={generateKeyHash()} tabIndex={0}>
             <div className='data-table-text-cell'>
               <Link
                 to={`/f/${refTable}/${val || '#'}`}
@@ -93,11 +90,7 @@ export function TableRow(props: ITableRowProps) {
       }
     } else if (type && type.toLowerCase() === 'date') {
       cells.push(
-        <td
-          key={'table-data-' + ~~(Math.random() * 100000)}
-          className='align-middle'
-          tabIndex={0}
-        >
+        <td key={generateKeyHash()} className='align-middle' tabIndex={0}>
           <div className='data-table-text-cell'>
             {new Date(val).toDateString() || ''}
           </div>
@@ -107,7 +100,7 @@ export function TableRow(props: ITableRowProps) {
       if (props.permissions && props.permissions.edit) {
         cells.push(
           <td
-            key={'table-data-' + ~~(Math.random() * 100000)}
+            key={generateKeyHash()}
             style={{ textAlign: 'center' }}
             tabIndex={0}
           >
@@ -125,7 +118,7 @@ export function TableRow(props: ITableRowProps) {
       } else {
         cells.push(
           <td
-            key={'table-data-' + ~~(Math.random() * 100000)}
+            key={generateKeyHash()}
             style={{ textAlign: 'center' }}
             className='align-middle'
             tabIndex={0}
@@ -138,11 +131,7 @@ export function TableRow(props: ITableRowProps) {
       }
     } else {
       cells.push(
-        <td
-          key={'table-data-' + ~~(Math.random() * 100000)}
-          className='align-middle'
-          tabIndex={0}
-        >
+        <td key={generateKeyHash()} className='align-middle' tabIndex={0}>
           <div className='data-table-text-cell'>
             {typeof val === 'string' ? val : ''}
           </div>

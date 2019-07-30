@@ -12,6 +12,7 @@ interface ICheckboxProps {
   label: string
   className?: string
   title?: string
+  readOnly?: boolean
 }
 
 function Checkbox(props: ICheckboxProps) {
@@ -30,6 +31,7 @@ function Checkbox(props: ICheckboxProps) {
         onChange={props.onChange}
         onDoubleClick={props.onDoubleClick}
         title={props.title}
+        readonly={props.readOnly ? 'readonly' : false}
       />
       <label className='ml-2' htmlFor={props.id || props.name}>
         {props.label}

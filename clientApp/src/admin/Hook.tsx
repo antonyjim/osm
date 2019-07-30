@@ -3,6 +3,7 @@ import { Field, Reference } from '../common/FormControls'
 import { TowelRecord } from '../lib/API'
 import { ITHQWindowNamespace } from '../typings'
 import { Monaco } from '../common/Monaco'
+import { IRefUpdate } from '../common/FormControls/Reference'
 // const Monaco = React.lazy(() => import('./../common/Monaco'))
 // import * as monaco from 'monaco-editor'
 
@@ -98,6 +99,12 @@ module.exports = function(sysId, action, incomingFields) {
     }
   }
 
+  const setReference = (updatedRef: IRefUpdate): void => {
+    const state: any = { ...hookInfo }
+    state[updatedRef.field] = updatedRef.newValue
+    setHookInfo(state)
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     let TowelQuery
@@ -163,10 +170,8 @@ module.exports = function(sysId, action, incomingFields) {
             label='Table'
             value={hookInfo.hook_table}
             display={hookInfo.hook_table_display}
-            onChange={handleChange}
-            setValue={setHookInfo}
+            setReference={setReference}
             className='col-lg-6 col-md-12'
-            type='text'
             references='sys_db_object'
           />
           <Field

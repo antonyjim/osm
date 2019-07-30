@@ -83,7 +83,7 @@ class TableGeneralInformation extends Component<any, any> {
                 id='name'
                 name='name'
                 onChange={this.handleChange.bind(this)}
-                readOnly='readonly'
+                readOnly={true}
                 className='col-lg-6 col-md-12'
                 type='text'
               />
