@@ -278,7 +278,9 @@ export default function FieldForm(props: {
               className={'col-lg-6 col-md-12'}
               references={field.refTable}
               key={generateKeyHash()}
-              readOnly={thisFieldInfo.readonly ? true : false}
+              readOnly={
+                thisFieldInfo.readonly && !(props.id === 'new') ? true : false
+              }
             />
           )
         } else {
@@ -291,7 +293,9 @@ export default function FieldForm(props: {
               value={dataModel.values[fieldName]}
               maxLength={field.maxLength || 40}
               className={'col-lg-6 col-md-12'}
-              readOnly={thisFieldInfo.readonly ? true : false}
+              readOnly={
+                thisFieldInfo.readonly && !(props.id === 'new') ? true : false
+              }
               key={generateKeyHash()}
             />
           )
@@ -306,7 +310,9 @@ export default function FieldForm(props: {
             value={dataModel.values[fieldName]}
             checked={!!dataModel.values[fieldName]}
             className={'col-lg-6 col-md-12'}
-            readOnly={thisFieldInfo.readonly ? true : false}
+            readOnly={
+              thisFieldInfo.readonly && !(props.id === 'new') ? true : false
+            }
             key={generateKeyHash()}
           />
         )
@@ -320,7 +326,9 @@ export default function FieldForm(props: {
             onChange={handleChange}
             value={dataModel.values[fieldName]}
             className={'col-lg-6 col-md-12'}
-            readOnly={thisFieldInfo.readonly ? true : false}
+            readOnly={
+              thisFieldInfo.readonly && !(props.id === 'new') ? true : false
+            }
             key={generateKeyHash()}
           />
         )

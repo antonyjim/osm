@@ -411,6 +411,32 @@ CREATE TABLE doc_prod_accept (
         ON UPDATE CASCADE
 );
 
+CREATE TABLE sys_organization (
+    PRIMARY KEY(sys_id),
+    sys_id CHAR(36),
+    organization_level VARCHAR(40),
+    beholden_to CHAR(36),
+    short_description VARCHAR(255),
+
+    FOREIGN KEY(beholden_to)
+        REFERENCES sys_organization(sys_id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
+) CHARSET=utf8;
+
+CREATE TABLE sys_organization_unit (
+    PRIMARY KEY(sys_id),
+    sys_id CHAR(36),
+    ou_level CHAR(36),
+    unit_name VARCHAR(40),
+    auth_claim VARCHAR(12), -- Used for identifying documents
+
+    FOREIGN KEY(ou_level)
+        REFERENCES sys_organization(sys_id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
+) CHARSET=utf8;
+
 CREATE TABLE sys_db_object (
 	PRIMARY KEY(sys_id),
     sys_id CHAR(36),
@@ -418,7 +444,23 @@ CREATE TABLE sys_db_object (
 	label VARCHAR(40) NOT NULL, -- Friendly name
     plural VARCHAR(40),
 	description VARCHAR(80), -- Short Description
-    customer_bound BOOLEAN
+    /*
+        The auditable field will be used to determine
+        whether or not to include fields such as:
+         - sys_last_updated_by
+         - sys_last_updated_at
+         - sys_created_by
+         - sys_created_at
+    */
+    auditable BOOLEAN DEFAULT TRUE,
+
+    /*
+        ou_restricted will be used to determine whether
+        or not to include the following fields to a table:
+         - sys_ou_level
+         - sys_ou_claim
+    */
+    ou_restricted BOOLEAN DEFAULT FALSE
 ) CHARSET = utf8;
 
 CREATE TABLE sys_db_dictionary (
@@ -511,6 +553,7 @@ ALTER TABLE sys_log_request ADD COLUMN request_uri VARCHAR(100) DEFAULT '/';
 CREATE TABLE sys_authorization (
     PRIMARY KEY(sys_id),
     sys_id CHAR(36),
+    auth_priv_table VARCHAR(90),
     auth_priv VARCHAR(36) NOT NULL,
     auth_table VARCHAR(40),
     auth_can_create BOOLEAN,
@@ -527,6 +570,11 @@ CREATE TABLE sys_authorization (
         ON DELETE CASCADE
         ON UPDATE CASCADE
 ) CHARSET=utf8;
+
+-- Create a new trigger to concat the table and role
+CREATE TRIGGER ins_auth_priv_table BEFORE INSERT ON sys_authorization FOR EACH ROW 
+SET new.auth_priv_table = CONCAT((SELECT name FROM sys_db_object WHERE sys_id = NEW.auth_table), '_', (SELECT priv 
+FROM sys_priv WHERE sys_id = NEW.auth_priv))
 
 CREATE TABLE sys_attachment (
     PRIMARY KEY (sys_id),
