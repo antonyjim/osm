@@ -3,17 +3,22 @@ import { Component } from 'react'
 import { ITablePermissions } from '../../typings'
 import { Can } from '../Can'
 import { Link } from 'react-router-dom'
+import { generateKeyHash } from '../../lib/util'
+import { ITableColumn } from './Table'
+import { ITableField } from '../../types/forms'
+import { IDictionary } from '../../types/server'
 
 interface ITableSearchProps {
   onSearchKeyDown: (selectedColumn: string, searchString: string) => void
   permissions: ITablePermissions
   onSetCount: React.ChangeEventHandler
   table: string
-  options: [any]
+  cols: IDictionary<ITableField>
+  limit?: number
 }
 
 interface ITableSearchState {
-  limit: number
+  limit?: number
   options?: any
   table: string
   searchQ: string
@@ -24,13 +29,22 @@ export class TableSearch extends Component<
   ITableSearchProps,
   ITableSearchState
 > {
-  constructor(props) {
+  constructor(props: ITableSearchProps) {
     super(props)
+    const fieldSearchSelections: JSX.Element[] = []
+    let initialValue: string
+
+    if (typeof props.cols === 'object') {
+      initialValue = Object.keys(props.cols)[0]
+    } else {
+      initialValue = ''
+    }
+
     this.state = {
       limit: props.limit || 25,
       table: props.table,
       searchQ: '',
-      col: props.value || ''
+      col: initialValue
     }
   }
 
@@ -59,7 +73,18 @@ export class TableSearch extends Component<
                   value={this.state.col}
                   id='col'
                 >
-                  {this.props.options}
+                  {Object.keys(this.props.cols).map((column) => {
+                    const colObj: ITableField = this.props.cols[column]
+                    let searchColVal: string = column
+                    if (colObj.type === 'string') {
+                      if (colObj.reference) searchColVal += '_display'
+                      return (
+                        <option key={generateKeyHash()} value={searchColVal}>
+                          {colObj.label}
+                        </option>
+                      )
+                    }
+                  })}
                 </select>
               </div>
               <input
@@ -103,7 +128,7 @@ export class TableSearch extends Component<
               className='btn btn-primary'
               to={`/f/${this.props.table.slice(0, -5)}/new`}
             >
-              {'New'}
+              New
             </Link>
           </div>
         </Can>

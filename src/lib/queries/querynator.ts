@@ -358,11 +358,13 @@ export class Querynator extends EventEmitter {
       },
       pagination
     )
-    this.warnings.concat(fieldParams.warnings)
+    this.warnings.push(...fieldParams.warnings)
 
     return {
       meta: fieldParams.meta,
-      data: await this.createQ(fieldParams.queryParams)
+      data: await this.createQ(fieldParams.queryParams),
+      warnings: this.warnings,
+      errors: this.errors
     }
   }
 

@@ -31,7 +31,7 @@ function Checkbox(props: ICheckboxProps) {
         onChange={props.onChange}
         onDoubleClick={props.onDoubleClick}
         title={props.title}
-        readonly={props.readOnly ? 'readonly' : false}
+        readOnly={props.readOnly ? 'readonly' : false}
       />
       <label className='ml-2' htmlFor={props.id || props.name}>
         {props.label}

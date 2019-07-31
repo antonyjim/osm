@@ -67,8 +67,15 @@ export async function byFields(
       table,
       queryParams.aliases
     )
-    if (validatedFields.length > 0) queryParams.query += ' WHERE '
-    validatedFields.map((col, i) => {
+    if (validatedFields.valid.length > 0) {
+      queryParams.query += ' WHERE '
+    }
+
+    if (validatedFields.invalid.length > 0) {
+      warnings.push(...validatedFields.invalid)
+    }
+
+    validatedFields.valid.map((col, i) => {
       const fieldValue = args[col.originalField]
       if (typeof fieldValue === 'string') {
         const { value, operator, not } = evaluateFieldOperator(fieldValue)
@@ -144,7 +151,11 @@ export async function byFields(
       .catch((err) => {
         return rejectQueryByFields({
           warnings,
-          errors: [err]
+          errors: [
+            {
+              message: err
+            }
+          ]
         })
       })
   })

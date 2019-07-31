@@ -57,28 +57,28 @@ export default function Stats() {
               value={stats.os.host}
               label='Node Hostname'
               type='text'
-              attributes={{ readOnly: 'readonly' }}
+              readOnly={true}
             />
             <Field
               value={stats.os.OS}
               label='Operating System'
               name='os'
               type='text'
-              attributes={{ readOnly: 'readonly' }}
+              readOnly={true}
             />
             <Field
               value={stats.os.cpuCount}
               label='CPU Count'
               type='text'
               name='cpu'
-              attributes={{ readOnly: 'readonly' }}
+              readOnly={true}
             />
             <Field
               name='architecture'
               value={stats.os.architecture}
               label='Architecture'
               type='text'
-              attributes={{ readOnly: 'readonly' }}
+              readOnly={true}
             />
             <Field
               value={~~(stats.os.openMem / 1e6)}
@@ -92,7 +92,7 @@ export default function Stats() {
               }
               name='open'
               type='text'
-              attributes={{ readOnly: 'readonly' }}
+              readOnly={true}
             />
             <Field
               value={~~(stats.os.processMem.rss / 1e6)}
@@ -107,7 +107,7 @@ export default function Stats() {
               }
               name='used'
               type='text'
-              attributes={{ readOnly: 'readonly' }}
+              readOnly={true}
             />
             <Field
               id='openMem'
@@ -115,14 +115,14 @@ export default function Stats() {
               label='Total Memory (MB)'
               type='text'
               name='openMem'
-              attributes={{ readOnly: 'readonly' }}
+              readOnly={true}
             />
             <Field
               value={stats.db.NODE_ENV}
               label='Node Environment'
               type='text'
               name='env'
-              attributes={{ readOnly: 'readonly' }}
+              readOnly={true}
             />
 
             <h2>Database Status</h2>
@@ -132,21 +132,21 @@ export default function Stats() {
               label='Version'
               type='text'
               name='dbVersion'
-              attributes={{ readOnly: 'readonly' }}
+              readOnly={true}
             />
             <Field
               value={stats.db.poolLimit}
               label='Pool Limit'
               type='text'
               name='poolLimit'
-              attributes={{ readOnly: 'readonly' }}
+              readOnly={true}
             />
             <Field
               value={stats.db.dbName}
               label='Database Name'
               type='text'
               name='dbName'
-              attributes={{ readOnly: 'readonly' }}
+              readOnly={true}
             />
           </div>
           <div className='col' />

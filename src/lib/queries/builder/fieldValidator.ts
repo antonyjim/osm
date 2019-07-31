@@ -81,13 +81,17 @@ export function validateFieldsExist(
   fields: string[],
   table: string,
   aliases?: any
-): { validField: string[]; placeHolder: string; originalField: string }[] {
+): {
+  valid: { validField: string[]; placeHolder: string; originalField: string }[]
+  invalid: { message: string }[]
+} {
   const schema = getTables()
-  const validFields: {
+  const returnFields: {
     validField: string[]
     placeHolder: string
     originalField: string
   }[] = []
+  const invalidFields: { message: string }[] = []
 
   fields.map((field) => {
     const thisField = {
@@ -145,8 +149,15 @@ export function validateFieldsExist(
         thisField.validField.push(field)
         thisField.placeHolder = '??'
       }
-      validFields.push(thisField)
+      returnFields.push(thisField)
+    } else {
+      invalidFields.push({
+        message: `${field} was unexpected for table ${table}`
+      })
     }
   })
-  return validFields
+  return {
+    valid: returnFields,
+    invalid: invalidFields
+  }
 }

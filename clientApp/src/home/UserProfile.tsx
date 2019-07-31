@@ -229,6 +229,7 @@ class UserProfile extends Component<any, any> {
             <p> View actions that have been taken on your account </p>
             {this.state.loaded && (
               <Table
+                table={'sys_log'}
                 cols={this.state.logCols}
                 rows={this.state.logs}
                 hideActions={true}

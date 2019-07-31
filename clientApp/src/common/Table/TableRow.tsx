@@ -133,7 +133,7 @@ export function TableRow(props: ITableRowProps) {
       cells.push(
         <td key={generateKeyHash()} className='align-middle' tabIndex={0}>
           <div className='data-table-text-cell'>
-            {typeof val === 'string' ? val : ''}
+            {val ? val.toString() : ''}
           </div>
         </td>
       )

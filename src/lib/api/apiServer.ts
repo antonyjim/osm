@@ -356,7 +356,7 @@ export default class APICall extends Querynator {
       handler(queryFields, args, this.context, pagination)
         .then((rows: IAPIGetByFieldsResponse) => {
           if (rows.errors) this.response.body.errors.concat(rows.errors) // Allow non-terminating errors to be passed in the response
-          if (rows.warnings) this.response.body.warnings.concat(rows.warnings)
+          if (rows.warnings) this.response.body.warnings.push(...rows.warnings)
           if (rows.meta) this.response.body.meta = rows.meta
           if (rows.data) {
             this.response.body.data[queryTable] = rows.data

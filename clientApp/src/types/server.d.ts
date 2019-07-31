@@ -12,9 +12,10 @@ export interface IValidationFields {
 }
 
 export interface IStatusMessage {
-  error: boolean
+  error?: boolean
   message: string
   details?: any
+  field?: string
 }
 
 export interface IQueryResponse {
