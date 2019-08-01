@@ -12,11 +12,11 @@ At the root of any OSM instance, there exists a _root organization level_ from w
 
 ```
     root node
-        â©
+        ⇩
     cost center
-        â©
+        ⇩
     department
-        â©
+        ⇩
     team sector
 ```
 
