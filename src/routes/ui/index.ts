@@ -16,6 +16,7 @@ import authRoutes from './login'
 import verifyRoutes from './verification'
 import { getServerStatus, getHostname } from '../../lib/utils'
 import { simpleQuery } from '../../lib/queries'
+import { authorize } from '../middleware/authorization'
 // import * as routes from '../../../../service-tomorrow-client/server'
 // import * as routes from 'serve-client'
 
@@ -27,11 +28,14 @@ export default function(): Promise<Router> {
     uiRoutes.use('/auth', authRoutes)
     uiRoutes.use('/verify', verifyRoutes)
 
-    uiRoutes.get('/stats', (req: Request, res: Response) => {
-      getServerStatus().then((stats) => {
-        res.status(200).json(stats)
+    uiRoutes.get(
+      '/stats',
+      authorize('administrator', (req: Request, res: Response) => {
+        getServerStatus().then((stats) => {
+          res.status(200).json(stats)
+        })
       })
-    })
+    )
 
     // If nginx is in use, /wetty will auto proxy pass to the locally running instance.
     // If it's made it this far, then wetty is not running

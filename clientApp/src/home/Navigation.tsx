@@ -1,8 +1,9 @@
 import * as React from 'react'
 import { Component } from 'react'
 import { fetchLogin } from '../lib/getNavigation'
-import { Can } from './Can'
+import { Can } from '../common/Can'
 import { Link } from 'react-router-dom'
+import { generateKeyHash } from '../lib/util'
 
 interface INavigationLink {
   href: string
@@ -39,26 +40,12 @@ function NavigationHeading(props: INavigationHeadingProps) {
 }
 
 function NavigationDropdown(props: any) {
-  const randId = 'drop_down_' + ~~(Math.random() * Date.now())
-  const subHeadings: JSX.Element[] = []
-  let key = 0
-
-  Object.keys(props.navHeading).map((heading) => {
-    subHeadings.push(
-      <NavigationHeading
-        header={heading}
-        links={props.navHeading[heading]}
-        key={'nav-header' + (key + 10 * Date.now())}
-      />
-    )
-    key++
-  })
   return (
     <li className='nav-item dropdown'>
       <a
         className='nav-link text-light dropdown-toggle pl-3'
         href='#'
-        id={randId}
+        id={generateKeyHash()}
         data-toggle='dropdown'
         aria-haspopup='true'
         aria-expanded='false'
@@ -66,8 +53,18 @@ function NavigationDropdown(props: any) {
       >
         <h5>{props.navTitle}</h5>
       </a>
-      <div className='dropdown-menu' aria-labelledby={randId}>
-        <div className='row flex-lg-nowrap'>{subHeadings}</div>
+      <div className='dropdown-menu' aria-labelledby={generateKeyHash()}>
+        <div className='row flex-lg-nowrap'>
+          {Object.keys(props.navHeading).map((heading) => {
+            return (
+              <NavigationHeading
+                header={heading}
+                links={props.navHeading[heading]}
+                key={generateKeyHash()}
+              />
+            )
+          })}
+        </div>
       </div>
     </li>
   )

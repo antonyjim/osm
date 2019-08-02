@@ -1,4 +1,5 @@
 import { Interface } from 'readline'
+import { jwtKeys } from '../routes/middleware/authentication'
 
 export namespace UserTypes {
   interface ILoginInfo {
@@ -46,11 +47,13 @@ export namespace UserTypes {
   }
 
   interface IAuthToken {
-    u?: string // UserId of logged in or impersonated user
-    iA?: boolean // Boolean indicated if the user is authorized
-    r?: string // Role of the currently selected user
-    t?: string // Token of the request, not included in the payload
-    c: string // Currently selected customer
+    [jwtKeys.isAuthenticated]?: boolean
+    [jwtKeys.isAuthorized]?: boolean
+    [jwtKeys.user]?: string
+    [jwtKeys.claimLevel]?: string
+    [jwtKeys.claim]?: string
+    [jwtKeys.scope]?: string
+    [jwtKeys.token]?: string
   }
 
   interface ICredentials {

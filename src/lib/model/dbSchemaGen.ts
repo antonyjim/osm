@@ -1,7 +1,6 @@
 import constructSchema from './constructSchema'
 import { getPool, simpleQuery } from '../connection'
 import { v4 as uuid } from 'uuid'
-import { createDefaultAuthorizationSchema } from './createAuthorization'
 import { copyDirSync } from '../utils'
 import { join } from 'path'
 
@@ -63,13 +62,16 @@ export function syncDbSchema() {
                       'table_name',
                       'default_view',
                       'update_key',
-                      'col_order',
+                      'column_order',
                       'enum',
                       'display_field'
                     ]
                     let hasSetDisplay = false
                     let theseColumns = columns.map((col, i) => {
-                      if (tables[tableName].columns[col.Field]) {
+                      if (
+                        tables[tableName] &&
+                        tables[tableName].columns[col.Field]
+                      ) {
                         return // Column already defined
                       } else {
                         console.log('Column %s is not defined', col.Field)
@@ -105,7 +107,7 @@ export function syncDbSchema() {
                           currTableId, // table_name
                           true, // default_view
                           col.Key === 'PRI' ? true : false, // update_key
-                          100, // col_order
+                          100, // column_order
                           null, // enum
                           displayField // display_field
                         ]
@@ -173,44 +175,52 @@ export function syncDbSchema() {
       dataType: 'tinyint',
       dataLength: 0
     }
-    const switchVal = sqlType.slice(0, 3)
+    const switchVal = sqlType.toLowerCase()
     switch (switchVal) {
-      case 'cha': {
-        returnType.dataType = sqlType.slice(0, 4)
+      // Check for unicode
+      case 'nchar':
+      case 'char': {
+        returnType.dataType = 'char'
         returnType.dataLength = getLen(sqlType)
         break
       }
-      case 'var': {
-        returnType.dataType = sqlType.slice(0, 7)
+
+      // Check for unicode
+      case 'nvarchar':
+      case 'varchar': {
+        returnType.dataType = 'varchar'
         returnType.dataLength = getLen(sqlType)
         break
       }
       case 'int': {
-        returnType.dataType = sqlType.slice(0, 3)
+        returnType.dataType = 'int'
         returnType.dataLength = getLen(sqlType)
         break
       }
-      case 'big': {
-        returnType.dataType = sqlType.slice(0, 6)
+      case 'bigint': {
+        returnType.dataType = 'bigint'
         returnType.dataLength = getLen(sqlType)
         break
       }
-      case 'tex': {
-        returnType.dataType = sqlType.slice(0, 4)
+      case 'longtext':
+      case 'text': {
+        returnType.dataType = 'text'
         returnType.dataLength = 65535
         break
       }
-      case 'blo': {
-        returnType.dataType = sqlType.slice(0, 4)
+
+      case 'longblob':
+      case 'blob': {
+        returnType.dataType = 'blob'
         returnType.dataLength = 65535
         break
       }
-      case 'tin': {
+      case 'tinyint': {
         returnType.dataType = 'boolean'
         returnType.dataLength = null
         break
       }
-      case 'enu': {
+      case 'enum': {
         returnType.dataType = 'varchar'
         returnType.dataLength = 40 // Maxlength of an enum
         break
@@ -227,53 +237,45 @@ export function syncDbSchema() {
 function createTableIfNotExists(tableName: string): Promise<string> {
   return new Promise((resolveCreatedTable, rejectCreatedTable) => {
     simpleQuery(
-      'SELECT sdo.sys_id, sa.auth_priv FROM sys_db_object sdo LEFT JOIN sys_authorization sa ON sdo.sys_id = sa.auth_table WHERE sdo.name = ?',
+      'SELECT sdo.sys_id, sdo.read_role, sdo.edit_role, sdo.delete_role FROM sys_db_object sdo WHERE sdo.name = ?',
       [tableName]
-    ).then((tables: { sys_id: string; auth_priv: string | null }[]) => {
-      if (tables && tables.length > 0) {
-        let hasAdminPrivs = false
-        tables.forEach((table) => {
-          if (table.auth_priv && table.auth_priv === '6') {
-            hasAdminPrivs = true
-          }
-        })
-
-        if (!hasAdminPrivs) {
-          createDefaultAuthorizationSchema(tables[0].sys_id)
-            .then(resolveCreatedTable)
-            .catch(rejectCreatedTable)
-        } else {
+    ).then(
+      (
+        tables: {
+          sys_id: string
+          read_role: string | null
+          edit_role: string | null
+          delete_role: string | null
+        }[]
+      ) => {
+        if (tables && tables.length > 0) {
           resolveCreatedTable(tables[0].sys_id)
+        } else {
+          // const id = uuid()
+          // await simpleQuery('INSERT INTO sys_db_object VALUES (?)', [
+          //   [id, tableName, tableName, null, null]
+          // ])
+          const newId = uuid()
+          simpleQuery(
+            `INSERT INTO sys_db_object (name, label, sys_id) VALUES ?`,
+            [[[tableName, tableName, newId]]]
+          )
+            .then(() => {
+              resolveCreatedTable(newId)
+              console.log(
+                '[STARTUP] Inserted default authorization values for table %s',
+                tableName
+              )
+            })
+            .catch((err) => {
+              rejectCreatedTable(err)
+              console.error(
+                '[STARTUP] Error inserting default values for table %s',
+                tableName
+              )
+            })
         }
-      } else {
-        // const id = uuid()
-        // await simpleQuery('INSERT INTO sys_db_object VALUES (?)', [
-        //   [id, tableName, tableName, null, null]
-        // ])
-        const newId = uuid()
-        simpleQuery(
-          `INSERT INTO sys_db_object (name, label, sys_id) VALUES ?`,
-          [[[tableName, tableName, newId]]]
-        )
-          .then(() => {
-            return createDefaultAuthorizationSchema(newId)
-          })
-
-          .then(() => {
-            resolveCreatedTable(newId)
-            console.log(
-              '[STARTUP] Inserted default authorization values for table %s',
-              tableName
-            )
-          })
-          .catch((err) => {
-            rejectCreatedTable(err)
-            console.error(
-              '[STARTUP] Error inserting default values for table %s',
-              tableName
-            )
-          })
       }
-    })
+    )
   })
 }

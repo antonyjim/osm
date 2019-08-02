@@ -1,17 +1,19 @@
 import * as express from 'express'
 import { IFieldMessage } from './api'
 import { ITableSchema } from './forms'
+import { jwtKeys } from '../routes/middleware/authentication'
 
 declare global {
   namespace Express {
     interface Request {
       auth?: {
-        iA?: boolean
-        iZ?: boolean
-        u?: string
-        c?: string
-        r?: string
-        t?: string
+        [jwtKeys.isAuthenticated]?: boolean
+        [jwtKeys.isAuthorized]?: boolean
+        [jwtKeys.user]?: string
+        [jwtKeys.claimLevel]?: string
+        [jwtKeys.claim]?: string
+        [jwtKeys.scope]?: string
+        [jwtKeys.token]?: string
       }
     }
 

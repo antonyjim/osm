@@ -15,12 +15,13 @@ import { Router, Request, Response } from 'express'
 // Local Modules
 import { IStatusMessage, IResponseMessage } from '../../types/server'
 import { UserTypes } from '../../types/users'
-import { login, getToken } from '../../lib/users/login'
+import { login, getToken, sysUser } from '../../lib/users/login'
 import { Log } from '../../lib/log'
 import User, { forgotPassword } from '../../lib/users/users'
 import { createReadStream } from 'fs'
 import { resolve } from 'path'
 import { NextFunction } from 'express-serve-static-core'
+import { setResponseToken, jwtKeys } from '../middleware/authentication'
 
 // Constants and global variables
 const authRoutes = Router()
@@ -42,7 +43,7 @@ authRoutes.get('/login', (req: Request, res: Response) => {
 
 // There's no reason to store the login elsewhere
 authRoutes.get('/logout', (req: Request, res: Response) => {
-  res.cookie('token', null)
+  setResponseToken(res, null)
   res.redirect(302, '/')
   // res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' })
   // const fileStream = createReadStream(
@@ -57,11 +58,11 @@ authRoutes.get('/logout', (req: Request, res: Response) => {
   // })
 })
 
-authRoutes.post('/login', (req: Request, res: Response, next: NextFunction) => {
-  let responseBody: IResponseMessage
+authRoutes.post('/login', (req: Request, res: Response) => {
+  let responseBody: IResponseMessage = {}
   let tokenPayload: UserTypes.IAuthToken = null
   if (
-    !req.auth.u &&
+    !req.auth[jwtKeys.user] &&
     req.body.user &&
     req.body.user.username &&
     req.body.user.password
@@ -69,12 +70,15 @@ authRoutes.post('/login', (req: Request, res: Response, next: NextFunction) => {
     login(req.body.user)
       .then((onUserAuthenticated: IStatusMessage) => {
         tokenPayload = {
-          iA: true,
-          u: onUserAuthenticated.details.sys_id,
-          r: onUserAuthenticated.details.userRole,
-          c: onUserAuthenticated.details.userNonsig
+          [jwtKeys.isAuthenticated]: true,
+          [jwtKeys.user]: onUserAuthenticated.details[sysUser.userId],
+          [jwtKeys.scope]: onUserAuthenticated.details[sysUser.appScope],
+          [jwtKeys.claimLevel]:
+            onUserAuthenticated.details[sysUser.claimLevel] || 'global',
+          [jwtKeys.claim]: onUserAuthenticated.details[sysUser.claim]
         }
         const token = getToken(tokenPayload)
+        setResponseToken(res, token)
         responseBody = {
           info: [{ message: 'Success' }],
           data: {
@@ -98,7 +102,6 @@ authRoutes.post('/login', (req: Request, res: Response, next: NextFunction) => {
     }
     res.status(200).json(responseBody)
   }
-  return true
 })
 
 /**

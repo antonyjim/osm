@@ -27,9 +27,6 @@ export default class Description extends Querynator {
       const updateKey: string = ''
       /* Describe the fields to the tableview */
       const formattedFields = {}
-      /* Privileges that the user has on the table 
-                one or more of: ['READ', 'UPDATE', 'DELETE', 'CREATE'] */
-      const privs: string[] = []
 
       const schema = getTables()
       if (!schema[this.tableName]) {
@@ -40,63 +37,9 @@ export default class Description extends Querynator {
             }
           ]
         })
+      } else {
+        resolve({ ...schema[this.tableName] })
       }
-
-      const userAuthPermissions = {
-        create: false,
-        edit: false,
-        read: false,
-        delete: false
-      }
-      simpleQuery(
-        'SELECT ??, ??, ??, ??, ??, ??, ??, ?? FROM ?? WHERE ?? IN (SELECT ?? FROM ?? WHERE ?? = ?) ORDER BY ??, ??, ??, ??, ??, ??, ??, ?? DESC;',
-        [
-          'auth_can_read',
-          'auth_can_edit',
-          'auth_can_create',
-          'auth_can_delete',
-          'auth_can_read_own',
-          'auth_can_edit_own',
-          'auth_can_create_own',
-          'auth_can_delete_own',
-          'sys_authorization',
-          'auth_priv',
-          'role_priv',
-          'sys_role',
-          'rpId',
-          this.context.req.auth.r,
-          'auth_can_create_own',
-          'auth_can_edit',
-          'auth_can_create',
-          'auth_can_read',
-          'auth_can_delete',
-          'auth_can_read_own',
-          'auth_can_edit_own',
-          'auth_can_delete_own'
-        ]
-      )
-        .then((usersPermissions) => {
-          usersPermissions.forEach((perm) => {
-            if (perm.auth_can_create || perm.auth_can_create_own) {
-              userAuthPermissions.create = true
-            }
-            if (perm.auth_can_edit || perm.auth_can_edit_own) {
-              userAuthPermissions.edit = true
-            }
-            if (perm.auth_can_delete || perm.auth_can_delete_own) {
-              userAuthPermissions.delete = true
-            }
-            if (perm.auth_can_read || perm.auth_can_read_own) {
-              userAuthPermissions.read = true
-            }
-          })
-
-          return resolve({
-            ...schema[this.tableName],
-            permissions: userAuthPermissions
-          })
-        })
-        .catch(reject)
 
       // Object.keys(thisTable.columns).forEach((col) => {
       //   if (col.endsWith('_display')) return false

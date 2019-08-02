@@ -49,9 +49,9 @@ export class Navigation {
         }
         const sanitizedSearch = new Validation(linkSearch).updateFields([
           'sys_id',
-          'navMethod',
-          'navPathName',
-          'navQueryString'
+          'method',
+          'path_name',
+          'query_string'
         ])
         const parameters: string[] = []
         for (const column of Object.keys(sanitizedSearch)) {
@@ -80,39 +80,6 @@ export class Navigation {
           message: 'No link provided'
         })
       }
-    })
-  }
-
-  /**
-   * Get all links for the requested user
-   */
-  public getAllLinks() {
-    return new Promise((resolve, reject) => {
-      const sql = `
-                SELECT 
-                 sys_id,
-                 navInnerText,
-                 navMethod,
-                 CONCAT(navPathName, '?', IFNULL(navQueryString, '')) AS navHref,
-                 navHeader,
-                 navMenu,
-                 navActive,
-                 navPriv,
-                 navIsNotApi
-                FROM sys_navigation
-                ORDER BY navMenu, navHeader, navInnerText
-            `
-      pool.query(sql, (err: Error, results) => {
-        if (err) {
-          console.error(err)
-          throw {
-            error: true,
-            message: err
-          }
-        } else {
-          resolve(results)
-        }
-      })
     })
   }
 

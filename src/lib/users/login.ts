@@ -10,151 +10,173 @@ import { compare } from 'bcrypt'
 import { sign } from 'jsonwebtoken'
 
 // Local Modules
-import { Querynator } from '../queries'
-import { getPool, jwtSecret } from '../connection'
+import { Querynator, simpleQuery } from '../queries'
+import { jwtSecret, getPool } from '../connection'
 import { UserTypes } from '../../types/users'
 import { LoginException } from '../utils'
 import { Log } from '../log'
+import { IStatusMessage } from '../../types/server'
+import { jwtKeys } from '../../routes/middleware/authentication'
 
 // Constants and global variables
-const pool = getPool()
 const tokenExpiration = process.env.TOKEN_EXPIRATION || '10h'
 
-export async function login(credentials: UserTypes.ICredentials) {
-  this.credentials = credentials
+export enum sysUser {
+  active = 'is_active',
+  lastLogin = 'last_login',
+  userName = 'username',
+  firstName = 'given_name',
+  lastName = 'surname',
+  password = 'pass_hash',
+  locked = 'is_locked',
+  confirmed = 'is_confirmed',
+  invalidLogins = 'invalid_login_count',
+  lastPasswordChange = 'last_pass_change',
+  appScope = 'app_scope',
+  userId = 'sys_id',
+  email = 'email',
+  claimLevel = 'claim',
+  claim = 'auth_claim'
+}
 
-  this.validatePassword = async (hashed) => {
-    return new Promise((resolve) => {
-      compare(
-        this.credentials.password,
-        hashed.toString(),
-        (err: Error, same: boolean) => {
-          if (err) throw new LoginException('Password error', err)
-          return resolve(same)
-        }
-      )
-    })
-  }
+export function login(
+  credentials: UserTypes.ICredentials
+): Promise<IStatusMessage> {
+  return new Promise((resolveLogin, rejectLogin) => {
+    this.credentials = credentials
 
-  this.incrementInvalidLogins = (userId) => {
-    pool.query(`UPDATE sys_user
-        SET userInvalidLoginAttempts = userInvalidLoginAttempts + 1
-        WHERE sys_id = '${userId}'`)
-  }
+    const validatePassword = (hashed) => {
+      return new Promise((resolve) => {
+        compare(
+          this.credentials.password,
+          hashed.toString(),
+          (err: Error, same: boolean) => {
+            if (err) throw new LoginException('Password error', err)
+            return resolve(same)
+          }
+        )
+      })
+    }
 
-  this.handleLogin = (userId) => {
-    const lastLogin: string = pool.escape(
-      new Date().toISOString().replace('Z', '')
-    )
-    pool.query(`UPDATE sys_user
-        SET userInvalidLoginAttempts = 0, userLastLogin = ${lastLogin}
-        WHERE sys_id = ${pool.escape(userId)}`)
-  }
+    const incrementInvalidLogins = (userId: string): void => {
+      simpleQuery('UPDATE sys_user SET ?? = ?? + 1 WHERE sys_id = ?', [
+        sysUser.invalidLogins,
+        sysUser.invalidLogins,
+        userId
+      ])
+    }
 
-  this.lockUser = (userId) => {
-    pool.query(`UPDATE sys_user
-        SET userIsLocked = 1
-        WHERE sys_id = '${userId}'`)
-  }
+    const handleLogin = (userId: string): void => {
+      const lastLogin: string = new Date().toISOString().replace('Z', '')
 
-  return (this.authenticate = (async () => {
-    return new Promise((resolve, reject) => {
-      const query = 'SELECT * FROM user_login WHERE username = ?'
-      const params = [this.credentials.username]
-      new Querynator()
-        .createQ({ query, params }, 'CALL')
-        .then((users: UserTypes.ILoginInfo[]) => {
-          if (users.length === 1) {
-            const user = users[0]
-            // Check if user has confirmed their email
-            if (!user.userIsConfirmed) {
-              return reject({
-                error: true,
-                message: 'Please confirm email'
-              })
-              // Check if the user has been locked
-            } else if (user.userIsLocked) {
-              return reject({
-                error: true,
-                message: 'User account locked. Please click on forgot password'
-              })
-              // Check if the default nonsig has been inactivated
-            } else if (!user.active) {
-              return reject({
-                error: true,
-                message: 'Nonsig inactive'
-              })
-              // Check everything else
-            } else if (
-              user.userIsConfirmed &&
-              !user.userIsLocked &&
-              user.userInvalidLoginAttempts < 5 &&
-              user.active
-            ) {
-              ;(async () => {
-                const same = await this.validatePassword(user.userPass).catch(
-                  (err: Error) => {
-                    return reject({ error: true, message: err.message })
-                  }
-                )
+      simpleQuery('UPDATE sys_user SET ? WHERE sys_id = ?', [
+        {
+          [sysUser.invalidLogins]: 0,
+          [sysUser.lastLogin]: lastLogin
+        },
+        userId
+      ])
+    }
+
+    const lockUser = (userId: string): void => {
+      simpleQuery('UPDATE sys_user SET ? WHERE sys_id = ?', [
+        {
+          [sysUser.locked]: 1
+        },
+        userId
+      ])
+    }
+
+    const query: string = 'CALL login_username(?)'
+    const params = [this.credentials.username]
+    simpleQuery(query, params)
+      .then((users: sysUser[]) => {
+        /*
+          We may have many rows returned here if the validatedUser has multiple organizational units.
+        */
+        if (users && users.length > 0) {
+          const validatedUser: sysUser = users[0]
+          // Check if validatedUser has confirmed their email
+          if (!validatedUser[sysUser.confirmed]) {
+            return rejectLogin({
+              error: true,
+              message: 'Please confirm email'
+            })
+            // Check if the validatedUser has been locked
+          } else if (validatedUser[sysUser.locked]) {
+            return rejectLogin({
+              error: true,
+              message: 'User account locked. Please click on forgot password'
+            })
+            // Check if the default nonsig has been inactivated
+          } else if (!validatedUser[sysUser.active]) {
+            return rejectLogin({
+              error: true,
+              message: 'Inactive username'
+            })
+            // Check everything else
+          } else if (
+            validatedUser[sysUser.confirmed] &&
+            !validatedUser[sysUser.locked] &&
+            validatedUser[sysUser.invalidLogins] < 5 &&
+            validatedUser[sysUser.active]
+          ) {
+            validatePassword(validatedUser[sysUser.password])
+              .then((same: boolean) => {
                 if (same) {
-                  const authenticatedUser = {
-                    sys_id: user.sys_id,
-                    email: user.email,
-                    userIsAdmin: user.userIsAdmin,
-                    userNonsig: user.userNonsig,
-                    userRole: user.userRole
-                  }
-                  this.handleLogin(user.sys_id)
+                  const authenticatedUser = validatedUser
+                  handleLogin(validatedUser[sysUser.userId])
                   new Log('Logged In', {
                     table: 'sys_user',
                     primaryKey: 'sys_id'
-                  }).info(user.sys_id)
-                  return resolve({
+                  }).info(validatedUser[sysUser.userId])
+                  return resolveLogin({
                     error: false,
                     message: 'Login Accepted',
                     details: authenticatedUser
                   })
                 } else {
-                  this.incrementInvalidLogins(user.sys_id)
+                  incrementInvalidLogins(validatedUser[sysUser.userId])
                   new Log('Invalid login attempt', {
                     table: 'sys_user',
                     primaryKey: 'sys_id'
-                  }).error(4, user.sys_id)
-                  return reject({
+                  }).error(4, validatedUser[sysUser.userId])
+                  return rejectLogin({
                     error: true,
                     message: 'Invalid username or password'
                   })
                 }
-              })()
-            } else {
-              this.lockUser(user.sys_id)
-              new Log('User has been locked', {
-                table: 'sys_user',
-                primaryKey: 'sys_id'
-              }).error(3, user.sys_id)
-              return reject({
-                error: true,
-                message: 'User account locked'
               })
-            }
+              .catch((err: Error) => {
+                return rejectLogin({ error: true, message: err.message })
+              })
           } else {
-            return reject({
+            lockUser(validatedUser[sysUser.userId])
+            new Log('User has been locked', {
+              table: 'sys_user',
+              primaryKey: 'sys_id'
+            }).error(3, validatedUser[sysUser.userId])
+            return rejectLogin({
               error: true,
-              message: 'Invalid username or password'
+              message: 'User account locked'
             })
           }
-        })
-        .catch((err) => {
-          new Log(err.message).error(1)
-          return reject({
+        } else {
+          return rejectLogin({
             error: true,
-            message: 'SQL Error',
-            details: err
+            message: 'Invalid username or password'
           })
+        }
+      })
+      .catch((err) => {
+        new Log(err.message).error(1)
+        return rejectLogin({
+          error: true,
+          message: 'SQL Error',
+          details: err
         })
-    })
-  })())
+      })
+  })
 }
 
 /**
@@ -164,10 +186,10 @@ export async function login(credentials: UserTypes.ICredentials) {
 export function getToken(payload?: UserTypes.IAuthToken) {
   if (!payload) {
     payload = {
-      iA: false,
-      u: null,
-      c: null,
-      r: 'No-Conf'
+      [jwtKeys.isAuthenticated]: false,
+      [jwtKeys.isAuthorized]: null,
+      [jwtKeys.claim]: null,
+      [jwtKeys.claimLevel]: null
     }
   }
   return sign(payload, jwtSecret, { expiresIn: tokenExpiration })

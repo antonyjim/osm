@@ -85,13 +85,29 @@ class User extends Querynator {
 
   public async profile(userId?: string) {
     const user = userId || this.context.req.auth.u
+    const profileQuery = `
+  SELECT
+    su.sys_id,
+    su.given_name,
+    su.surname,
+    su.title_name,
+    su.home_phone,
+    su.work_phone,
+    su.other_phone,
+    su.email,
+    su.preferred_contact
+  FROM
+    sys_user su
+  WHERE
+    sys_id = ?
+    `
     return await Promise.all([
-      await simpleQuery('SELECT * FROM sys_user_list WHERE sys_id = ?', [user]),
-      await new Log(this.context, {
+      simpleQuery(profileQuery, [user]),
+      new Log(this.context, {
         table: this.tableName,
         primaryKey: this.primaryKey
       }).get([], user),
-      await new Customer(this.context, null).getMyCustomers(user)
+      new Customer(this.context, null).getMyCustomers(user)
     ])
     // return {
     //   logs: await new Log(this.context, {
@@ -206,7 +222,6 @@ class User extends Querynator {
       const requiredFields = [
         'userName',
         'userEmail',
-        'userNonsig',
         'userPhone',
         'userFirstName',
         'userLastName'

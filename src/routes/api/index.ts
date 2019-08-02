@@ -10,12 +10,9 @@ import { Router, Request, Response } from 'express'
 import { sign } from 'jsonwebtoken'
 
 // Local Modules
-import {
-  endpointAuthentication,
-  apiTokenValidation
-} from '../middleware/authentication'
+import { endpointAuthentication, jwtKeys } from '../middleware/authentication'
 import { adminRoutes } from './admin'
-import { login, getToken } from './../../lib/users/login'
+import { login, getToken, sysUser } from './../../lib/users/login'
 import { IStatusMessage } from '../../types/server'
 import { jwtSecret } from '../../lib/connection'
 import { q } from './q'
@@ -37,10 +34,11 @@ apiRoutes.get('/getToken', (req: Request, res: Response) => {
       .then(
         (onSuccessfulAuthentication: IStatusMessage) => {
           const payload: UserTypes.IAuthToken = {
-            iA: true,
-            u: onSuccessfulAuthentication.details.sys_id,
-            r: onSuccessfulAuthentication.details.userRole,
-            c: onSuccessfulAuthentication.details.userNonsig
+            [jwtKeys.isAuthenticated]: true,
+            [jwtKeys.user]: onSuccessfulAuthentication.details[sysUser.userId],
+            [jwtKeys.claimLevel]:
+              onSuccessfulAuthentication.details[sysUser.claimLevel],
+            [jwtKeys.claim]: onSuccessfulAuthentication.details[sysUser.claim]
           }
           const token = getToken(payload)
           res.status(200).json({
@@ -77,11 +75,11 @@ apiRoutes.get('/getToken', (req: Request, res: Response) => {
 })
 
 apiRoutes.use('/excel', excelRoute)
-apiRoutes.use(apiTokenValidation())
+// apiRoutes.use(apiTokenValidation())
 apiRoutes.use('/describe', descriptions)
 apiRoutes.use('/q', q) // q is for general api queries
 apiRoutes.get('/navigation', (req: Request, res: Response) => {
-  getRoleAuthorizedNavigation(req.auth.u, req.auth.c)
+  getRoleAuthorizedNavigation(req.auth[jwtKeys.user], req.auth[jwtKeys.scope])
     .then((onResolved: IStatusMessage) => {
       res.status(200).json(onResolved)
     })
@@ -92,17 +90,16 @@ apiRoutes.get('/navigation', (req: Request, res: Response) => {
 // For now we are just going to go around endpoint authentication
 apiRoutes.use('/c', ccRoutes)
 apiRoutes.use('/attachments', fileRouter)
-apiRoutes.use(endpointAuthentication())
 apiRoutes.use(bodyParser.json())
 apiRoutes.use('/admin', adminRoutes) // admin is for site-administration duties
 apiRoutes.use('/users', useradminRoutes) // users is for user administration
 apiRoutes.get('/refresh', (req: Request, res: Response) => {
   if (req.auth.iA && req.auth.c) {
     const payload = {
-      iA: true,
-      u: req.auth.u,
-      r: req.auth.r,
-      c: req.auth.c
+      [jwtKeys.isAuthenticated]: true,
+      [jwtKeys.user]: req.auth[jwtKeys.user],
+      [jwtKeys.claimLevel]: req.auth[jwtKeys.claimLevel],
+      [jwtKeys.claim]: req.auth[jwtKeys.claim]
     }
     sign(
       payload,
