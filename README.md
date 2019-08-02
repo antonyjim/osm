@@ -17,8 +17,6 @@ To debug in VSCode:
 1.  Launch debugger
 2.  Run task "Launch via NPM"
 
-_This repository is in no way affiliated with ServiceNow or any of its services._
-
 ###### FAIR USE STATEMENT
 
 This site may contain copyrighted material the use of which has not always been specifically authorized by the copyright owner. We are making such material available in an effort to advance understanding of environmental, political, human rights, economic, democracy, scientific, and social justice issues, etc. we believe this constitutes a ‘fair use’ of any such copyrighted material as provided for in section 107 of the US Copyright Law.
