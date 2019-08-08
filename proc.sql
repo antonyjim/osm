@@ -1,89 +1,160 @@
+
+
+
+
 -- Create all procedures
 DELIMITER //
 
-/*
-	Select all links that the user is authorized to see
-*/
-DROP PROCEDURE IF EXISTS thq.getNavigation //
-CREATE PROCEDURE thq.getNavigation (IN role CHAR(36))
+DROP PROCEDURE IF EXISTS osm.login_username //
+CREATE PROCEDURE osm.login_username (IN u_username VARCHAR(40))
     BEGIN
         SELECT
-            sys_navigation.*,
-            sys_role.*
-        FROM 
-            sys_role
-        INNER JOIN
-            sys_navigation
+            su.sys_id,
+            su.username,
+            su.given_name,
+            su.surname,
+            su.pass_hash,
+            su.password_email_sent,
+            su.is_active,
+            su.is_locked,
+            su.is_confirmed,
+            su.invalid_login_count,
+            su.last_pass_change,
+            su.app_scope,
+            so.claim,
+            sou.auth_claim
+        FROM
+            sys_user su
+        LEFT JOIN
+            sys_user_org suo
         ON
-            sys_navigation.navPriv = sys_role.role_priv
-        WHERE 
-            navIsNotApi = 1
+            su.sys_id = suo.user_id
+        LEFT JOIN
+            sys_organization_unit sou
+        ON
+            suo.org_unit = sou.sys_id
+        LEFT JOIN
+            sys_organization so
+        ON
+            so.sys_id = sou.ou_level
+        WHERE
+            su.app_scope = so.scope_prefix
         AND
-            rpId = @role;
-    END //
+            su.username = username;
+END //
 
-/*
-	Create new navigation links
-*/
-DROP PROCEDURE IF EXISTS thq.addNav //
-CREATE PROCEDURE thq.addNav(
-        IN _navInnerText VARCHAR(40),
-        IN _navPathName VARCHAR(120),
-        IN _navQueryString VARCHAR(120),
-        IN _navMethod VARCHAR(6),
-        IN _navHeader VARCHAR(40),
-        IN _navMenu VARCHAR(40),
-        IN _navActive BOOLEAN,
-        IN _navPriv VARCHAR(36),
-        IN _navIsNotApi BOOLEAN
-    )
+DROP PROCEDURE IF EXISTS osm.fetch_navigation//
+CREATE PROCEDURE osm.fetch_navigation (IN user_id CHAR(36), IN scope CHAR(3))
     BEGIN
-	DECLARE _existingPriv VARCHAR(36);
+        SELECT
+            sn.inner_text,
+            sn.method,
+            CONCAT(
+                sn.path_name,
+                '?',
+                IFNULL(sn.query_string, '')
+            ) AS href,
+            sn.header,
+            sn.menu
+        FROM
+            sys_navigation sn
+        WHERE
+            sn.role_required IN (
+                SELECT
+                    sr.sys_id
+                FROM
+                    sys_role sr
+                WHERE
+                    sr.sys_id
+                IN
+                    (
+                        SELECT
+                            sgr.role_id
+                        FROM
+                            sys_group_role sgr
+                        INNER JOIN
+                            sys_role sri
+                        ON
+                            sri.sys_id = sgr.role_id
+                        INNER JOIN
+                            sys_group_membership sgm
+                        ON
+                            sgr.group_id = sgm.group_id
+                        WHERE
+                            sri.app_scope = scope
+                        AND
+                            sgm.user_id = user_id
+                        )
+                    OR
+                        sr.sys_id
+                    IN
+                        (
+                            SELECT
+                                sur.role_id
+                            FROM
+                                sys_user_role sur
+                            INNER JOIN
+                                sys_role srii
+                            ON
+                                sur.role_id = srii.sys_id
+                            WHERE
+                                srii.app_scope = scope
+                            AND
+                                sur.user_id = user_id
+                        )
+            )
+        ORDER BY 
+            sn.menu, 
+            sn.header, 
+            sn.inner_text;
+END //
 
-	SELECT DISTINCT
-		priv INTO _existingPriv
-	FROM
-		sys_priv
-	WHERE
-		priv = _navPriv;
-
-	IF ISNULL(_existingPriv) THEN
-		INSERT INTO sys_priv (
-			priv
-		) VALUES (
-			_navPriv
-		);
-		INSERT INTO sys_role (
-			rpId,
-			role_priv
-		) VALUES (
-			'SiteAdm',
-			_navPriv
-		);
-	END IF;
-
-        INSERT INTO sys_navigation (
-            navInnerText,
-            navPathName,
-            navQueryString,
-            navMethod,
-            navHeader,
-            navMenu,
-            navActive,
-            navPriv,
-            navIsNotApi
-        ) VALUES (
-            _navInnerText,
-            _navPathName,
-            _navQueryString,
-            _navMethod,
-            _navHeader,
-            _navMenu,
-            _navActive,
-            _navPriv,
-            _navIsNotApi
-        );
-    END//
+DROP PROCEDURE IF EXISTS osm.fetch_user_role//
+CREATE PROCEDURE osm.fetch_user_role (IN user_id CHAR(36), IN scope CHAR(3))
+    BEGIN
+        SELECT
+            lower(sr.friendly_name)
+        FROM
+            sys_role sr
+        WHERE
+            sr.sys_id
+        IN
+            (
+                SELECT
+                    sgr.role_id
+                FROM
+                    sys_group_role sgr
+                INNER JOIN
+                    sys_role sri
+                ON
+                    sri.sys_id = sgr.role_id
+                INNER JOIN
+                    sys_group_membership sgm
+                ON
+                    sgr.group_id = sgm.group_id
+                WHERE
+                    sri.app_scope = scope
+                AND
+                    sgm.user_id = user_id
+            )
+        OR
+            sr.sys_id
+        IN
+            (
+                SELECT
+                    sur.role_id
+                FROM
+                    sys_user_role sur
+                INNER JOIN
+                    sys_role srii
+                ON
+                    sur.role_id = srii.sys_id
+                WHERE
+                    srii.app_scope = scope
+                AND
+                    sur.user_id = user_id
+            );
+END //
 
 /*
 	Validate every endpoint on every request

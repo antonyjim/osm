@@ -86,6 +86,9 @@ export interface ITableSchema {
   displayField: string
   primaryKey: string
   tableId: string
+  readRole?: string
+  editRole?: string
+  deleteRole?: string
   permissions?: {
     create: boolean
     delete: boolean

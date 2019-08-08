@@ -17,6 +17,7 @@ import { simpleQuery } from '../lib/queries'
 import { getHostname } from '../lib/utils'
 import { apiRoutes } from './api'
 import uiRoutes from './ui'
+import { tokenValidation } from './middleware/authentication'
 
 // Constants and global variables
 const router = Router()
@@ -60,10 +61,10 @@ simpleQuery(
     })
 
     router.use(bodyParser.json())
-    // Require token in query string for api calls
-    router.use('/api', apiRoutes)
     // Parse cookies on routes that return a webpage
     router.use(cookieParser())
+    router.use(tokenValidation())
+    router.use('/api', apiRoutes)
 
     return uiRoutes()
   })

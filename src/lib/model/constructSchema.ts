@@ -80,7 +80,7 @@ function getTableDescription(tableName: string): Promise<void> {
       'sys_id',
       'name',
       tableName,
-      'col_order'
+      'column_order'
     ]
 
     simpleQuery(statement, params)

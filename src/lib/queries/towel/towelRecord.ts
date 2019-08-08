@@ -26,8 +26,9 @@ import { queryBuilder } from '../builder'
 import { validateFieldIsValid } from '../builder/fieldValidator'
 import { IDictionary } from '../../../types/server'
 
-// Constants and global variables
-
+/**
+ * Retrieve values from a database table without authorization.
+ */
 export class TowelRecord {
   protected tableName: string // Database table name
   protected tableSchema: ITableSchema // Schema from the sys_db_dictionary table
@@ -113,7 +114,7 @@ export class TowelRecord {
     this.hasAggregate = true
   }
 
-  public setFields(fields: string | string[]): TowelRecord {
+  public setFields(fields: string | string[]): this {
     if (Array.isArray(fields)) {
       this.requestedFields = fields
     } else {

@@ -1,17 +1,20 @@
 import * as express from 'express'
 import { IFieldMessage } from './api'
 import { ITableSchema } from './forms'
+import { jwtKeys } from '../routes/middleware/authentication'
+import { Queries } from './queries'
 
 declare global {
   namespace Express {
     interface Request {
       auth?: {
-        iA?: boolean
-        iZ?: boolean
-        u?: string
-        c?: string
-        r?: string
-        t?: string
+        [jwtKeys.isAuthenticated]?: boolean
+        [jwtKeys.isAuthorized]?: boolean
+        [jwtKeys.user]?: string
+        [jwtKeys.claimLevel]?: string
+        [jwtKeys.claim]?: string
+        [jwtKeys.scope]?: string
+        [jwtKeys.token]?: string
       }
     }
 
@@ -90,4 +93,11 @@ export interface IFileUpload {
   file_name: string
   file_size: number
   file_contents: Buffer
+}
+
+// Interfaces
+export interface IQueryCondition {
+  fieldName: string
+  fieldValue: Queries.FieldType // Actual value to set
+  conditionModifier?: string // =, <, <=
 }

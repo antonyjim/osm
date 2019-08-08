@@ -69,16 +69,24 @@ export default class Towel extends TowelRecord {
     }
   }
 
-  public setLimit(limit: number): void {
+  public setLimit(limit: number): this {
     this.pagination.limit = limit
+    return this
   }
 
-  public addArgument(col: string, value: string, operator: string = '='): void {
+  public addArgument(
+    col: string,
+    value: string,
+    operator: string = '=',
+    not?: boolean
+  ): this {
     this.args.push({
       col,
       value,
-      operator
+      operator,
+      not
     })
+    return this
   }
 
   private async all(): Promise<IAPIGetByFieldsResponse> {
@@ -176,18 +184,26 @@ export default class Towel extends TowelRecord {
     console.log('[TOWEL] Regenerating Hooks')
   }
 
-  public static async rawQuery(query, params?): Promise<any> {
-    return new Promise((resolve, reject) => {
-      simpleQuery(query, params)
-        .then((rows) => {
-          resolve(rows)
-        })
-        .catch((err) => {
-          console.error('[TOWEL] ERROR OCCURRED AT RAW QUERY')
-          console.error('[TOWEL] \n' + err.message)
-          reject(err)
-        })
-    })
+  public static async rawQuery(
+    query,
+    params?
+  ): Promise<IDictionary<Queries.FieldType>[]> {
+    return new Promise(
+      (
+        resolve: (rows: IDictionary<Queries.FieldType>[]) => void,
+        reject: (err: Error) => void
+      ) => {
+        simpleQuery(query, params)
+          .then((rows) => {
+            resolve(rows)
+          })
+          .catch((err) => {
+            console.error('[TOWEL] ERROR OCCURRED AT RAW QUERY')
+            console.error('[TOWEL] \n' + err.message)
+            reject(err)
+          })
+      }
+    )
   }
 
   public async get(args?: { [key: string]: boolean | string | number }) {

@@ -24,7 +24,9 @@ import {
 import { evaluateFieldOperator } from './builder/evalOperator'
 import { queryBuilder } from './builder'
 import { byFields as _byFields } from './builder/byFields'
-import { GenericFieldTypes } from '../../types/forms'
+import { GenericFieldTypes, ITableSchema } from '../../types/forms'
+import { getUserRoles } from '../../routes/middleware/authorization'
+import { jwtKeys } from '../../routes/middleware/authentication'
 
 // Constants and global variables
 
@@ -40,7 +42,7 @@ export class Querynator extends EventEmitter {
   protected warnings: any[]
   protected errors: any[]
   private worker?: boolean
-  protected tableSchema?: any
+  protected tableSchema?: ITableSchema
 
   // Methods
   private validateFieldIsValid = validateFieldIsValid
@@ -62,7 +64,7 @@ export class Querynator extends EventEmitter {
     this.warnings = []
     this.errors = []
     this.worker = worker
-    this.tableSchema = getTables()[this.tableName]
+    this.tableSchema = getTables(this.tableName) as ITableSchema
     this.once('init', () => {
       if (this.queryFieldsArr && Array.isArray(this.queryFieldsArr)) {
         const fieldPlaceholders: string[] = []
@@ -96,28 +98,51 @@ export class Querynator extends EventEmitter {
       if (actionOverride === 'CALL' || this.worker) {
         return resolveAuthorized(true)
       }
-      const validationFunction = 'tbl_validation'
-      const role = this.context.req.auth.r || 'No-Conf'
-      const action = actionOverride || query.split(' ')[0]
-      const params = [validationFunction, [role, this.tableName, action]]
-      if (
-        process.env.STATEMENT_LOGGING === 'true' ||
-        process.env.STATEMENT_LOGGING
-      ) {
-        console.log(conn.format('SELECT ?? (?) AS AUTHED', params))
-        // new Log(conn.format('SELECT ?? (?) AS AUTHED', params)).info()
+
+      const action: string = query.split(' ')[0]
+      let roleToCheck: string = ''
+
+      switch (action.toUpperCase()) {
+        case 'SELECT': {
+          roleToCheck = 'readRole'
+        }
+        case 'DELETE': {
+          roleToCheck = 'deleteRole'
+        }
+        default:
+          {
+            roleToCheck = 'editRole'
+          }
+
+          /*
+            Look for the existence of a specific role
+            requirement on the table schema.
+          */
+          const tableRole = this.tableSchema[roleToCheck]
+          if (tableRole) {
+            getUserRoles(
+              this.context.req.auth[jwtKeys.user],
+              this.context.req.auth[jwtKeys.scope]
+            ).then((roles: string[]) => {
+              if (roles.indexOf(tableRole) > -1) {
+                resolveAuthorized(true)
+              } else {
+                rejectAuthorized(
+                  new Error(
+                    'User is unauthorized to access requested resource.'
+                  )
+                )
+              }
+            })
+          } else {
+            /*
+            If the roleToCheck returns null or false for any
+            reason, then we will resolve as the table does not
+            require any special authorization.
+          */
+            resolveAuthorized(true)
+          }
       }
-      conn.query('SELECT ?? (?) AS AUTHED', params, (err, authed) => {
-        if (err) {
-          new Log(err.message).error(1)
-          return rejectAuthorized(err)
-        }
-        if (authed[0]) {
-          return resolveAuthorized(authed[0].AUTHED || false)
-        } else {
-          return resolveAuthorized(authed[0])
-        }
-      })
     })
   }
 

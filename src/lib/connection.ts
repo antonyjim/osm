@@ -99,7 +99,55 @@ async function simpleQuery(query: string, params?: any[]): Promise<any> {
         }
         return rejectQuery(err)
       }
+
+      if (query.slice(0, 4) === 'CALL') {
+        return resolveQuery(results[0])
+      }
       return resolveQuery(results)
+    })
+  })
+}
+
+export async function transaction(queries: { query: string; params: any }[]) {
+  return new Promise((resolveTransaction, rejectTransaction) => {
+    getPool().getConnection((getConnectionErr, conn) => {
+      if (getConnectionErr) {
+        rejectTransaction(getConnectionErr)
+      } else {
+        conn.beginTransaction((beginTransactionErr) => {
+          if (beginTransactionErr) {
+            rejectTransaction(beginTransactionErr)
+          } else {
+            Promise.all(
+              queries.map((query) => {
+                return new Promise((resolveStatement, rejectStatement) => {
+                  conn.query(query.query, query.params, (err, results) => {
+                    if (err) {
+                      rejectStatement(err)
+                    } else {
+                      resolveStatement()
+                    }
+                  })
+                })
+              })
+            )
+              .then(() => {
+                conn.commit((commitErr) => {
+                  if (commitErr) {
+                    rejectTransaction(commitErr)
+                  } else {
+                    resolveTransaction()
+                  }
+                })
+              })
+              .catch((err) => {
+                conn.rollback((rollbackErr) => {
+                  rejectTransaction(err)
+                })
+              })
+          }
+        })
+      }
     })
   })
 }

@@ -25,8 +25,8 @@ function fetchLogin() {
         },
         success: (response) => {
           if (!response.error) {
-            const menus = formatNavigation(response.details.navs)
-            window.THQ.user.privs = response.details.privs
+            const menus = formatNavigation(response.details.navigation)
+            window.THQ.user.privs = response.details.roles
             window.localStorage.setItem('navigation', JSON.stringify(menus))
             let event
             if (typeof Event === 'function') {
@@ -53,15 +53,15 @@ function fetchLogin() {
 function formatNavigation(navigationLinks) {
   const menus = {}
   for (const link of navigationLinks) {
-    if (!menus[link.navMenu]) {
-      menus[link.navMenu] = {}
+    if (!menus[link.menu]) {
+      menus[link.menu] = {}
     }
-    if (!Array.isArray(menus[link.navMenu][link.navHeader])) {
-      menus[link.navMenu][link.navHeader] = []
+    if (!Array.isArray(menus[link.menu][link.header])) {
+      menus[link.menu][link.header] = []
     }
-    menus[link.navMenu][link.navHeader].push({
-      href: link.navHref,
-      innerText: link.navInnerText
+    menus[link.menu][link.header].push({
+      href: link.href,
+      innerText: link.inner_text
     })
   }
   window.THQ.menus = Object.keys(menus)
