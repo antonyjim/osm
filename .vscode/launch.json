@@ -22,8 +22,8 @@
             ],
             "preLaunchTask": "tsc-watch",
             "port": 9229,
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen",
+            "console": "internalConsole",
+            "internalConsoleOptions": "openOnSessionStart",
             "timeout": 10000,
             "autoAttachChildProcesses": true,
             "restart": true
@@ -79,6 +79,18 @@
             "console": "integratedTerminal",
             "sourceMaps": true,
             "internalConsoleOptions": "neverOpen"
+        }, {
+            "type": "node",
+            "request": "launch",
+            "name": "Client-Watch",
+            "runtimeExecutable": "npm",
+            "args": [
+                "run",
+                "watch"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "cwd": "${workspaceFolder}/clientApp"
         }
     ]
 }

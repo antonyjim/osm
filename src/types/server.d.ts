@@ -2,6 +2,7 @@ import * as express from 'express'
 import { IFieldMessage } from './api'
 import { ITableSchema } from './forms'
 import { jwtKeys } from '../routes/middleware/authentication'
+import { Queries } from './queries'
 
 declare global {
   namespace Express {
@@ -92,4 +93,11 @@ export interface IFileUpload {
   file_name: string
   file_size: number
   file_contents: Buffer
+}
+
+// Interfaces
+export interface IQueryCondition {
+  fieldName: string
+  fieldValue: Queries.FieldType // Actual value to set
+  conditionModifier?: string // =, <, <=
 }

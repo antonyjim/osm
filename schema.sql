@@ -369,8 +369,8 @@ CREATE TABLE sys_log (
     log_severity INT(1) DEFAULT 3
 );
 
-CREATE TABLE sys_log_user LIKE sys_log;
-ALTER TABLE sys_log_user ADD COLUMN log_user CHAR(36) NOT NULL;
+CREATE TABLE sys_user_log LIKE sys_log;
+ALTER TABLE sys_user_log ADD COLUMN log_user CHAR(36) NOT NULL;
 CREATE TABLE sys_log_request LIKE sys_log;
 ALTER TABLE sys_log_request ADD COLUMN request_method VARCHAR(6) DEFAULT 'GET';
 ALTER TABLE sys_log_request ADD COLUMN request_uri VARCHAR(100) DEFAULT '/';

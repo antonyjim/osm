@@ -46,6 +46,7 @@ const anonToken: UserTypes.IAuthToken = {
 
 export function setResponseToken(res: Response, token: string) {
   if (useCookie) {
+    console.log('Setting authorization token')
     res.cookie('token', `Bearer ${token}`)
   } else {
     res.set(authorizationHeader, `Bearer ${token}`)
@@ -86,7 +87,8 @@ export function tokenValidation() {
           }
           setResponseToken(res, token)
 
-          return next()
+          next()
+          return
         }
       )
     }
@@ -105,7 +107,8 @@ export function tokenValidation() {
             [jwtKeys.claim]: null
           }
           setResponseToken(res, token)
-          return next()
+          next()
+          return
         }
       )
     } else {
@@ -137,7 +140,8 @@ export function tokenValidation() {
                   [jwtKeys.claim]: decoded[jwtKeys.claim]
                 }
                 setResponseToken(res, token)
-                return next()
+                next()
+                return
               }
             )
           } else {

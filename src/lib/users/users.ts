@@ -13,7 +13,6 @@ import uuid = require('uuid')
 // Local Modules
 import { Querynator, simpleQuery } from '../queries'
 import { jwtSecret } from '../connection'
-import { Nonsig } from './maintenance'
 import { Validation } from '../validation'
 import {
   sendConfirmation,
@@ -297,69 +296,6 @@ class User extends Querynator {
                   userId: uuid.v4(),
                   userConfirmation: uuid.v4()
                 })
-              new Nonsig({ nsNonsig: fields.userNonsig })
-                .existsAndIsActive()
-                .then(
-                  (nonsigExists) => {
-                    if (nonsigExists.isActive && nonsigExists.isActiveTHQ) {
-                      const query = 'CALL newUser (?)'
-                      const params = [
-                        [
-                          defaultedFields.userId,
-                          defaultedFields.userName.toLowerCase(),
-                          null,
-                          defaultedFields.userEmail.toLowerCase(),
-                          defaultedFields.userNonsig,
-                          fields.userIsLocked === true ? 1 : 0,
-                          0,
-                          defaultedFields.userFirstName,
-                          defaultedFields.userLastName,
-                          defaultedFields.userPhone,
-                          defaultedFields.userConfirmation
-                        ]
-                      ]
-                      this.createQ({ query, params }, 'CALL')
-                        .then((userCreated) => {
-                          sendConfirmation(
-                            {
-                              userEmail: fields.userEmail,
-                              confirmationToken: fields.userConfirmation,
-                              action: 'r'
-                            },
-                            (err, status) => {
-                              if (err) throw err
-                              resolveCreate(status)
-                            }
-                          )
-                        })
-                        .catch((err) => {
-                          rejectCreate({
-                            error: true,
-                            message: err.message
-                          })
-                        })
-                    } else {
-                      rejectCreate({
-                        error: true,
-                        message:
-                          'Customer is not active. Please contact support.',
-                        fields: ['userNonsig']
-                      })
-                    }
-                  },
-                  (invalidCustomer) => {
-                    rejectCreate({
-                      error: true,
-                      message:
-                        'Customer is not valid. Please enter a valid customer number.',
-                      fields: ['userNonsig']
-                    })
-                  }
-                )
-                .catch((err) => {
-                  new Log(err.message).error(3)
-                  throw err
-                })
             }
           })
           .catch((err) => {
@@ -373,83 +309,83 @@ class User extends Querynator {
     })
   } // Create
 
-  /**
-   * Update an existing user with new information from form
-   * @param {object} fields Fields to update an existing user
-   */
-  public async update(fields) {
-    if (!this.context.req.params.id) {
-      throw new TypeError('Cannot update user without userId')
-    } else if (!fields) {
-      throw new TypeError('Update body is empty! Nothing to update.')
-    } else {
-      try {
-        const fieldsToUpdate: UserTypes.IAll = {}
-        // Validate Nonsig
-        if (fields.userDefaultNonsig) {
-          const validNonsig = await new Nonsig(
-            fields.userDefaultNonsig
-          ).existsAndIsActive()
-          if (validNonsig) {
-            fieldsToUpdate.userDefaultNonsig = fields.userDefaultNonsig
-          }
-        }
-        // Validate password
-        if (fields.userPass && fields.userPassConfirmation) {
-          try {
-            fieldsToUpdate.userPass = this.verifyAndHashPassword(
-              fields.userPass,
-              fields.userPassConfirmation
-            )
-          } catch (err) {
-            throw err
-          }
-        }
+  //   /**
+  //    * Update an existing user with new information from form
+  //    * @param {object} fields Fields to update an existing user
+  //    */
+  //   public async update(fields) {
+  //     if (!this.context.req.params.id) {
+  //       throw new TypeError('Cannot update user without userId')
+  //     } else if (!fields) {
+  //       throw new TypeError('Update body is empty! Nothing to update.')
+  //     } else {
+  //       try {
+  //         const fieldsToUpdate: UserTypes.IAll = {}
+  //         // Validate Nonsig
+  //         if (fields.userDefaultNonsig) {
+  //           const validNonsig = await new Nonsig(
+  //             fields.userDefaultNonsig
+  //           ).existsAndIsActive()
+  //           if (validNonsig) {
+  //             fieldsToUpdate.userDefaultNonsig = fields.userDefaultNonsig
+  //           }
+  //         }
+  //         // Validate password
+  //         if (fields.userPass && fields.userPassConfirmation) {
+  //           try {
+  //             fieldsToUpdate.userPass = this.verifyAndHashPassword(
+  //               fields.userPass,
+  //               fields.userPassConfirmation
+  //             )
+  //           } catch (err) {
+  //             throw err
+  //           }
+  //         }
 
-        if (fields.userFirstName || fields.userLastName || fields.userPhone) {
-          const validatedStrings = new Validation(null).notEmpty(
-            {
-              userFirstName: fields.userFirstName,
-              userLastName: fields.userLastName,
-              phone: fields.phone,
-              userNewEmail: fields.email
-            },
-            3
-          )
-          Object.keys(validatedStrings).map((val) => {
-            fieldsToUpdate[val] = validatedStrings[val]
-          })
-        }
+  //         if (fields.userFirstName || fields.userLastName || fields.userPhone) {
+  //           const validatedStrings = new Validation(null).notEmpty(
+  //             {
+  //               userFirstName: fields.userFirstName,
+  //               userLastName: fields.userLastName,
+  //               phone: fields.phone,
+  //               userNewEmail: fields.email
+  //             },
+  //             3
+  //           )
+  //           Object.keys(validatedStrings).map((val) => {
+  //             fieldsToUpdate[val] = validatedStrings[val]
+  //           })
+  //         }
 
-        if (fields.email) {
-          fieldsToUpdate.userConfirmation = uuid.v4()
-          sendConfirmation({
-            userEmail: fields.userEmail,
-            confirmationToken: fieldsToUpdate.userConfirmation,
-            action: 'e'
-          })
-        }
-        this.createUpdate(fieldsToUpdate)
-        return this.byId(this.context.req.params.id)
-      } catch (e) {
-        throw e
-      }
-    }
-  }
+  //         if (fields.email) {
+  //           fieldsToUpdate.userConfirmation = uuid.v4()
+  //           sendConfirmation({
+  //             userEmail: fields.userEmail,
+  //             confirmationToken: fieldsToUpdate.userConfirmation,
+  //             action: 'e'
+  //           })
+  //         }
+  //         this.createUpdate(fieldsToUpdate)
+  //         return this.byId(this.context.req.params.id)
+  //       } catch (e) {
+  //         throw e
+  //       }
+  //     }
+  //   }
 
-  /**
-   * Retrieve the default customer from sys_user
-   * @param {string} userId User ID to retrieve default customer for
-   */
-  public async defaultCustomer(userId) {
-    const customerQuery = 'SELECT userDefaultNonsig FROM ?? WHERE ?? = ?'
-    const customerParams = [this.tableName, this.primaryKey, userId]
-    const customer = await this.createQ({
-      query: customerQuery,
-      params: customerParams
-    })
-    return new Customer(this.context, ['userDefaultNonsig']).getById(customer)
-  }
+  //   /**
+  //    * Retrieve the default customer from sys_user
+  //    * @param {string} userId User ID to retrieve default customer for
+  //    */
+  //   public async defaultCustomer(userId) {
+  //     const customerQuery = 'SELECT userDefaultNonsig FROM ?? WHERE ?? = ?'
+  //     const customerParams = [this.tableName, this.primaryKey, userId]
+  //     const customer = await this.createQ({
+  //       query: customerQuery,
+  //       params: customerParams
+  //     })
+  //     return new Customer(this.context, ['userDefaultNonsig']).getById(customer)
+  //   }
 
   /**
    * Insert the user's new password in the database as well as
@@ -481,11 +417,11 @@ class User extends Querynator {
   } // confirmAccount()
 }
 
-/**
- * Reset the password for the requested user, if that account exists.
- * If not, send a failed password request email to the supplied email
- * @param {string} suppliedEmail Email supplied from forgot password form
- */
+// /**
+//  * Reset the password for the requested user, if that account exists.
+//  * If not, send a failed password request email to the supplied email
+//  * @param {string} suppliedEmail Email supplied from forgot password form
+//  */
 async function forgotPassword(suppliedEmail: string) {
   const token = uuid.v4()
   const query = 'SELECT setForgotPassword(?, ?, ?) AS SUCCESS'
