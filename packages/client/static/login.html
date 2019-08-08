@@ -1,0 +1,157 @@
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!--Stylesheet-->
+  <link rel="stylesheet" href="/public/styles/third-party/bootstrap.css">
+  <!--<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">-->
+  <link rel="stylesheet" href="/public/styles/style.css">
+  <link rel="icon" href="/public/images/favicon.ico">
+  <title>Tire-HQ</title>
+</head>
+
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col"></div>
+      <div class="col-lg-3 col-lg-5 col-sm-10">
+        <div class="mt-5 text-center">
+          <img class="w-50" src="/public/images/nasa_logo.png">
+        </div>
+        <div class="card mt-3">
+          <div class="card-body">
+            <form name="login">
+              <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" class="form-control" id="username" aria-describedby="Username" value="administrator">
+              </div>
+              <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" class="form-control" id="password" aria-describedby="Password" value="G00dAdmin">
+              </div>
+              <div class="alert alert-danger" id="passwordError" role="alert" style="display: none;"></div>
+              <button type="button" class="btn btn-primary btn-block" id="loginBtn">
+                <span id="loginDisplay">Login</span>
+                <span id="loginLoading" style="display:none;" class="spinner-border spinner-border-sm"></span>
+              </button>
+            </form>
+            <div class="text-center text-muted">
+              <a href="#" class="text-muted" data-toggle="modal" data-target="#forgot">Forgot</a>
+              |
+              <a href="#" class="text-muted" data-toggle="modal" data-target="#register"> Register</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col"></div>
+    </div>
+    <div class="modal fade" tabindex="-1" role="dialog" id="register">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Register</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col"></div>
+              <div class="col-sm-10 col-md-8 col-lg-8">
+                <div class="row">
+                  <div class="alert" role="alert" style="display: none;">
+                    <strong></strong>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="form-group col-12">
+                    <label for="userName">Username</label>
+                    <input id="userName" name="username" class="form-control">
+                  </div>
+                  <div class="form-group col-12">
+                    <label for="userEmail">Email</label>
+                    <input id="userEmail" name="email" class="form-control">
+                  </div>
+                  <div class="form-group col-sm-12 col-md-6 col-lg-6">
+                    <label for="userFirstName">First Name</label>
+                    <input id="userFirstName" name="firstName" type="text" class="form-control">
+                  </div>
+                  <div class="form-group col-sm-12 col-md-6 col-lg-6">
+                    <label for="userLastName">Last Name</label>
+                    <input id="userLastName" name="lastName" type="text" class="form-control">
+                  </div>
+                  <div class="form-group col-sm-12 col-md-6 col-lg-6">
+                    <label for="userNonsig">Nonsig</label>
+                    <input id="userNonsig" name="nonsig" type="text" class="form-control">
+                  </div>
+                  <div class="form-group col-sm-12 col-md-6 col-lg-6">
+                    <label for="userPhone">Phone</label>
+                    <input id="userPhone" name="phone" type="text" class="form-control">
+                  </div>
+                </div>
+              </div>
+              <div class="col"></div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" id="submit">Submit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Forgot password modal -->
+    <div class="modal fade" tabindex="-1" role="dialog" id="forgot">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Forgot Password</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col"></div>
+              <div class="col-sm-10 col-md-8 col-lg-8">
+                <div class="row">
+                  <div class="alert fade" role="alert" id="forgotAlert" style="display: none;">
+                    <p id="forgotAlertMessage"></p>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="form-group col-12">
+                    <label for="email">Email</label>
+                    <input id="email" name="email" class="form-control">
+                  </div>
+                </div>
+              </div>
+              <div class="col"></div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" id="subForgot">Submit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="/public/scripts/third-party/jq.js"></script>
+  <script src="/public/scripts/third-party/bootstrap.js"></script>
+  <script src="/public/scripts/login.js"></script>
+  <script>
+    document.getElementById('username').focus()
+  </script>
+
+  <!--
+          Online scripts
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+        -->
+</body>
+
+</html>

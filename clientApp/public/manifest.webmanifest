@@ -1,7 +1,0 @@
-{
-  "name": "Towel HQ",
-  "short_name": "TowelHQ",
-  "start_url": "/?launch",
-  "display": "standalone",
-  "background_color": "#fff"
-}

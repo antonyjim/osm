@@ -1,0 +1,180 @@
+/*Boot THQ*/
+.form-checkbox {
+	position: relative;
+	margin: 1em 0;
+	text-align: left;
+	display: inline-block;
+}
+
+.form-checkbox-inline {
+	display: inline-block;
+	margin: 1em 1em;
+}
+
+.form-checkbox label {
+	cursor: pointer;
+	display: inline;
+	line-height: 1.25em;
+	vertical-align: top;
+	clear: both;
+	padding-left: 1px;
+	user-select: no-select;
+}
+
+.form-checkbox label:not(:empty) {
+	padding-left: 0.75em;
+}
+
+.form-checkbox label:before,
+.form-checkbox label:after {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 0;
+}
+
+.form-checkbox label:before {
+	width: 1.25em;
+	height: 1.25em;
+	background: #fff;
+	border: 2px solid rgba(0, 0, 0, 0.54);
+	border-radius: 0.125em;
+	cursor: pointer;
+	transition: background .3s;
+}
+
+.form-checkbox input[type="checkbox"] {
+	outline: 0;
+	visibility: hidden;
+	width: 1.25em;
+	margin: 0;
+	display: block;
+	float: left;
+	font-size: inherit;
+}
+
+.form-checkbox input[type="checkbox"]:checked+label:before {
+	background: #007bff;
+	border: none;
+}
+
+.form-checkbox input[type="checkbox"]:checked+label:after {
+	transform: translate(0.25em, 0.33654em) rotate(-45deg);
+	width: 0.75em;
+	height: 0.375em;
+	border: 0.125em solid #fff;
+	border-top-style: none;
+	border-right-style: none;
+}
+
+.form-checkbox input[type="checkbox"]:disabled+label:before {
+	border-color: rgba(0, 0, 0, 0.26);
+}
+
+.form-checkbox input[type="checkbox"]:disabled:checked+label:before {
+	background: rgba(0, 0, 0, 0.26);
+}
+
+.bg-goodyear {
+	background-color: rgb(22, 33, 106);
+}
+
+.img {
+	height: 50px;
+}
+
+.bg-striped {
+	background: url('https://www.g3xpress.com/g3x/images/diagonal.png');
+	width: 100%;
+	height: 100%;
+}
+
+.dropdown-toggle::after {
+	display: none
+}
+
+.btn-goodyear {
+	background-color: rgb(22, 33, 106);
+	color: white;
+}
+
+.btn-goodyear:hover {
+	color: white;
+	background: rgb(15, 23, 76);
+}
+
+.bg-darkish {
+	background-color: #c9c9c9;
+}
+
+.bg-gold {
+	background-color: #fd0;
+}
+
+#invalid-na {
+	display: none;
+}
+
+#invalid-drtype {
+	display: none;
+}
+
+#invalid-dd {
+	display: none;
+}
+
+.fof-cont {
+	height: 300px;
+	width: 100%;
+	text-align: center
+}
+
+.error-code {
+	font-size: 10em;
+}
+
+.tab-page {
+	display: none;
+}
+
+.tab-page.active {
+	display: block;
+}
+
+.modal-content {
+	overflow-x: auto;
+}
+
+@media (min-width: 768px) {
+	.modal-xl .modal-dialog {
+		width: 90%;
+		max-width: 1200px;
+	}
+}
+
+.wetty {
+	min-height: 500px;
+	border: none;
+	outline: none;
+	width: 100%;
+}
+
+/* Footer styles and fixes */
+#root {
+	min-height: 100%;
+}
+
+.fill {
+	padding-bottom: 150px;
+}
+
+footer {
+	margin-top: -150px;
+	height: 150px;
+}
+
+.data-table-text-cell {
+	display: inline-block;
+	position: relative;
+	margin: 1em 0;
+}

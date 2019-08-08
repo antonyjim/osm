@@ -1,0 +1,32 @@
+{
+  "defaultSeverity": "error",
+  "extends": [
+    "tslint:recommended",
+    "tslint-config-prettier"
+    // "tslint-react"
+  ],
+  "linterOptions": {
+    "exclude": [
+      "../src/types/monaco.d.ts"
+    ]
+  },
+  "jsRules": {},
+  "rules": {
+    "ordered-imports": false,
+    "object-literal-sort-keys": false,
+    "member-ordering": false,
+    "no-console": false,
+    "linebreak-style": [true, "line-feed"],
+    "indent": [true, "spaces", 2],
+    "semicolon": false,
+    "triple-equals": true,
+    "curly": [true, "ignore-same-line"],
+    "no-namespace": false,
+    "interface-name": false,
+    "jsdoc-format": true,
+    "object-literal-shorthand": true,
+    "array-type": [true, "array"],
+    "trailing-comma": true,
+    "no-bitwise": false
+  }
+}

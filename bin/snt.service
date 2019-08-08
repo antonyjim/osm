@@ -9,6 +9,6 @@ Description=Service Tomorrow Server
 After=network.target
 [Service]
 WorkingDirectory=/var/www/osm/
-ExecStart=/home/aj/.nvm/versions/node/v11.13.0/bin/node /var/www/osm/dist
+ExecStart=/home/aj/.nvm/versions/node/v11.13.0/bin/node /var/www/osm/packages/core/dist
 [Install]
 WantedBy=multi-user.target
