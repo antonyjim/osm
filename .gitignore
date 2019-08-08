@@ -34,6 +34,7 @@ build/Release
 
 # Dist
 dist
+build
 
 # Dependency directories
 node_modules/
@@ -63,11 +64,7 @@ typings/
 # next.js build output
 .next
 
-# Ignore bundles
-public/scripts/bundles/**/*
-
-# Ignore third party JS libraries
-public/scripts/third-party/**/*
-
-# Ignore third party css libraries
-public/styles/third-party/**/*
+# Ignore bundles and third party code
+third-party/
+bundles/
+monaco.d.ts

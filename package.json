@@ -1,0 +1,30 @@
+{
+  "name": "open-service-management",
+  "version": "1.0.0",
+  "description": "A tool for managing solutions.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "tslint": "*",
+    "tslint-config-prettier": "^1.18.0"
+  },
+  "scripts": {
+    "install_all": "node bin/install-all.js",
+    "test": "mocha",
+    "lint": "tslint -c config/tslint.json 'packages/**/src/*.{ts,tsx}'",
+    "watch": "node bin/watch-packages.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/antonyjim/osm.git"
+  },
+  "author": "Anthony Jund <antonyjund@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/antonyjim/osm/issues"
+  },
+  "homepage": "https://github.com/antonyjim/osm#readme"
+}

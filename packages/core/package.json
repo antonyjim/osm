@@ -1,14 +1,12 @@
 {
-  "name": "open-service-management",
+  "name": "open-service-management-core",
   "version": "0.1.0",
   "author": "Anthony Jund<antonyjund@gmail.com>",
   "description": "",
   "main": "dist/index.js",
-  "repository": "https://github.com/antonyjim/open-service-management",
+  "repository": "https://github.com/antonyjim/osm",
   "dependencies": {
     "@babel/core": "^7.4.5",
-    "@types/formidable": "^1.0.31",
-    "@types/webpack": "^4.4.34",
     "awesome-typescript-loader": "^5.2.1",
     "bcrypt": "^3.0.2",
     "body-parser": "^1.18.3",
@@ -22,6 +20,7 @@
     "monaco-editor": "^0.15.6",
     "mysql": "^2.16.0",
     "nodemailer": "^4.7.0",
+    "typescript": "^3.3.3333",
     "uuid": "^3.3.2",
     "webpack": "^4.35.0"
   },
@@ -37,13 +36,12 @@
     "@types/node": "^10.12.18",
     "@types/nodemailer": "^4.6.5",
     "@types/uuid": "^3.4.4",
+    "@types/formidable": "^1.0.31",
+    "@types/webpack": "^4.4.34",
     "chai": "^4.2.0",
     "mocha": "^5.2.0",
     "nodemon": "^1.18.9",
-    "ts-node": "^8.0.3",
-    "tslint": "^5.14.0",
-    "tslint-config-prettier": "^1.18.0",
-    "typescript": "^3.3.3333"
+    "ts-node": "^8.0.3"
   },
   "scripts": {
     "postinstall": "tsc -p .",
@@ -51,7 +49,6 @@
     "debug": "nodemon --ignore ./dist/lib/hooks --legacy-watch --watch ./dist --inspect-brk --nolazy ./dist/",
     "docker-debug": "docker-compose up",
     "start": "tsc -p ./config && node dist",
-    "lint": "tslint -c ./config/tslint.json 'src/**/*.{ts,tsx}'",
     "test": "mocha --no-timeouts --colors ./test/**/*.ts --require ts-node/register"
   },
   "license": "ISC"

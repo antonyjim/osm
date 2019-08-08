@@ -22,5 +22,11 @@
     "array-type": [true, "array"],
     "trailing-comma": true,
     "no-bitwise": false
+  },
+  "linterOptions": {
+    "exclude": [
+      "../packages/**/node_modules/**/*",
+      "../node_modules/**/*"
+    ]
   }
 }
