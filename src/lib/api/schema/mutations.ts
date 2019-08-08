@@ -24,7 +24,7 @@ const rootMutations = {
     sys_db_dictionary: columnMutations.create_column
   },
   update: {
-    sys_user: userMutations.update_user,
+//    sys_user: userMutations.update_user,
     sys_db_object: tableMutations.update_table,
     sys_db_dictionary: columnMutations.update_column
   },
