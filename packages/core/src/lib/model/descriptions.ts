@@ -7,12 +7,33 @@
 import { getTables } from './constructSchema'
 import { Querynator, simpleQuery } from '../queries'
 
+export interface ITablePermissions {
+  can_edit: boolean
+  can_delete: boolean
+  can_read: boolean
+}
+
+/**
+ * @typedef {Object} Description
+ * @member {string} userId The user id of the user retrieving the description
+ * @member {string} table The name of the table used for the query
+ * @member {string} scope The scope of the currently logged in user
+ */
 export default class Description extends Querynator {
-  constructor(context, table) {
-    super(context)
+  private userId: string
+  private table: string
+  private scope: string
+
+  constructor(userId: string, scope: string, table: string) {
+    super(userId)
+    this.userId = userId
+    this.scope = scope
+
     if (table.toLowerCase().slice(-5) === '_list') {
       this.tableName = table.slice(0, -5)
-    } else this.tableName = table
+    } else {
+      this.tableName = table
+    }
     // this.verifyAndReturnFields()
   }
 
@@ -65,6 +86,20 @@ export default class Description extends Querynator {
       //   }
       //   formattedFields[thisCol.label] = colDetails
       // })
+    })
+  }
+
+  /**
+   * Return a list of user permissions for the specified table
+   * @returns {Object} List of user permissions
+   */
+  public async getUserPermissions(): Promise<ITablePermissions> {
+    return new Promise((resolveUserPermissions, rejectUserPermissions) => {
+      simpleQuery('CALL fetch_user_table_permissions(?, ?, ?)', [
+        this.context,
+        this.scope,
+        this.tableName
+      ])
     })
   }
 }

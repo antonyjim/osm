@@ -14,6 +14,7 @@
   "scripts": {
     "install_all": "node bin/install-all.js",
     "test": "mocha",
+    "debug": "nodemon --ignore packages/core/dist/lib/hooks --legacy-watch --watch packages/core/dist --inspect-brk --nolazy packages/core/dist",
     "lint": "tslint -c config/tslint.json 'packages/**/src/*.{ts,tsx}'",
     "watch": "node bin/watch-packages.js"
   },

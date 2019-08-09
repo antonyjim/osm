@@ -5,7 +5,7 @@
 
 // Node Modules
 import { createReadStream } from 'fs'
-import { resolve } from 'path'
+import { resolve, join } from 'path'
 
 // NPM Modules
 import { Router, Request, Response } from 'express'
@@ -80,8 +80,9 @@ export default function(): Promise<Router> {
                   uiRoutes.use(moduleInfo.routing, routeHandler)
                 } catch (e) {
                   console.error(
-                    '[STARTUP] Could not require route %s',
-                    moduleInfo.file_path
+                    '[STARTUP] Could not require route located at %s for route %s',
+                    join(__dirname, moduleInfo.file_path),
+                    moduleInfo.routing
                   )
                   console.error(e)
                   return rejectRouteResolved(e)

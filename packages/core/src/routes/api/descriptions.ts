@@ -13,6 +13,7 @@ import { Router, Request, Response } from 'express'
 import Description from '../../lib/model/descriptions'
 import Towel from '../../lib/queries/towel/towel'
 import getForm from '../../lib/model/constructForms'
+import { jwtKeys } from '../middleware/authentication'
 
 // Constants and global variables
 const descriptions = Router()
@@ -35,8 +36,13 @@ descriptions.get('/form/:table', (req: Request, res: Response) => {
 })
 
 descriptions.get('/:table', (req: Request, res: Response) => {
-  new Description({ req, res }, req.params.table)
+  new Description(
+    req.auth[jwtKeys.user],
+    req.auth[jwtKeys.scope],
+    req.params.table
+  )
     .verifyAndReturnFields()
+    .then()
     .then((fields) => {
       res.status(200).json(fields)
     })

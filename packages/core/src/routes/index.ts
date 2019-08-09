@@ -18,6 +18,7 @@ import { getHostname } from '../lib/utils'
 import { apiRoutes } from './api'
 import uiRoutes from './ui'
 import { tokenValidation } from './middleware/authentication'
+import { join } from 'path'
 
 // Constants and global variables
 const router = Router()
@@ -39,14 +40,15 @@ simpleQuery(
         const routeHandler = require(moduleInfo.file_path)
         console.log(
           '[STARTUP] Using module located at %s for route %s',
-          moduleInfo.file_path,
+          join(__dirname, moduleInfo.file_path),
           moduleInfo.routing
         )
         router.use(moduleInfo.routing, routeHandler)
       } catch (e) {
         console.error(
-          '[STARTUP] Could not require route %s',
-          moduleInfo.file_path
+          '[STARTUP] Could not require route located at %s for route %s',
+          join(__dirname, moduleInfo.file_path),
+          moduleInfo.routing
         )
         console.error(e)
       }
@@ -70,5 +72,9 @@ simpleQuery(
   })
   .then((withUiRoutes: Router) => {
     router.use('/', withUiRoutes)
+  })
+  .catch((err) => {
+    console.error('[STARTUP] Error in evaluating routes:')
+    console.error(err)
   })
 export { router }

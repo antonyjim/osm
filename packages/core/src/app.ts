@@ -16,12 +16,15 @@ import * as express from 'express'
 import { router } from './routes/index'
 import { Log } from './lib/log'
 import { getPool } from './lib/connection'
-import constructSchema, { tables } from './lib/model/constructSchema'
+import constructSchema from './lib/model/constructSchema'
 import { constructForms } from './lib/model/constructForms'
 import generateHooks from './lib/model/generateHooks'
 import { syncDbSchema } from './lib/model/dbSchemaGen'
 import { Server } from 'http'
 
+/**
+ * Starts requiring all of the routes for the core plus any activated modules.
+ */
 export function routes() {
   if (process.env.NODE_ENV === 'production') {
     const cores: number = cpus().length
@@ -61,7 +64,8 @@ export function routes() {
     global.app = app
 
     syncDbSchema()
-      .then(() => {
+      .then(constructSchema)
+      .then((tables) => {
         // We need to assign the resulting tables object to **something** so that
         // the garbage collector does not collect it.
         app.schema = tables
@@ -86,6 +90,9 @@ export function routes() {
   }
 }
 
+/**
+ * Exports a simple html page telling the user to come back with a warrant.
+ */
 export function internalError() {
   const app = express()
   const port = parseInt(process.env.SERVER_PORT, 10) || 8020

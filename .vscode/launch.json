@@ -30,6 +30,22 @@
         },
         {
             "type": "node",
+            "request": "launch",
+            "name": "Debug",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "run",
+                "debug"
+            ],
+            "port": 9229,
+            "console": "integratedTerminal",
+            "autoAttachChildProcesses": true,
+            "restart": true,
+            "timeout": 10000,
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
+            "type": "node",
             "request": "attach",
             "name": "Attach",
             "port": 9229,
@@ -37,7 +53,7 @@
             "localRoot": "${workspaceFolder}",
             "remoteRoot": "/server",
             "outFiles": [
-                "${workspaceFolder}/dist/**/*.js"
+                "${workspaceFolder}/packages/core/dist/**/*.js"
             ],
             "skipFiles": [
                 "<node_internals>/**/*.js"
