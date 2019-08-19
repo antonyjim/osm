@@ -22,6 +22,8 @@ SOURCE {{dirname}}/schema/content_tables.sql;
 SOURCE {{dirname}}/schema/form_tables.sql;
 SOURCE {{dirname}}/schema/log_tables.sql;
 
+DELIMITER //
+
 /* Source triggers */
 SOURCE {{dirname}}/triggers/ins_sys_user.sql;
 SOURCE {{dirname}}/triggers/upd_sys_user.sql;
@@ -32,6 +34,8 @@ SOURCE {{dirname}}/proc/fetch_user_role.sql;
 SOURCE {{dirname}}/proc/fetch_user_table_permissions.sql;
 SOURCE {{dirname}}/proc/login_email.sql;
 SOURCE {{dirname}}/set_user_confirmation.sql;
+
+DELIMITER ;
 
 /* Insert some default data */
 
@@ -138,6 +142,14 @@ INSERT INTO sys_navigation (sys_id, inner_text, path_name, header, menu, role_re
     '7eed09d5-e61c-4cc7-b8f6-0fe5b8bb5f8a',
     'Table Columns',
     '/t/sys_db_dictionary_list',
+    'Site Administration',
+    'Admin',
+    'd6692dc1-9d32-4894-badf95820d09431b'
+),
+(
+    '08ef8293-fae2-438a-8adf-bddd9e465d65',
+    'Tables',
+    '/t/sys_db_object_list',
     'Site Administration',
     'Admin',
     'd6692dc1-9d32-4894-badf95820d09431b'
