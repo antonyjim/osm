@@ -111,26 +111,33 @@ INSERT INTO sys_user_role (user_id, role_id) VALUES (
 );
 
 INSERT INTO sys_route_module (host, description, pre_auth, routing, file_path, role_id) VALUES (
-    'AJ-7510',
+    '*',
     'Client Application',
     0,
     '*',
-    'D:\\Projects\\node\\service-tomorrow\\clientApp',
+    'osm-client',
     NULL
 ), (
-    'AJ-7510',
+    '*',
     'Static Client Resources',
     1,
     '/public',
-    'D:\\Projects\\node\\service-tomorrow\\clientApp\\pubServer',
+    'osm-client/pubServer',
     NULL
 );
 
-INSERT INTO sys_navigation (sys_id, inner_text, method, path_name, header, menu, role_required) VALUES (
+INSERT INTO sys_navigation (sys_id, inner_text, path_name, header, menu, role_required) VALUES (
     'f334d193-8906-4402-a073-d238ee5dd597',
     'Navigation Links',
-    'GET',
     '/t/sys_navigation_list',
+    'Site Administration',
+    'Admin',
+    'd6692dc1-9d32-4894-badf95820d09431b'
+),
+(
+    '7eed09d5-e61c-4cc7-b8f6-0fe5b8bb5f8a',
+    'Table Columns',
+    '/t/sys_db_dictionary_list',
     'Site Administration',
     'Admin',
     'd6692dc1-9d32-4894-badf95820d09431b'

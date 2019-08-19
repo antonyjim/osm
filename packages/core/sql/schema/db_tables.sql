@@ -12,10 +12,10 @@
 CREATE TABLE sys_db_object (
     PRIMARY KEY(sys_id),
     sys_id CHAR(36),
-    name VARCHAR(40) NOT NULL, -- Name of the table
+    table_name VARCHAR(40) NOT NULL, -- Name of the table
     label VARCHAR(40) NOT NULL, -- Friendly name
     plural VARCHAR(40),
-    description VARCHAR(80), -- Short Description
+    short_description VARCHAR(80), -- Short Description
     /*
         The auditable field will be used to determine
         whether or not to include fields such as:

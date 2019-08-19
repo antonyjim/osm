@@ -1,5 +1,5 @@
 {
-  "name": "open-service-management-client",
+  "name": "osm-client",
   "version": "0.1.0",
   "private": false,
   "dependencies": {

@@ -1,0 +1,47 @@
+{
+    "name": "{{shortName}}",
+    "version": "1.0.0",
+    "description": "{{description}}",
+    "directories": {
+        "doc": "docs"
+    },
+    "dependencies": {
+        "@types/cookie-parser": "*",
+        "@types/express": "*",
+        "@types/jest": "24.0.11",
+        "@types/jsonwebtoken": "*",
+        "@types/node": "11.13.0",
+        "cookie-parser": "*",
+        "css-loader": "1.0.0",
+        "express": "*",
+        "jest": "23.6.0",
+        "typescript": "3.4.1",
+        "webpack": "4.28.3"
+    },
+    "devDependencies": {
+        "nodemon": "*",
+        "tslint": "^5.14.0",
+        "tslint-config-prettier": "^1.18.0"
+    },
+    "osm": {
+        "baseRoute": "{{baseRoute}}",
+        "longName": "{{friendlyName}}",
+        "module": 0,
+        "scope": "{{appScope}}"
+    },
+    "scripts": {
+        "test": "mocha",
+        "debug": "nodemon --ignore packages/core/dist/lib/hooks --legacy-watch --watch packages/core/dist --inspect-brk --nolazy packages/core/dist",
+        "lint": "tslint -c ../../tslint.json 'src/**/*.{ts,tsx}'"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/antonyjim/osm.git"
+    },
+    "author": "Anthony Jund <antonyjund@gmail.com>",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/antonyjim/osm/issues"
+    },
+    "homepage": "https://github.com/antonyjim/osm#readme"
+}
