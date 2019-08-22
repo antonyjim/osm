@@ -7,7 +7,7 @@
 
 // NPM Modules
 import { Router, Request, Response } from 'express'
-import { getTables } from '../../lib/model/constructSchema'
+import { getTables } from '../../app/model/constructSchema'
 import { exportExcel } from '../../lib/excel/makeBook'
 
 // Local Modules

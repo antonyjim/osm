@@ -106,7 +106,7 @@ BEGIN
 
     CLOSE role_cursor;
 
-    SELECT can_read AS can_read, can_edit AS can_edit, can_delete AS can_delete;
+    SELECT can_read AS `read`, can_edit AS `edit`, can_delete AS `delete`;
 END//
 
 /* END fetch_user_table_permissions */

@@ -1,4 +1,4 @@
-import { getTables } from '../../model/constructSchema'
+import { getTables } from '../../../app/model/constructSchema'
 import { ITableField, ITableSchema } from '../../../types/forms'
 import { IDictionary } from '../../../types/server'
 

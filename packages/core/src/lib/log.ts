@@ -56,7 +56,7 @@ class Log {
   }
 
   public info(objectId?: string) {
-    const params = [this.tableName]
+    const params: Array<string | Date> = [this.tableName]
     let log = ''
     let query = ''
     if (this.requiresContext) {
@@ -69,7 +69,9 @@ class Log {
           )
         )
       }
-      query = 'INSERT INTO ?? (??, log_message, log_severity) VALUES (?, ?, 5)'
+      query =
+        'INSERT INTO ?? (log_time, log_user, log_message, log_severity) VALUES (?, ?, ?, 5)'
+      params.push(new Date())
       params.push(this.primaryKey)
       params.push(objectId)
     } else {
@@ -113,7 +115,9 @@ class Log {
           )
         )
       }
-      query = 'INSERT INTO ?? (??, log_message, log_severity) VALUES (?, ?, ?)'
+      query =
+        'INSERT INTO ?? (log_time, log_user, log_message, log_severity) VALUES (?, ?, ?, 5)'
+      params.push(new Date())
       params.push(this.primaryKey)
       params.push(objectId)
     } else {

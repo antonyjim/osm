@@ -11,10 +11,10 @@ import { v4 as uuid } from 'uuid'
 import { Pool, PoolConnection } from 'mysql'
 
 // Local Modules
-import loadModule from '../model/loadHook'
+import loadModule from '../../app/model/loadHook'
 import { IResponseMessage, IPagination, IDictionary } from '../../types/server'
 import { IFieldMessage } from '../../types/api'
-import { getTables } from '../model/constructSchema'
+import { getTables } from '../../app/model/constructSchema'
 import { getPool } from '../connection'
 import { Log } from '../log'
 import {

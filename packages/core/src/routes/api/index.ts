@@ -12,7 +12,7 @@ import { sign } from 'jsonwebtoken'
 // Local Modules
 import { endpointAuthentication, jwtKeys } from '../middleware/authentication'
 import { adminRoutes } from './admin'
-import { login, getToken, sysUser } from './../../lib/users/login'
+import { login, getToken, sysUser } from '../../app/users/login'
 import { IStatusMessage } from '../../types/server'
 import { jwtSecret } from '../../lib/connection'
 import { q } from './q'

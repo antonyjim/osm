@@ -9,7 +9,7 @@
 import { Router, Request, Response } from 'express'
 
 // Local Modules
-import API from '../../lib/api/index'
+import API from '../../app/api/index'
 import { fileRouter } from './fileHandler'
 
 // Constants and global variables

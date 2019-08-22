@@ -6,7 +6,7 @@
 // Node Modules
 
 // NPM Modules
-import { Router } from 'express'
+import { Router, static as serveStaticDirectory } from 'express'
 import * as cookieParser from 'cookie-parser'
 import * as bodyParser from 'body-parser'
 
@@ -34,28 +34,36 @@ simpleQuery(
   'SELECT routing, file_path FROM sys_route_module WHERE (host = ? OR host = ?) AND pre_auth = 1',
   [getHostname(), '*']
 )
-  .then((results: { file_path: string; routing: string }[]) => {
-    results.forEach((moduleInfo) => {
-      try {
-        const routeHandler = require(moduleInfo.file_path)
-        console.log(
-          '[STARTUP] Using module located at %s for route %s',
-          join(__dirname, moduleInfo.file_path),
-          moduleInfo.routing
-        )
-        router.use(moduleInfo.routing, routeHandler)
-      } catch (e) {
-        console.error(
-          '[STARTUP] Could not require route located at %s for route %s',
-          join(__dirname, moduleInfo.file_path),
-          moduleInfo.routing
-        )
-        console.error(e)
-      }
-    })
-    return 0
-  })
+  // .then((results: { file_path: string; routing: string }[]) => {
+  //   results.forEach((moduleInfo) => {
+  //     try {
+  //       const routeHandler = require(moduleInfo.file_path)
+  //       console.log(
+  //         '[STARTUP] Using module located at %s for route %s',
+  //         join(__dirname, moduleInfo.file_path),
+  //         moduleInfo.routing
+  //       )
+  //       router.use(moduleInfo.routing, routeHandler)
+  //     } catch (e) {
+  //       console.error(
+  //         '[STARTUP] Could not require route located at %s for route %s',
+  //         join(__dirname, moduleInfo.file_path),
+  //         moduleInfo.routing
+  //       )
+  //       console.error(e)
+  //     }
+  //   })
+  //   return 0
+  // })
   .then(() => {
+    router.use(
+      '/public/static',
+      serveStaticDirectory(join(__dirname, '../../client/build/static'))
+    )
+    router.use(
+      '/public/',
+      serveStaticDirectory(join(__dirname, '../../client/public'))
+    )
     router.get('/excel', (req, res) => {
       cell().then((status) => {
         res.status(200).json(status)

@@ -1,11 +1,11 @@
 import { Router, Request, Response } from 'express'
-import { getCustomComponentFileTree } from '../../lib/customComponents/designer/fileExploder/getTree'
-import { IFolder } from '../../lib/customComponents/designer/types/files'
-import { ICustomComponentInfo } from '../../lib/customComponents/customComponentLoader'
-import { bootstrapNewCustomComponent } from '../../lib/customComponents/designer/bootstrapper'
-import { getCustomComponentDetails } from '../../lib/customComponents/designer/getCustomComponentDetails'
-import { getCustomComponentFile } from '../../lib/customComponents/designer/fileEditor/getFile'
-import { getCustomComponentLibs } from '../../lib/customComponents/designer/getLibs'
+import { getCustomComponentFileTree } from '../../app/customComponents/designer/fileExploder/getTree'
+import { IFolder } from '../../app/customComponents/designer/types/files'
+import { ICustomComponentInfo } from '../../app/customComponents/customComponentLoader'
+import { bootstrapNewCustomComponent } from '../../app/customComponents/designer/bootstrapper'
+import { getCustomComponentDetails } from '../../app/customComponents/designer/getCustomComponentDetails'
+import { getCustomComponentFile } from '../../app/customComponents/designer/fileEditor/getFile'
+import { getCustomComponentLibs } from '../../app/customComponents/designer/getLibs'
 
 const ccRoutes = Router()
 

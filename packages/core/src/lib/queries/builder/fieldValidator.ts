@@ -10,7 +10,7 @@
 // Local Modules
 import { simpleQuery } from '../../connection'
 import { ITableField, GenericFieldTypes } from '../../../types/forms'
-import { getTables } from '../../model/constructSchema'
+import { getTables } from '../../../app/model/constructSchema'
 import { isBool as isBoolean } from './../../utils'
 
 // Constants and global variables

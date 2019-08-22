@@ -7,15 +7,11 @@
     "doc": "docs"
   },
   "dependencies": {},
-  "devDependencies": {
-    "tslint": "*",
-    "tslint-config-prettier": "^1.18.0"
-  },
   "scripts": {
     "install_all": "node bin/install-all.js",
-    "test": "mocha",
-    "debug": "nodemon --ignore packages/core/dist/lib/hooks --legacy-watch --watch packages/core/dist --inspect-brk --nolazy packages/core/dist",
-    "lint": "tslint -c config/tslint.json 'packages/**/src/*.{ts,tsx}'",
+    "test": "node bin/test-all.js",
+    "debug": "cd packages/core && npm run debug",
+    "lint": "node bin/lint.js'",
     "watch": "node bin/watch-packages.js"
   },
   "repository": {

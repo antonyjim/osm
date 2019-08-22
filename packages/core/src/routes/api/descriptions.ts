@@ -10,9 +10,9 @@
 import { Router, Request, Response } from 'express'
 
 // Local Modules
-import Description from '../../lib/model/descriptions'
+import Description from '../../app/model/descriptions'
 import Towel from '../../lib/queries/towel/towel'
-import getForm from '../../lib/model/constructForms'
+import getForm from '../../app/model/constructForms'
 import { jwtKeys } from '../middleware/authentication'
 
 // Constants and global variables
@@ -35,14 +35,23 @@ descriptions.get('/form/:table', (req: Request, res: Response) => {
   }
 })
 
+/**
+ * @route /api/q/describe/:table
+ * @method GET
+ * @description Returns a description of a table including user permissions.
+ */
 descriptions.get('/:table', (req: Request, res: Response) => {
-  new Description(
+  // Create a new description object with the currently logged
+  // in user in order to retrieve the correct field data.
+  const tableDescription = new Description(
     req.auth[jwtKeys.user],
     req.auth[jwtKeys.scope],
     req.params.table
   )
+
+  tableDescription
     .verifyAndReturnFields()
-    .then()
+    .then(tableDescription.getUserPermissions)
     .then((fields) => {
       res.status(200).json(fields)
     })

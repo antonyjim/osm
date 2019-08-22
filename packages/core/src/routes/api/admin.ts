@@ -11,7 +11,7 @@ import { Router, Request, Response } from 'express'
 // Local Modules
 // import { NavigationSettings } from '../../types/roles'
 import { IStatusMessage } from '../../types/server'
-import { Roles } from '../../lib/users/roles'
+import { Roles } from '../../app/users/roles'
 import { Querynator } from '../../lib/queries'
 
 // Constants and global variables
