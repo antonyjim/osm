@@ -68,3 +68,6 @@ typings/
 third-party/
 bundles/
 monaco.d.ts
+
+# Ignore generated files
+gen_*

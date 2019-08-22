@@ -105,3 +105,17 @@ CREATE TABLE sys_navigation (
         ON DELETE RESTRICT
         ON UPDATE CASCADE
 ) CHARSET = utf8;
+
+/*
+  Register custom resource requests.
+*/
+CREATE TABLE sys_resource_registry (
+  PRIMARY KEY (sys_id),
+  sys_id CHAR(36),
+  rand_hash CHAR(8),
+  title VARCHAR(80),
+  short_description VARCHAR(255),
+  raw_sql TEXT,
+  towel_query TEXT,
+  proc_name VARCHAR(40)
+) CHARSET = utf8;

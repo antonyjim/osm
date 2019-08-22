@@ -24,7 +24,7 @@ var availableVars = {
 
 console.log(availableVars.dirname)
 
-var resultFile = 'schema_source.sql'
+var resultFile = 'gen_require.sql'
 
 var interpolatedText = (function parseSql(text) {
   text = text
@@ -43,8 +43,6 @@ var interpolatedText = (function parseSql(text) {
 
   while ((match = tagRegex.exec(text))) {
     index = match.index
-    console.log(availableVars[match[1].trim()])
-
 
     // Clean off any extra spaces on the interpolated var
     resultString += text.slice(lastIndex, index)
@@ -59,7 +57,7 @@ var interpolatedText = (function parseSql(text) {
   return resultString
 })(readFileSync(join(__dirname, 'schema_entry.sql')))
 
-console.log(interpolatedText)
+console.log('source %s', resultFile)
 writeFileSync(join(__dirname, resultFile), interpolatedText, {
   encoding: 'utf-8'
 })

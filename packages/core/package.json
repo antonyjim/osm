@@ -21,6 +21,7 @@
     "monaco-editor": "^0.15.6",
     "mysql": "^2.16.0",
     "nodemailer": "^4.7.0",
+    "osm-client": "file:../client",
     "typescript": "^3.3.3333",
     "uuid": "^3.3.2",
     "webpack": "^4.35.0"
