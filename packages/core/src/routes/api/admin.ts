@@ -13,6 +13,8 @@ import { Router, Request, Response } from 'express'
 import { IStatusMessage } from '../../types/server'
 import { Roles } from '../../app/users/roles'
 import { Querynator } from '../../lib/queries'
+import { authorize } from '../middleware/authorization'
+import { getServerStats } from '../../app/administration/hostInfo'
 
 // Constants and global variables
 const adminRoutes = Router()
@@ -150,6 +152,19 @@ const adminRoutes = Router()
 //     })
 //   }
 // })
+
+adminRoutes.get(
+  '/stats',
+  authorize('administrator', (req: Request, res: Response) => {
+    getServerStats()
+      .then((stats) => {
+        res.status(200).json(stats)
+      })
+      .catch((err) => {
+        res.status(500).json({ error: err })
+      })
+  })
+)
 
 adminRoutes.post('/sql', (req: Request, res: Response) => {
   new Querynator({ req, res })

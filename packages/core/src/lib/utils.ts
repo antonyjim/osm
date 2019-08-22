@@ -34,33 +34,6 @@ export function handleError(err) {
   return Promise.reject(err)
 }
 
-export async function getServerStatus(): Promise<IServerStats> {
-  const cpuCount = cpus().length
-  const architecture = arch()
-  const processMem = process.memoryUsage()
-  const openMem = freemem()
-  const totMem = totalmem()
-  const host = hostname()
-  const OS = platform()
-  return await {
-    os: {
-      cpuCount,
-      architecture,
-      openMem,
-      totMem,
-      host,
-      OS,
-      processMem
-    },
-    db: {
-      poolLimit: parseInt(process.env.DB_POOL_LIMIT, 10) || 1,
-      dbName: process.env.DB_DB || 'thq',
-      NODE_ENV: process.env.NODE_ENV || 'development',
-      version: await simpleQuery('SELECT VERSION() AS VERSION')
-    }
-  }
-}
-
 export function deleteDirSync(dir: string) {
   /**
    * Copy the contents of a directory

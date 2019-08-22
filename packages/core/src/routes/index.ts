@@ -19,6 +19,7 @@ import { apiRoutes } from './api'
 import uiRoutes from './ui'
 import { tokenValidation } from './middleware/authentication'
 import { join } from 'path'
+import { clientPath } from '../config'
 
 // Constants and global variables
 const router = Router()
@@ -58,12 +59,9 @@ simpleQuery(
   .then(() => {
     router.use(
       '/public/static',
-      serveStaticDirectory(join(__dirname, '../../client/build/static'))
+      serveStaticDirectory(join(clientPath, 'build/static'))
     )
-    router.use(
-      '/public/',
-      serveStaticDirectory(join(__dirname, '../../client/public'))
-    )
+    router.use('/public/', serveStaticDirectory(join(clientPath, 'public')))
     router.get('/excel', (req, res) => {
       cell().then((status) => {
         res.status(200).json(status)

@@ -77,6 +77,10 @@ export interface IServerStats {
     version: any[]
     // version: { VERSION: string }[]
   }
+  app: {
+    version: string
+    domain: string
+  }
 }
 
 export interface IPagination {

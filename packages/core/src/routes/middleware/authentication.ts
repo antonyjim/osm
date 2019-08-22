@@ -11,7 +11,6 @@ import { Request, Response, NextFunction } from 'express'
 import { sign, verify } from 'jsonwebtoken'
 
 // Local Modules
-import { validateEndpoint } from './../../lib/navigation/navigation'
 import { IStatusMessage } from './../../types/server'
 import { UserTypes } from '../../types/users'
 import { jwtSecret } from '../../lib/connection'
@@ -323,35 +322,37 @@ export function endpointAuthentication() {
           }
         ]
       })
-    } else {
-      validateEndpoint(req.method, req.originalUrl, req.auth[jwtKeys.scope])
-        .then(
-          (onUserAuthorized: IStatusMessage) => {
-            req.auth[jwtKeys.isAuthorized] = onUserAuthorized.details.authorized
-            next()
-          },
-          (onUserUnAuthorized: IStatusMessage) => {
-            req.auth[jwtKeys.isAuthorized] =
-              onUserUnAuthorized.details.authorized
-            console.log('User is not authorized')
-            return res.status(401).json({
-              errors: [
-                {
-                  error: true,
-                  message: 'User unauthorized with current priviledge'
-                }
-              ]
-            })
-          }
-        )
-        .catch((error: IStatusMessage) => {
-          console.error(error)
-          req.auth[jwtKeys.isAuthorized] = false
-          return res.status(401).json({
-            error: true,
-            message: 'User unauthorized with current priviledge'
-          })
-        })
     }
   }
+  //   } else {
+  //     validateEndpoint(req.method, req.originalUrl, req.auth[jwtKeys.scope])
+  //       .then(
+  //         (onUserAuthorized: IStatusMessage) => {
+  //           req.auth[jwtKeys.isAuthorized] = onUserAuthorized.details.authorized
+  //           next()
+  //         },
+  //         (onUserUnAuthorized: IStatusMessage) => {
+  //           req.auth[jwtKeys.isAuthorized] =
+  //             onUserUnAuthorized.details.authorized
+  //           console.log('User is not authorized')
+  //           return res.status(401).json({
+  //             errors: [
+  //               {
+  //                 error: true,
+  //                 message: 'User unauthorized with current priviledge'
+  //               }
+  //             ]
+  //           })
+  //         }
+  //       )
+  //       .catch((error: IStatusMessage) => {
+  //         console.error(error)
+  //         req.auth[jwtKeys.isAuthorized] = false
+  //         return res.status(401).json({
+  //           error: true,
+  //           message: 'User unauthorized with current priviledge'
+  //         })
+  //       })
+  //   }
+  // }
 }

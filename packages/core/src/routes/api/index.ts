@@ -10,7 +10,7 @@ import { Router, Request, Response } from 'express'
 import { sign } from 'jsonwebtoken'
 
 // Local Modules
-import { endpointAuthentication, jwtKeys } from '../middleware/authentication'
+import { jwtKeys } from '../middleware/authentication'
 import { adminRoutes } from './admin'
 import { login, getToken, sysUser } from '../../app/users/login'
 import { IStatusMessage } from '../../types/server'
@@ -21,7 +21,7 @@ import { UserTypes } from '../../types/users'
 import useradminRoutes from './users'
 import descriptions from './descriptions'
 import { excelRoute } from './excel'
-import { getRoleAuthorizedNavigation } from '../../lib/navigation/navigation'
+import { getRoleAuthorizedNavigation } from '../../app/navigation/navigation'
 import { fileRouter } from './fileHandler'
 import { ccRoutes } from './customComponents'
 

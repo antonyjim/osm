@@ -11,13 +11,14 @@ import { resolve, join } from 'path'
 import { Router, Request, Response } from 'express'
 
 // Local Modules
-import { tokenValidation } from './../middleware/authentication'
+import { tokenValidation, jwtKeys } from './../middleware/authentication'
 import authRoutes from './login'
 import verifyRoutes from './verification'
-import { getServerStatus, getHostname } from '../../lib/utils'
+import { getHostname } from '../../lib/utils'
 import { simpleQuery } from '../../lib/queries'
 import { authorize } from '../middleware/authorization'
 import Towel from '../../lib/queries/towel/towel'
+import { clientPath } from '../../config'
 // import * as routes from '../../../../service-tomorrow-client/server'
 // import * as routes from 'serve-client'
 
@@ -28,15 +29,6 @@ export default function(): Promise<Router> {
     uiRoutes.use(tokenValidation())
     uiRoutes.use('/auth', authRoutes)
     uiRoutes.use('/verify', verifyRoutes)
-
-    uiRoutes.get(
-      '/stats',
-      authorize('administrator', (req: Request, res: Response) => {
-        getServerStatus().then((stats) => {
-          res.status(200).json(stats)
-        })
-      })
-    )
 
     // If nginx is in use, /wetty will auto proxy pass to the locally running instance.
     // If it's made it this far, then wetty is not running
@@ -62,38 +54,62 @@ export default function(): Promise<Router> {
       'SELECT routing, file_path FROM sys_route_module WHERE (host = ? OR host = ?) AND pre_auth = 0',
       [getHostname(), '*']
     )
-      .then(
-        (results: { file_path: string; routing: string }[]): Promise<void> => {
-          return new Promise(
-            (
-              resolveRouteResolved: () => void,
-              rejectRouteResolved: (e: Error) => void
-            ): void => {
-              results.forEach((moduleInfo) => {
-                try {
-                  const routeHandler = require(moduleInfo.file_path)
-                  console.log(
-                    '[STARTUP] Using module located at %s for route %s',
-                    moduleInfo.file_path,
-                    moduleInfo.routing
-                  )
-                  uiRoutes.use(moduleInfo.routing, routeHandler)
-                } catch (e) {
-                  console.error(
-                    '[STARTUP] Could not require route located at %s for route %s',
-                    join(__dirname, moduleInfo.file_path),
-                    moduleInfo.routing
-                  )
-                  console.error(e)
-                  return rejectRouteResolved(e)
-                }
-              })
-              return resolveRouteResolved()
-            }
-          )
-        }
-      )
+      // .then(
+      //   (results: { file_path: string; routing: string }[]): Promise<void> => {
+      //     return new Promise(
+      //       (
+      //         resolveRouteResolved: () => void,
+      //         rejectRouteResolved: (e: Error) => void
+      //       ): void => {
+      //         results.forEach((moduleInfo) => {
+      //           try {
+      //             const routeHandler = require(moduleInfo.file_path)
+      //             console.log(
+      //               '[STARTUP] Using module located at %s for route %s',
+      //               moduleInfo.file_path,
+      //               moduleInfo.routing
+      //             )
+      //             uiRoutes.use(moduleInfo.routing, routeHandler)
+      //           } catch (e) {
+      //             console.error(
+      //               '[STARTUP] Could not require route located at %s for route %s',
+      //               join(__dirname, moduleInfo.file_path),
+      //               moduleInfo.routing
+      //             )
+      //             console.error(e)
+      //             return rejectRouteResolved(e)
+      //           }
+      //         })
+      //         return resolveRouteResolved()
+      //       }
+      //     )
+      //   }
+      // )
       .then(() => {
+        uiRoutes.get(
+          '*',
+          (req: Request, res: Response): void => {
+            if (req.auth[jwtKeys.isAuthenticated] && req.auth[jwtKeys.user]) {
+              res.writeHead(200, {
+                'Content-Type': 'text/html; charset=UTF-8'
+              })
+              const fileStream = createReadStream(
+                resolve(__dirname, clientPath, 'build/index.html')
+              )
+              fileStream.on('data', (data) => {
+                res.write(data)
+              })
+              fileStream.on('end', () => {
+                res.end()
+                return
+              })
+            } else {
+              res.redirect(
+                '/auth/login?returnUrl=' + encodeURI(req.originalUrl)
+              )
+            }
+          }
+        )
         uiRoutes.all(
           '*',
           (req: Request, res: Response): void => {
