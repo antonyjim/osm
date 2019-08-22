@@ -11,7 +11,7 @@
     "install_all": "node bin/install-all.js",
     "test": "node bin/test-all.js",
     "debug": "cd packages/core && npm run debug",
-    "lint": "node bin/lint.js'",
+    "lint": "node bin/lint.js",
     "watch": "node bin/watch-packages.js"
   },
   "repository": {
