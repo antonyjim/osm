@@ -45,6 +45,7 @@ export default class Towel extends TowelRecord {
     limit: 25,
     offset: 0
   }
+
   constructor(table: string) {
     super(table)
     let schema

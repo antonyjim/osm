@@ -16,6 +16,7 @@ import { v4 as uuid } from 'uuid'
 import Towel from '../queries/towel/towel'
 import { copyDirSync, deleteDirSync } from '../utils'
 import Sheet from './sheet'
+import { platform } from 'os'
 
 // Constants and global variables
 
@@ -24,17 +25,12 @@ const msToS = (ms: number) => {
   return Math.fround(ms / 1000)
 }
 
-export async function exportExcel(table: string, fields: string[], opts?: any) {
+export async function exportExcel(towel: Towel) {
   return new Promise((resolvePromise) => {
     const startTime = performance.now() // Measure before query
-    const towel = new Towel(table)
-    towel.setFields(fields)
+
+    // Limit results to 15000
     towel.setLimit(15000)
-    for (const field in opts) {
-      if (field) {
-        towel.addArgument(field, opts[field])
-      }
-    }
     towel
       .get()
       .then((q) => {
@@ -46,14 +42,11 @@ export async function exportExcel(table: string, fields: string[], opts?: any) {
         const outPath = resolve(__dirname, '../../../../resources/excel/books/')
 
         try {
-          copyDirSync(
-            resolve(__dirname, '../../../../resources/excel/template'),
-            bookPath
-          )
+          copyDirSync(resolve(__dirname, 'template'), bookPath)
         } catch (e) {
           throw new Error('Template does not exist at ' + tempPath)
         }
-        const { sheet, shared } = Sheet(data, fields)
+        const { sheet, shared } = Sheet(data, towel.requestedFields)
         const sheetFile = resolve(bookPath, 'xl/worksheets/sheet1.xml')
         const sharedFile = resolve(bookPath, 'xl/sharedStrings.xml')
         writeFileSync(
@@ -68,7 +61,10 @@ export async function exportExcel(table: string, fields: string[], opts?: any) {
         )
         const copyTime = performance.now() // After copy and sheet writes
 
-        const zipPath = '"C:\\Program Files\\7-Zip\\7z.exe"' // Set the path for the 7z executable
+        // Set the path for the 7z executable
+        const zipPath =
+          platform() === 'win32' ? '"C:\\Program Files\\7-Zip\\7z.exe"' : 'zip'
+
         exec(
           [
             zipPath,
@@ -82,7 +78,7 @@ export async function exportExcel(table: string, fields: string[], opts?: any) {
             console.log(stderr)
             rename(
               `${outPath}/${bookFileName}.zip`,
-              `${outPath}/${table}.xlsx`,
+              `${outPath}/${towel.tableName}.xlsx`,
               (renameErr) => {
                 if (renameErr) console.error(renameErr)
                 try {

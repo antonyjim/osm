@@ -1,0 +1,11 @@
+{
+  "name": "osm-install",
+  "version": "1.0.0",
+  "description": "Installs OSM",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run test"
+  },
+  "author": "Anthony Jund <antonyjund@gmail.com>",
+  "license": "ISC"
+}

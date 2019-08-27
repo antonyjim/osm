@@ -30,7 +30,8 @@ import { IDictionary } from '../../../types/server'
  * Retrieve values from a database table without authorization.
  */
 export class TowelRecord {
-  protected tableName: string // Database table name
+  public tableName: string // Database table name
+  public requestedFields: string[]
   protected tableSchema: ITableSchema // Schema from the sys_db_dictionary table
   protected queryFieldsArr: string[] // List of fields to return from query
   protected primaryKey: string // Duh
@@ -39,7 +40,6 @@ export class TowelRecord {
   protected aggregates: {
     [aggregate: string]: string
   }
-  protected requestedFields: string[]
 
   constructor(table: string) {
     let schema

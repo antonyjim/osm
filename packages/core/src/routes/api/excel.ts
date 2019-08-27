@@ -9,6 +9,7 @@
 import { Router, Request, Response } from 'express'
 import { getTables } from '../../app/model/constructSchema'
 import { exportExcel } from '../../lib/excel/makeBook'
+import Towel from '../../lib/queries/towel/towel'
 
 // Local Modules
 
@@ -22,7 +23,9 @@ excelRoute.get('/:table', (req: Request, res: Response) => {
   if (!(table in getTables())) {
     return res.status(404).json({ error: 'Table not found' })
   } else {
-    exportExcel(table, fields)
+    const towelQuery: Towel = new Towel(table)
+    towelQuery.setFields(fields)
+    exportExcel(towelQuery)
       .then((fileInfo) => {
         return res.status(200).json(fileInfo)
       })
