@@ -1,4 +1,5 @@
-// Watch for changes in the packages/*/src directories
+#!/usr/bin/node
+ // Watch for changes in the packages/*/src directories
 var {
   readdirSync,
   existsSync,

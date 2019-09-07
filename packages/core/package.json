@@ -1,9 +1,8 @@
 {
-  "name": "open-service-management-core",
+  "name": "core",
   "version": "0.1.0",
   "author": "Anthony Jund<antonyjund@gmail.com>",
-  "description": "",
-  "main": "dist/index.js",
+  "description": "The core osm application",
   "repository": "https://github.com/antonyjim/osm",
   "dependencies": {
     "@babel/core": "^7.4.5",
@@ -44,6 +43,14 @@
     "mocha": "^5.2.0",
     "nodemon": "^1.18.9",
     "ts-node": "^8.0.3"
+  },
+  "osm": {
+    "basePath": "/",
+    "entry": {
+      "lib": "lib/index.ts",
+      "route": "app/"
+    },
+    "lib": "shared"
   },
   "scripts": {
     "postinstall": "tsc -p .",

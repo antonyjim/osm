@@ -1,17 +1,35 @@
 {
     "version": "2.0.0",
-    "tasks": [
-        {
+    "tasks": [{
             "label": "tsc-watch",
             "command": "npm",
-            "args": ["run", "watch"],
+            "args": [
+                "run",
+                "watch"
+            ],
             "type": "shell",
             "isBackground": true,
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "problemMatcher": ["$tsc-watch"]
+            "problemMatcher": [
+                "$tsc-watch"
+            ]
+        },
+        {
+            "type": "npm",
+            "script": "debug",
+            "path": "packages/core/",
+            "problemMatcher": []
+        },
+        {
+            "label": "watch-all",
+            "command": "node",
+            "args": [
+                "bin/watch-packages.js"
+            ],
+            "type": "shell"
         }
     ]
 }

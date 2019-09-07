@@ -105,3 +105,29 @@ CREATE TABLE sys_navigation (
         ON DELETE RESTRICT
         ON UPDATE CASCADE
 ) CHARSET = utf8;
+
+/* Store generated sql statements from apiResource loader */
+CREATE TABLE sys_generated_resource (
+  PRIMARY KEY (sys_auto_id),
+  resource_hash CHAR(8) NOT NULL,
+  params JSON,
+  sql_query TEXT
+) CHARSET = utf8;
+
+CREATE TABLE sys_generated_resource_role (
+  PRIMARY KEY (sys_auto_id),
+  sys_auto_id INT,
+  resource_hash CHAR(8),
+  role_limiter CHAR(36),
+  access_rule BOOLEAN,
+
+  FOREIGN KEY(resource_hash)
+    REFERENCES sys_generated_resource(resource_hash)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE,
+
+  FOREIGN KEY(role_limiter)
+    REFERENCES sys_role(sys_id)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE
+) CHARSET = utf8;

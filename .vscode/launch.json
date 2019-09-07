@@ -20,7 +20,7 @@
                 "run",
                 "debug"
             ],
-            "preLaunchTask": "node bin/watch-packages.js",
+            "preLaunchTask": "watch-all",
             "port": 9229,
             "console": "internalConsole",
             "internalConsoleOptions": "openOnSessionStart",
