@@ -13,14 +13,13 @@
 import { Router, Request, Response } from 'express'
 
 // Local Modules
-import { IStatusMessage, IResponseMessage } from '../../types/server'
-import { UserTypes } from '../../types/users'
-import { login, getToken, sysUser } from '../../app/users/login'
-import { Log } from '../../lib/log'
-import User, { forgotPassword } from '../../app/users/users'
+import { IStatusMessage, IResponseMessage } from '@osm/server'
+import { UserTypes } from '@osm/users'
+import { login, getToken, sysUser } from '@app/users/login'
+import { Log } from '@lib/log'
+import User, { forgotPassword } from '@app/users/users'
 import { createReadStream } from 'fs'
 import { resolve } from 'path'
-import { NextFunction } from 'express-serve-static-core'
 import { setResponseToken, jwtKeys } from '../middleware/authentication'
 
 // Constants and global variables

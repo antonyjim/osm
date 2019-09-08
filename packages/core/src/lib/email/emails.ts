@@ -10,9 +10,9 @@ import { createTransport, Transporter, SendMailOptions } from 'nodemailer'
 import { sign } from 'jsonwebtoken'
 
 // Local Modules
-import { Querynator, simpleQuery } from '../queries'
-import { jwtSecret } from '../connection'
-import { IEmailMessage } from '../../types/mailmessage'
+import { Querynator, simpleQuery } from '@lib/queries'
+import { jwtSecret } from '@lib/connection'
+import { IEmailMessage } from '@osm/mailmessage'
 
 // Constants and global variables
 

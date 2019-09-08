@@ -7,9 +7,9 @@
 import { EventEmitter } from 'events'
 
 // Local Modules
-import { simpleQuery } from '../../lib/connection'
-import { ITableField, ITableSchema } from '../../types/forms'
-import { IDictionary } from '../../types/server'
+import { simpleQuery } from '@lib/connection'
+import { ITableField, ITableSchema } from '@osm/forms'
+import { IDictionary } from '@osm/server'
 
 // Constants and global module variables
 const SYS_DB_OBJECT = 'sys_db_object'

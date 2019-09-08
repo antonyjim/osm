@@ -5,7 +5,7 @@ import { writeFileSync, rename } from 'fs'
 import { v4 as uuid } from 'uuid'
 
 import Sheet from './sheet'
-import { copyDirSync, deleteDirSync } from '../utils'
+import { copyDirSync, deleteDirSync } from '@lib/utils'
 import { resolve } from 'path'
 import Towel from '../queries/towel/towel'
 

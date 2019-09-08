@@ -6,7 +6,7 @@
 // Node Modules
 import { existsSync } from 'fs'
 import { resolve } from 'path'
-import { HOOKS_DIR } from '../../lib/connection'
+import { HOOKS_DIR } from '@lib/connection'
 
 // NPM Modules
 

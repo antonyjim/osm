@@ -10,12 +10,12 @@ import { compare } from 'bcrypt'
 import { sign } from 'jsonwebtoken'
 
 // Local Modules
-import { Querynator, simpleQuery } from '../../lib/queries'
-import { jwtSecret, getPool } from '../../lib/connection'
-import { UserTypes } from '../../types/users'
-import { LoginException } from '../../lib/utils'
-import { Log } from '../../lib/log'
-import { IStatusMessage } from '../../types/server'
+import { Querynator, simpleQuery } from '@lib/queries'
+import { jwtSecret, getPool } from '@lib/connection'
+import { UserTypes } from '@osm/users'
+import { LoginException } from '@lib/utils'
+import { Log } from '@lib/log'
+import { IStatusMessage } from '@osm/server'
 import { jwtKeys } from '../../routes/middleware/authentication'
 
 // Constants and global variables

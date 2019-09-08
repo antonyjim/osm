@@ -9,10 +9,10 @@
 // NPM Modules
 
 // Local Modules
-import { Querynator, simpleQuery } from '../../lib/queries'
-import { IStatusMessage } from '../../types/server'
-import { IRolePermissions } from '../../types/roles'
-import { Log } from '../../lib/log'
+import { Querynator, simpleQuery } from '@lib/queries'
+import { IStatusMessage } from '@osm/server'
+import { IRolePermissions } from '@osm/roles'
+import { Log } from '@lib/log'
 
 // Constants and global variables
 

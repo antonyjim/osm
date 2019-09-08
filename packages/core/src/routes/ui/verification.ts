@@ -9,7 +9,7 @@ import { resolve } from 'path'
 
 // NPM Modules
 import { Router, Request, Response } from 'express'
-import User from '../../app/users/users'
+import User from '@app/users/users'
 
 // Local Modules
 

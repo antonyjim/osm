@@ -10,6 +10,8 @@
 // std
 import { readFile, existsSync } from 'fs'
 import { resolve } from 'path'
+// Set up aliases
+require('module-alias/register')
 ;(function startApplication() {
   // Since I'm too cheap for dotenv, I wrote my own parser
   // Of course, it's not nearly as full featured and should

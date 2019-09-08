@@ -11,8 +11,8 @@ import { v4 as uuid } from 'uuid'
 
 // Local Modules
 import { getTables } from './constructSchema'
-import Towel from '../../lib/queries/towel/towel'
-import { simpleQuery } from '../../lib/connection'
+import Towel from '@lib/queries/towel/towel'
+import { simpleQuery } from '@lib/connection'
 import {
   IFormDetails,
   IFormTab,
@@ -20,11 +20,11 @@ import {
   ISysFormTab,
   ITableField,
   ITableSchema
-} from '../../types/forms'
-import { TowelRecord } from '../../lib/queries/towel/towelRecord'
-import { ITowelQueryResponse } from '../../types/towelRecord'
-import { handleError } from '../../lib/utils'
-import { IDictionary } from '../../types/server'
+} from '@osm/forms'
+import { TowelRecord } from '@lib/queries/towel/towelRecord'
+import { ITowelQueryResponse } from '@osm/towelRecord'
+import { handleError } from '@lib/utils'
+import { IDictionary } from '@osm/server'
 
 // Constants and global variables
 let forms: { [table: string]: IFormDetails } = {}

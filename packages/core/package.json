@@ -17,19 +17,19 @@
     "humanize-string": "^2.1.0",
     "jsonwebtoken": "^8.4.0",
     "lodash": "^4.17.15",
-    "monaco-editor": "^0.15.6",
     "mysql": "^2.16.0",
     "nodemailer": "^4.7.0",
-    "osm-client": "file:../client",
     "typescript": "^3.3.3333",
     "uuid": "^3.3.2",
     "webpack": "^4.35.0"
   },
   "devDependencies": {
+    "@babel/parser": "^7.5.5",
     "@types/bcrypt": "^3.0.0",
     "@types/chai": "^4.1.7",
     "@types/cookie-parser": "^1.4.1",
     "@types/express": "^4.16.0",
+    "@types/formidable": "^1.0.31",
     "@types/jsonwebtoken": "^8.3.0",
     "@types/lodash": "^4.14.122",
     "@types/mocha": "^5.2.6",
@@ -37,10 +37,10 @@
     "@types/node": "^10.12.18",
     "@types/nodemailer": "^4.6.5",
     "@types/uuid": "^3.4.4",
-    "@types/formidable": "^1.0.31",
     "@types/webpack": "^4.4.34",
     "chai": "^4.2.0",
     "mocha": "^5.2.0",
+    "module-alias": "^2.2.1",
     "nodemon": "^1.18.9",
     "ts-node": "^8.0.3"
   },
@@ -51,6 +51,12 @@
       "route": "app/"
     },
     "lib": "shared"
+  },
+  "_moduleAliases": {
+    "@app": "dist/app",
+    "@lib": "dist/lib",
+    "@client": "../client",
+    "@osm": "dist/types"
   },
   "scripts": {
     "postinstall": "tsc -p .",

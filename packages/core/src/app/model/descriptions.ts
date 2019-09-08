@@ -5,7 +5,7 @@
 
 // Local Modules
 import { getTables } from './constructSchema'
-import { Querynator, simpleQuery } from '../../lib/queries'
+import { Querynator, simpleQuery } from '@lib/queries'
 
 export interface ITablePermissions {
   can_edit: boolean

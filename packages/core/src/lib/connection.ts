@@ -9,7 +9,7 @@ import { MysqlError } from 'mysql'
 
 // NPM Modules
 import { Pool, PoolConfig, createPool } from 'mysql'
-import { IDictionary } from '../types/server'
+import { IDictionary } from '@osm/server'
 
 // Local Modules
 

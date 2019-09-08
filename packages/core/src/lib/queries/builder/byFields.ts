@@ -1,8 +1,8 @@
 import { evaluateFieldOperator } from './evalOperator'
 import { validateFieldsExist } from './fieldValidator'
 import { queryBuilder } from '.'
-import { simpleQuery } from '../../connection'
-import { Queries } from '../../../types/queries'
+import { simpleQuery } from '@lib/connection'
+import { Queries } from '@osm/queries'
 
 /**
  * lib/queries/builder/byFields.ts

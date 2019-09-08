@@ -1,6 +1,6 @@
-import { getTables } from '../../../app/model/constructSchema'
-import { ITableField, ITableSchema } from '../../../types/forms'
-import { IDictionary } from '../../../types/server'
+import { getTables } from '@app/model/constructSchema'
+import { ITableField, ITableSchema } from '@osm/forms'
+import { IDictionary } from '@osm/server'
 
 export function queryBuilder(tableName: string, fields: string[] | string) {
   const warnings = []

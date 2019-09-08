@@ -11,10 +11,10 @@ import { v4 as uuid } from 'uuid'
 import { Pool, PoolConnection } from 'mysql'
 
 // Local Modules
-import loadModule from '../../app/model/loadHook'
-import { IResponseMessage, IPagination, IDictionary } from '../../types/server'
-import { IFieldMessage } from '../../types/api'
-import { getTables } from '../../app/model/constructSchema'
+import loadModule from '@app/model/loadHook'
+import { IResponseMessage, IPagination, IDictionary } from '@osm/server'
+import { IFieldMessage } from '@osm/api'
+import { getTables } from '@app/model/constructSchema'
 import { getPool } from '../connection'
 import { Log } from '../log'
 import {
@@ -24,7 +24,7 @@ import {
 import { evaluateFieldOperator } from './builder/evalOperator'
 import { queryBuilder } from './builder'
 import { byFields as _byFields } from './builder/byFields'
-import { GenericFieldTypes, ITableSchema } from '../../types/forms'
+import { GenericFieldTypes, ITableSchema } from '@osm/forms'
 import { getUserRoles } from '../../routes/middleware/authorization'
 import { jwtKeys } from '../../routes/middleware/authentication'
 
@@ -292,48 +292,46 @@ export class Querynator extends EventEmitter {
         if all fields are valid.
       */
       Promise.all(
-        Object.keys(providedFields).map(
-          (field: string): Promise<GenericFieldTypes> | boolean => {
-            if (field.endsWith('_display')) {
-              return false // Return for joined fields.
-            }
-            if (!(field in tableSchema)) {
-              this.warnings.push({
-                message: `Field ${field} does not exist on table ${
-                  this.tableName
-                }`,
-                field
-              })
-              return null
-            }
+        Object.keys(providedFields).map((field: string):
+          | Promise<GenericFieldTypes>
+          | boolean => {
+          if (field.endsWith('_display')) {
+            return false // Return for joined fields.
+          }
+          if (!(field in tableSchema)) {
+            this.warnings.push({
+              message: `Field ${field} does not exist on table ${this.tableName}`,
+              field
+            })
+            return null
+          }
 
-            /*
+          /*
               queriedFields will be used after the promise
               is resolved to link the resolved array
               back to the original field the value belongs to.
             */
-            queriedFields.push(field)
-            return this.validateFieldIsValid(
-              tableSchema[field],
-              providedFields[field]
-            )
-            // .then((validOrNot: boolean) => {
-            //   returnVal.valid[field] = validOrNot
-            // }).catch((err) => {
-            //   if (tableSchema[field].nullable) {
-            //     this.warnings.push({
-            //       message: err.message,
-            //       field
-            //     })
-            //   } else {
-            //     this.errors.push({
-            //       message: err.message,
-            //       field
-            //     })
-            //   }
-            // })
-          }
-        )
+          queriedFields.push(field)
+          return this.validateFieldIsValid(
+            tableSchema[field],
+            providedFields[field]
+          )
+          // .then((validOrNot: boolean) => {
+          //   returnVal.valid[field] = validOrNot
+          // }).catch((err) => {
+          //   if (tableSchema[field].nullable) {
+          //     this.warnings.push({
+          //       message: err.message,
+          //       field
+          //     })
+          //   } else {
+          //     this.errors.push({
+          //       message: err.message,
+          //       field
+          //     })
+          //   }
+          // })
+        })
       )
         .then((allFieldsAreValid) => {
           for (let i = 0; i < Object.keys(queriedFields).length; i++) {

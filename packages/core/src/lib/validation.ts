@@ -9,7 +9,7 @@
 import { isUndefined } from 'lodash'
 
 // Local Modules
-import { IValidationFields } from '../types/server'
+import { IValidationFields } from '@osm/server'
 
 // Constants and global variables
 

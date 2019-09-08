@@ -1,8 +1,7 @@
 import constructSchema from './constructSchema'
-import { getPool, simpleQuery } from '../../lib/connection'
+import { getPool, simpleQuery } from '@lib/connection'
 import { v4 as uuid } from 'uuid'
-import { copyDirSync } from '../../lib/utils'
-import { join } from 'path'
+import { copyDirSync } from '@lib/utils'
 
 /**
  * Copy everything using SHOW TABLES
@@ -152,9 +151,7 @@ export function syncDbSchema() {
       })
       .catch((err) => {
         console.error(
-          `[CONSTRUCT_SCHEMA] CRITICAL ERROR WHEN STARTING SERVER ${
-            err.message
-          }`
+          `[CONSTRUCT_SCHEMA] CRITICAL ERROR WHEN STARTING SERVER ${err.message}`
         )
         rejectSchema(err)
         getPool().end()

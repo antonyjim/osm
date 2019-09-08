@@ -8,10 +8,10 @@
 // NPM Modules
 
 // Local Modules
-import { getPool } from '../../lib/connection'
-import { IRolePermissions } from '../../types/roles'
-import { IStatusMessage } from '../../types/server'
-import { Validation } from '../../lib/validation'
+import { getPool } from '@lib/connection'
+import { IRolePermissions } from '@osm/roles'
+import { IStatusMessage } from '@osm/server'
+import { Validation } from '@lib/validation'
 import uuid = require('uuid')
 
 // Constants and global variables
@@ -213,9 +213,7 @@ export class Roles {
               }
               resolve({
                 error: false,
-                message: `Added ${this.role.role_priv} to ${
-                  this.role.role_priv
-                }`
+                message: `Added ${this.role.role_priv} to ${this.role.role_priv}`
               })
             })
           } else {

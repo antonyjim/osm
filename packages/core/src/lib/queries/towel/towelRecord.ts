@@ -18,8 +18,8 @@ import { v4 as uuid } from 'uuid'
 
 // Local Modules
 import { byFields as _byFields } from '../builder/byFields'
-import { ITableSchema } from '../../../types/forms'
-import { IFieldMessage, IAPIByIdResponse } from '../../../types/api'
+import { ITableSchema } from '@osm/forms'
+import { IFieldMessage, IAPIByIdResponse } from '@osm/api'
 import { getTables } from '../../../app/model/constructSchema'
 import { simpleQuery } from '../../connection'
 import { queryBuilder } from '../builder'

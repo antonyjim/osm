@@ -13,8 +13,8 @@ import { performance } from 'perf_hooks'
 import { v4 as uuid } from 'uuid'
 
 // Local Modules
-import Towel from '../queries/towel/towel'
-import { copyDirSync, deleteDirSync } from '../utils'
+import Towel from '@lib/queries/towel/towel'
+import { copyDirSync, deleteDirSync } from '@lib/utils'
 import Sheet from './sheet'
 import { platform } from 'os'
 

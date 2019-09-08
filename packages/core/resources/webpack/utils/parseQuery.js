@@ -7,6 +7,9 @@ function lookFor(search, message) {
   }
 }
 
+/**
+ * @description Parse ApiRequest query into standard SQL
+ */
 module.exports = function parseQuery(queryObj) {
   // Look for the initial table
   let tableName = queryObj.table

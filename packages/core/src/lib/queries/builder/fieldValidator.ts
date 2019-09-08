@@ -8,10 +8,10 @@
 // NPM Modules
 
 // Local Modules
-import { simpleQuery } from '../../connection'
-import { ITableField, GenericFieldTypes } from '../../../types/forms'
-import { getTables } from '../../../app/model/constructSchema'
-import { isBool as isBoolean } from './../../utils'
+import { simpleQuery } from '@lib/connection'
+import { ITableField, GenericFieldTypes } from '@osm/forms'
+import { getTables } from '@app/model/constructSchema'
+import { isBool as isBoolean } from '@lib/utils'
 
 // Constants and global variables
 
