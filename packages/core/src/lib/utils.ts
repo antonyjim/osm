@@ -7,6 +7,7 @@
 import { cpus, arch, freemem, hostname, platform, totalmem } from 'os'
 import { simpleQuery } from './queries'
 import { IServerStats } from '@osm/server'
+import { v4 } from 'uuid'
 import {
   existsSync,
   mkdirSync,
@@ -135,4 +136,23 @@ export function isBool(value): boolean {
   } else {
     return false
   }
+}
+
+/**
+ * Generates a random key hash
+ * @param length Length of hash to generate
+ */
+export function generateKeyHash(length: number = 6) {
+  let result: string = ''
+  const characters: string =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  const charactersLength: number = characters.length
+  for (var i = 1; i <= length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength))
+  }
+  return result
+}
+
+export function uuid() {
+  return v4()
 }

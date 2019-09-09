@@ -13,14 +13,16 @@ import { resolve } from 'path'
 import * as express from 'express'
 
 // Local Modules
-import { router } from './routes/index'
-import { Log } from './lib/log'
-import { getPool } from './lib/connection'
-import constructSchema from './app/model/constructSchema'
-import { constructForms } from './app/model/constructForms'
-import generateHooks from './app/model/generateHooks'
-import { syncDbSchema } from './app/model/dbSchemaGen'
+import { router } from '../routes/index'
+import { Log } from '../lib/log'
+import { getPool } from '../lib/connection'
+import constructSchema from './model/constructSchema'
+import { constructForms } from './model/constructForms'
+import generateHooks from './model/generateHooks'
+import { syncDbSchema } from './model/dbSchemaGen'
 import { Server } from 'http'
+
+let app: express.Application
 
 /**
  * Starts requiring all of the routes for the core plus any activated modules.
@@ -48,7 +50,7 @@ export function routes() {
 
   function listen() {
     // Constants and global variables
-    const app = express()
+    app = express()
     const port = parseInt(process.env.SERVER_PORT, 10) || 8020
     let server: Server
     // Routes
@@ -81,9 +83,7 @@ export function routes() {
       })
       .catch((err) => {
         console.error(
-          `[CONSTRUCT_SCHEMA] CRITICAL ERROR WHEN STARTING SERVER ${
-            err.message
-          }`
+          `[CONSTRUCT_SCHEMA] CRITICAL ERROR WHEN STARTING SERVER ${err.message}`
         )
         getPool().end()
       })
@@ -110,3 +110,5 @@ export function internalError() {
     console.log('[APP] Listening for fallback on port %d', port)
   })
 }
+
+export { app }

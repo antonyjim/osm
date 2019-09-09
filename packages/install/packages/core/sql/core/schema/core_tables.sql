@@ -131,3 +131,18 @@ CREATE TABLE sys_generated_resource_role (
     ON UPDATE CASCADE
     ON DELETE CASCADE
 ) CHARSET = utf8;
+
+CREATE TABLE sys_pending_request (
+  PRIMARY KEY (sys_auto_id),
+  sys_auto_id INT,
+  return_token CHAR(16),
+  user_id CHAR(36),
+  request_url VARCHAR(255),
+  request_time BIGINT,
+  request_context JSON,
+
+  FOREIGN KEY(user_id)
+    REFERENCES sys_user.sys_id
+    ON UPDATE CASCADE
+    ON DELETE CASCADE
+) CHARSET = utf8;

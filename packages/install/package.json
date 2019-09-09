@@ -7,5 +7,12 @@
     "test": "npm run test"
   },
   "author": "Anthony Jund <antonyjund@gmail.com>",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "module-alias": "^2.2.1"
+  },
+  "_moduleAliases": {
+    "@lib": "../core/dist/lib/*"
+  }
 }

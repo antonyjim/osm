@@ -1,4 +1,3 @@
-import { TowelStack } from '../../Towel'
 import { Pool, PoolConfig, createPool, MysqlError } from 'mysql'
 import { ITableSchema, IDatabaseSchema } from '../types/schema'
 

@@ -23,7 +23,8 @@
     "paths": {
       "@app/*": ["app/*"],
       "@lib/*": ["lib/*"],
-      "@osm/*": ["types/*"]
+      "@osm/*": ["types/*"],
+      "@root/*": ["."]
     }
   },
   "include": ["./src/**/*"],

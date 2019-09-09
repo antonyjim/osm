@@ -10,19 +10,11 @@ import { MysqlError } from 'mysql'
 // NPM Modules
 import { Pool, PoolConfig, createPool } from 'mysql'
 import { IDictionary } from '@osm/server'
+import { poolConfig } from 'config'
 
 // Local Modules
 
 // Constants and global variables
-const poolConfig: PoolConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'node',
-  password: process.env.DB_PASS || 'development',
-  database: process.env.DB_DB || 'thq',
-  port: parseInt(process.env.DB_PORT, 10) || 3306,
-  connectionLimit: parseInt(process.env.DB_POOL_LIMIT, 10) || 1
-}
-
 const jwtSecret = process.env.JWT_KEY || 'secret'
 const HOOKS_DIR = resolve(__dirname, './hooks')
 

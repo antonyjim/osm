@@ -5,6 +5,7 @@
 
 // Node Modules
 import { resolve } from 'path'
+import { ConnectionConfig, PoolConfig } from 'mysql'
 
 // NPM Modules
 
@@ -14,5 +15,17 @@ import { resolve } from 'path'
 const clientPath: string = resolve(__dirname, '..', '..', 'client')
 const version: string = '0.1.0a'
 const domain: string = 'osm'
+const resourceDir: string = resolve(__dirname, '..', 'resources')
+const databaseConfig: ConnectionConfig = {
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'node',
+  password: process.env.DB_PASS || 'development',
+  database: process.env.DB_DB || 'thq',
+  port: parseInt(process.env.DB_PORT, 10) || 3306
+}
+const poolConfig: PoolConfig = {
+  ...databaseConfig,
+  connectionLimit: parseInt(process.env.DB_POOL_LIMIT, 10) || 1
+}
 
-export { clientPath, version, domain }
+export { clientPath, version, domain, resourceDir, databaseConfig, poolConfig }
