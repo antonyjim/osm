@@ -12,6 +12,7 @@
     "test": "node bin/test-all.js",
     "debug": "cd packages/core && npm run debug",
     "lint": "node bin/lint.js",
+    "start": "cd packages/core && npm start",
     "watch": "node bin/watch-packages.js"
   },
   "repository": {
