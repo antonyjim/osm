@@ -1,6 +1,6 @@
 // import * as Towel from '../Towel'
 import { ConnectionConfig, Pool, Connection } from 'mysql'
-import { evaluateFieldOperator } from '@lib/queries/builder/evalOperator'
+import { evaluateFieldOperator } from '@lib/towel/internals/builder/evalOperator'
 import { init } from './internals/connection'
 import { TowelTypes } from './types/towel'
 

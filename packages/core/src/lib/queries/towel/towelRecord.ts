@@ -17,13 +17,13 @@
 import { v4 as uuid } from 'uuid'
 
 // Local Modules
-import { byFields as _byFields } from '../builder/byFields'
+import { byFields as _byFields } from '../../towel/internals/builder/byFields'
 import { ITableSchema } from '@osm/forms'
 import { IFieldMessage, IAPIByIdResponse } from '@osm/api'
 import { getTables } from '../../../app/model/constructSchema'
 import { simpleQuery } from '../../connection'
-import { queryBuilder } from '../builder'
-import { validateFieldIsValid } from '../builder/fieldValidator'
+import { queryBuilder } from '../../towel/internals/builder'
+import { validateFieldIsValid } from '../../towel/internals/builder/fieldValidator'
 import { IDictionary } from '../../../types/server'
 
 /**

@@ -20,10 +20,10 @@ import { Log } from '../log'
 import {
   validateFieldIsValid,
   validateFieldsExist
-} from './builder/fieldValidator'
-import { evaluateFieldOperator } from './builder/evalOperator'
-import { queryBuilder } from './builder'
-import { byFields as _byFields } from './builder/byFields'
+} from '../towel/internals/builder/fieldValidator'
+import { evaluateFieldOperator } from '../towel/internals/builder/evalOperator'
+import { queryBuilder } from '../towel/internals/builder'
+import { byFields as _byFields } from '../towel/internals/builder/byFields'
 import { GenericFieldTypes, ITableSchema } from '@osm/forms'
 import { getUserRoles } from '../../routes/middleware/authorization'
 import { jwtKeys } from '../../routes/middleware/authentication'

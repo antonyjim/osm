@@ -17,7 +17,7 @@ import { simpleQuery } from '../'
 import { getTables } from '../../../app/model/constructSchema'
 import generateHooks from '../../../app/model/generateHooks'
 import { ITableField, ITableSchema } from '@osm/forms'
-import { byFields as _byFields } from '../builder/byFields'
+import { byFields as _byFields } from '../../towel/internals/builder/byFields'
 import {
   IFieldMessage,
   IAPIGetByFieldsResponse,
@@ -26,7 +26,7 @@ import {
 import { TowelRecord } from './towelRecord'
 import { IPagination, IResponseMessage, IDictionary } from '@osm/server'
 import { ITowelQueryResponse } from '@osm/towelRecord'
-import { queryBuilder } from '../builder'
+import { queryBuilder } from '../../towel/internals/builder'
 import { Queries } from '@osm/queries'
 
 export default class Towel extends TowelRecord {

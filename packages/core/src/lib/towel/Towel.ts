@@ -1,6 +1,6 @@
 // import * as Towel from '../Towel'
 import { ConnectionConfig, Pool, Connection } from 'mysql'
-import { evaluateFieldOperator } from '@lib/queries/builder/evalOperator'
+import { evaluateFieldOperator } from '@lib/towel/internals/builder/evalOperator'
 import { init } from './internals/connection'
 import { TowelTypes } from './types/towel'
 
@@ -56,14 +56,14 @@ export class Towel {
    * Provide the towel with database information to establish a connection
    * and connect to the specified database. Any parameters not defined will
    * be read from process.env
-   * @param param0 {Object} Provide database information.
+   * @param { Object } param0 Provide database information.
    */
   public static init = init
 
   /**
    *
-   * @param {Array<string>} fieldNames Field list to return from query
-   * @returns {Towel}
+   * @param { Array<string> } fieldNames Field list to return from query
+   * @returns { Towel }
    */
   public setFields(fieldNames: [string]): this {
     if (!Array.isArray(fieldNames)) {
@@ -75,9 +75,9 @@ export class Towel {
 
   /**
    * Add a condition to a new SELECT / UPDATE / DELETE query
-   * @param {string} column Column to filter by
-   * @param {string | Array} condition Value to set the column
-   * @param {string} operator Operator to use in query, defaults to =
+   * @param { string } column Column to filter by
+   * @param { string | Array } condition Value to set the column
+   * @param { string } operator Operator to use in query, defaults to =
    * @return {Towel}
    */
   public addCondition(
@@ -103,7 +103,7 @@ export class Towel {
    * Adds an aggregate contraint to the query
    * @param aggregate Which aggregate query to use (COUNT, MAX, etc)
    * @param column Which column to calculate the aggregate on. Defaults to primary key
-   * @returns {Towel}
+   * @returns { Towel }
    */
   public addAggregate(
     aggregate: TowelTypes.AggregateTypes,
@@ -119,10 +119,12 @@ export class Towel {
     return this
   }
 
+  public addOrArgument() {}
+
   /**
    * Submit an aggregate query.
    * Returns a promise containing the aggregates
-   * @returns {Promise}
+   * @returns { Promise }
    */
   public queryAggregate(): Promise<TowelTypes.IAggregateQuery> {
     return new Promise((resolve, reject) => {
@@ -141,7 +143,7 @@ export class Towel {
 
   /**
    * Submits a select query. Returns an array of objects
-   * @returns {Promise}
+   * @returns { Promise }
    */
   public select(): Promise<TowelTypes.IQueryResult[]> {
     return new Promise((resolve, reject) => {
