@@ -10,6 +10,7 @@ export interface IApiResponse<T> {
   meta?: Queries.IMetaInfo
   success: boolean
 }
+
 /**
  * @class ApiResponse
  * @description Returns a response object to return to client.

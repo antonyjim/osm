@@ -5,10 +5,29 @@ import { tmpdir } from 'os'
 import { storeIncomingFile } from '../../app/api/files/fileUpload'
 import { IFileUpload } from '../../types/server'
 import { readFileSync } from 'fs'
-import { getFileList, getFile } from '../../app/api/files/fileGetter'
+import {
+  getFileList,
+  getFile,
+  IFileWithoutRecord
+} from '../../app/api/files/fileGetter'
 import { deleteFile } from '../../app/api/files/fileDeleter'
+import { authorize } from 'routes/middleware/authorization'
 
 const fileRouter = Router()
+
+fileRouter.get(
+  '/ls',
+  authorize('file_viewer', (req: Request, res: Response) => {
+    getFileList(req.query.path)
+      .then(res.json)
+      .catch((err) => {
+        console.error(err)
+        res.json({
+          errors: ['Failed to retrieve file list.']
+        })
+      })
+  })
+)
 
 fileRouter.get(
   [

@@ -22,7 +22,7 @@
             ],
             "preLaunchTask": "watch-all",
             "port": 9229,
-            "console": "internalConsole",
+            "console": "integratedTerminal",
             "internalConsoleOptions": "openOnSessionStart",
             "timeout": 10000,
             "autoAttachChildProcesses": true,
