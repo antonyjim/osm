@@ -110,22 +110,6 @@ INSERT INTO sys_user_role (user_id, role_id) VALUES (
     @default_admin_role_sys_id
 );
 
-INSERT INTO sys_route_module (host, description, pre_auth, routing, file_path, role_id) VALUES (
-    'AJ-7510',
-    'Client Application',
-    0,
-    '*',
-    'D:\\Projects\\node\\service-tomorrow\\clientApp',
-    NULL
-), (
-    'AJ-7510',
-    'Static Client Resources',
-    1,
-    '/public',
-    'D:\\Projects\\node\\service-tomorrow\\clientApp\\pubServer',
-    NULL
-);
-
 INSERT INTO sys_navigation (sys_id, inner_text, method, path_name, header, menu, role_required) VALUES (
     'f334d193-8906-4402-a073-d238ee5dd597',
     'Navigation Links',

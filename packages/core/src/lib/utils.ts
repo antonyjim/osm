@@ -153,6 +153,8 @@ export function generateKeyHash(length: number = 6) {
   return result
 }
 
+export const generateHash = generateKeyHash
+
 export function uuid() {
   return v4()
 }

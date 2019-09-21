@@ -24,7 +24,8 @@
       "@app/*": ["app/*"],
       "@lib/*": ["lib/*"],
       "@osm/*": ["types/*"],
-      "@root/*": ["."]
+      "@root/*": ["./*"],
+      "@config": ["config"]
     }
   },
   "include": ["./src/**/*"],

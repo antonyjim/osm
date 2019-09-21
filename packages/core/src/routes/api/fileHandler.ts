@@ -2,8 +2,6 @@ import { Router, Request, Response } from 'express'
 import * as formidable from 'formidable'
 import { join } from 'path'
 import { tmpdir } from 'os'
-import { storeIncomingFile } from '../../app/api/files/fileUpload'
-import { IFileUpload } from '../../types/server'
 import { readFileSync } from 'fs'
 import {
   getFileList,
@@ -11,7 +9,9 @@ import {
   IFileWithoutRecord
 } from '../../app/api/files/fileGetter'
 import { deleteFile } from '../../app/api/files/fileDeleter'
-import { authorize } from 'routes/middleware/authorization'
+import { authorize } from '@root/routes/middleware/authorization'
+import { storeIncomingFile } from '../../app/api/files/fileUpload'
+import { IFileUpload } from '../../types/server'
 
 const fileRouter = Router()
 

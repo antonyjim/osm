@@ -55,9 +55,10 @@
   "_moduleAliases": {
     "@app": "dist/app",
     "@lib": "dist/lib",
+    "@config": "dist/config",
     "@client": "../client",
     "@osm": "dist/types",
-    "@root": "dist/*"
+    "@root": "dist/"
   },
   "scripts": {
     "postinstall": "tsc -p .",

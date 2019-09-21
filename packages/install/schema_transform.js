@@ -10,9 +10,6 @@ var {
 var {
   join
 } = require('path')
-var {
-  createConnection
-} = require('mysql')
 
 var {
   generateHash
@@ -20,22 +17,20 @@ var {
 
 var tagRegex = /\{\{((?:.|\r?\n)+?)\}\}/g
 
-var availableVars = {
-  ...process.env,
-  dirname: __dirname.toString().split('\\').join('/'),
-  database: process.env.DB_NAME || 'osm'
-}
-
-console.log(availableVars.dirname)
-
 var resultFile = `schema_source_${generateHash()}.sql`
 
-module.exports = function (inputFile) {
+module.exports = function (inputFile, package) {
+  var availableVars = {
+    ...process.env,
+    dirname: join(__dirname, package, 'sql').toString().split('\\').join('/'),
+    database: process.env.DB_NAME || 'osm'
+  }
   var interpolatedText = (function parseSql(text) {
+    // Escape escaped forward and backslashes
     text = text
       .toString()
       .replace('\\', '\\\\')
-      .replace('/', '//')
+      .replace(/(!\*)\/(?!\*)/gi, '//')
 
     // If no matches are found, return immediately
     if (!tagRegex.test(text)) {
@@ -68,5 +63,5 @@ module.exports = function (inputFile) {
     encoding: 'utf-8'
   })
 
-  return resultFile
+  return join(__dirname, resultFile)
 }
