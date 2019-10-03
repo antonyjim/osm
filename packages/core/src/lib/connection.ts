@@ -7,14 +7,14 @@
 import { resolve } from 'path'
 import {
   MysqlError,
-  Connection,
   createConnection,
-  Query,
-  QueryFunction
+  createPool,
+  Pool,
+  QueryFunction,
+  Connection
 } from 'mysql'
 
 // NPM Modules
-import { Pool, PoolConfig, createPool } from 'mysql'
 import { IDictionary } from '@osm/server'
 import { poolConfig, databaseConfig } from '@config'
 
@@ -39,10 +39,10 @@ function getPool(refresh?: boolean): Pool {
   return pool
 }
 
-export const multiQuery: QueryFunction = createConnection({
+export const multiQuery: Connection = createConnection({
   ...databaseConfig,
   multipleStatements: true
-}).query
+})
 
 /**
  * @description Performs a query with no authorization. To be used for system calls

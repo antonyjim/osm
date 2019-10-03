@@ -5,58 +5,114 @@
 
 var {
   readFileSync,
-  writeFileSync
+  writeFileSync,
+  existsSync
 } = require('fs')
 var {
-  join
+  join,
+  resolve
 } = require('path')
 
 var {
   generateHash
 } = require('@lib/utils')
 
-var tagRegex = /\{\{((?:.|\r?\n)+?)\}\}/g
 
-var resultFile = `schema_source_${generateHash()}.sql`
+var resultFile = `gen_schema_source_${generateHash()}.sql`
+
+/**
+ * Replaces tags in {{}} with provided values
+ * @param {string} text Text to replace tags in
+ * @param {any} obj Object containing replacement values
+ */
+function replaceTags(text, obj) {
+  var tagRegex = /\{\{((?:.|\r?\n)+?)\}\}/g
+  // If no matches are found, return immediately
+  if (!tagRegex.test(text)) {
+    return text
+  }
+
+  var resultString = ''
+  var match, index, tokenValue, resolvedValue
+  let lastIndex = tagRegex.lastIndex = 0
+
+  while ((match = tagRegex.exec(text))) {
+    index = match.index
+
+
+    // Clean off any extra spaces on the interpolated var
+    resultString += text.slice(lastIndex, index)
+    resultString += obj[match[1].trim()]
+    lastIndex = index + match[0].length
+  }
+
+  if (lastIndex < text.length) {
+    resultString += text.slice(lastIndex)
+  }
+
+  return resultString
+}
 
 module.exports = function (inputFile, package) {
   var availableVars = {
     ...process.env,
-    dirname: join(__dirname, package, 'sql').toString().split('\\').join('/'),
+    // dirname: join(__dirname, 'packages', package, 'sql').toString().split('\\').join('/'),
+    dirname: join(__dirname, 'packages', package, 'sql').toString(),
     database: process.env.DB_NAME || 'osm'
   }
-  var interpolatedText = (function parseSql(text) {
+  // Store the contents of the new file
+  let newFile = `
+    /**************************************************
+     * AUTOMATICALLY GENERATED
+     * SQL SOURCE FILE ${resultFile}
+     * FOR ${availableVars.database} MYSQL DATABASE.
+     *
+     * GENERATED AT ${new Date().toISOString()}
+     * 
+     * THIS FILE HAS ALREADY BEEN SOURCED TO CREATE
+     * DATABASE TABLES AND INFORMATION. DO NOT MODIFY
+     * FILE. CHANGES WILL NOT PROPOGATE TO DATABASE
+     *************************************************/
+      `
+  let wholeFile = ''
+
+  let interpolatedText = (function parseSql(text) {
+    wholeFile += replaceTags(text, availableVars)
     // Escape escaped forward and backslashes
     text = text
       .toString()
       .replace('\\', '\\\\')
       .replace(/(!\*)\/(?!\*)/gi, '//')
 
-    // If no matches are found, return immediately
-    if (!tagRegex.test(text)) {
-      return text
+    // Replace SOURCE calls with content from those files
+    const sourceRegexp = /^SOURCE[^]/igm
+    const semiColonRegexp = /;$/mg
+    let sourceMatch
+
+    while ((sourceMatch = sourceRegexp.exec(wholeFile))) {
+      let firstSourceIndex = sourceRegexp.lastIndex
+      // Look from the end of SOURCE to the end of the file for a semicolon
+      const semiColonMatch = semiColonRegexp.exec(wholeFile.slice(firstSourceIndex, -1))
+      let endOfStatement = semiColonRegexp.lastIndex
+      let sourceFileName = wholeFile.slice(firstSourceIndex, firstSourceIndex + semiColonMatch.index)
+      if (existsSync(resolve(sourceFileName))) {
+        // Insert the sql from file specified in SOURCE command
+        const sqlFromFile = readFileSync(resolve(sourceFileName)).toString()
+        const fileHeader = `
+/******************************************
+ * File sourced from ${sourceFileName}
+ * ***************************************/
+        `
+        let firstPart = wholeFile.substring(0, sourceMatch.index)
+        let lastPart = wholeFile.slice(firstSourceIndex + endOfStatement)
+        wholeFile = firstPart + fileHeader + replaceTags(sqlFromFile, availableVars) + lastPart
+      } else {
+        throw new Error('Could not resolve filename ' + sourceFileName)
+      }
     }
 
-    var resultString = ''
-    var match, index, tokenValue, resolvedValue
-    let lastIndex = tagRegex.lastIndex = 0
+    return wholeFile
 
-    while ((match = tagRegex.exec(text))) {
-      index = match.index
-      console.log(availableVars[match[1].trim()])
-
-
-      // Clean off any extra spaces on the interpolated var
-      resultString += text.slice(lastIndex, index)
-      resultString += availableVars[match[1].trim()]
-      lastIndex = index + match[0].length
-    }
-
-    if (lastIndex < text.length) {
-      resultString += text.slice(lastIndex)
-    }
-
-    return resultString
   })(readFileSync(inputFile))
 
   writeFileSync(join(__dirname, resultFile), interpolatedText, {

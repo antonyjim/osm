@@ -71,3 +71,6 @@ monaco.d.ts
 
 # Ignore generated files
 gen_*
+
+# Ignore installation files
+.installed

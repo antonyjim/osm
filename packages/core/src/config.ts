@@ -20,7 +20,7 @@ const databaseConfig: ConnectionConfig = {
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'node',
   password: process.env.DB_PASS || 'development',
-  database: process.env.DB_DB || 'thq',
+  database: process.env.DB_DB || 'osm',
   port: parseInt(process.env.DB_PORT, 10) || 3306
 }
 const poolConfig: PoolConfig = {
