@@ -2,7 +2,7 @@ import { evaluateFieldOperator } from './evalOperator'
 import { validateFieldsExist } from './fieldValidator'
 import { queryBuilder } from '.'
 import { simpleQuery } from '@lib/connection'
-import { Queries } from '@osm/queries'
+import { IByFieldsQueryBuilder } from '@osm/queries'
 
 /**
  * lib/queries/builder/byFields.ts
@@ -39,7 +39,7 @@ export async function byFields(
     offset?: number
     limit?: number
   }
-): Promise<Queries.IByFieldsQueryBuilder> {
+): Promise<IByFieldsQueryBuilder> {
   return new Promise((resolveQueryByFields, rejectQueryByFields) => {
     const warnings = []
     // Sometimes the constructor for querynator will provide a set

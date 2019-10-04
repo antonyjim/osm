@@ -27,7 +27,7 @@ import { TowelRecord } from './towelRecord'
 import { IPagination, IResponseMessage, IDictionary } from '@osm/server'
 import { ITowelQueryResponse } from '@osm/towelRecord'
 import { queryBuilder } from '../../towel/internals/builder'
-import { Queries } from '@osm/queries'
+import { IByFieldsQueryBuilder, IMetaInfo, FieldType } from '@osm/queries'
 
 export default class Towel extends TowelRecord {
   private args: {
@@ -146,7 +146,7 @@ export default class Towel extends TowelRecord {
         },
         pagination
       )
-        .then((fieldParams: Queries.IByFieldsQueryBuilder) => {
+        .then((fieldParams: IByFieldsQueryBuilder) => {
           // We'll take care of some logging
           if (fieldParams.warnings) {
             console.log(
@@ -166,7 +166,7 @@ export default class Towel extends TowelRecord {
             )
           ])
         })
-        .then(([metaData, data]: [Queries.IMetaInfo, IDictionary<any>]) => {
+        .then(([metaData, data]: [IMetaInfo, IDictionary<any>]) => {
           return resolveByFields({
             meta: metaData,
             data,
@@ -184,10 +184,10 @@ export default class Towel extends TowelRecord {
   public static async rawQuery(
     query,
     params?
-  ): Promise<IDictionary<Queries.FieldType>[]> {
+  ): Promise<IDictionary<FieldType>[]> {
     return new Promise(
       (
-        resolve: (rows: IDictionary<Queries.FieldType>[]) => void,
+        resolve: (rows: IDictionary<FieldType>[]) => void,
         reject: (err: Error) => void
       ) => {
         simpleQuery(query, params)

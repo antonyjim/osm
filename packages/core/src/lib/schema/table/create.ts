@@ -4,7 +4,7 @@ import {
   IColumnDefinition
 } from '../column/serialize'
 import { Connection, MysqlError } from 'mysql'
-import { describeTable, ITableSchema } from './describe'
+import { describeTable, IDetailedTable } from './describe'
 
 export interface INewTable {
   ifNotExists?: boolean
@@ -113,9 +113,8 @@ export function createTable(
           if (column.reference) {
             describeTable(
               connection.config.database,
-              column.reference.table,
-              connection
-            ).then((tableSchema: ITableSchema) => {
+              column.reference.table
+            ).then((tableSchema: IDetailedTable) => {
               if (tableSchema.engine !== tableOpts.engine) {
                 rejectDesciption(
                   new Error(

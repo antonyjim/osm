@@ -9,6 +9,8 @@
 
 // Set up aliases
 require('module-alias/register')
+
+// Logging
 ;(function startApplication() {
   // Read environment variables
   require('dotenv').config()
@@ -21,18 +23,19 @@ require('module-alias/register')
     }
 
     // After checking install files, test database connection
-    require('./lib/connection')
+
+    require('@lib/connection')
       .testConnection()
       .then((status) => {
         if (status) {
           // Start the web server
           console.log(
-            '[STARTUP] Successfully established database connection. Starting http listener'
+            'Successfully established database connection. Starting http listener'
           )
           require('./app/app').initOsmHttpListener()
         } else {
           console.log(
-            '[STARTUP] Failed to establish database connection. Defaulting to fallback http listener'
+            'Failed to establish database connection. Defaulting to fallback http listener'
           )
           require('./app/app').internalError()
         }
@@ -40,7 +43,7 @@ require('module-alias/register')
       .catch((dbConnectionErr) => {
         console.error(dbConnectionErr)
         console.log(
-          '[STARTUP] Failed to establish database connection with error %s. Defaulting to fallback http listener',
+          'Failed to establish database connection with error %s. Defaulting to fallback http listener',
           dbConnectionErr
         )
         require('./app/app').internalError()

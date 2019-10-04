@@ -6,6 +6,7 @@
 // Node Modules
 
 // NPM Modules
+import { debug as rawDebug } from 'debug'
 
 // Local Modules
 import { Querynator, simpleQuery } from './queries'
@@ -189,4 +190,10 @@ function RequestLog(method: string, uri: string) {
   })
 }
 
-export { Log, RequestLog }
+function debug(name: string): debug.Debugger {
+  const debugFunc = rawDebug(name)
+  debugFunc.log = console.log.bind(console)
+  return debugFunc
+}
+
+export { Log, RequestLog, debug }

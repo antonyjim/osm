@@ -35,8 +35,13 @@ function getPool(refresh?: boolean): Pool {
     poolConfig.host
   )
 
-  pool = createPool(poolConfig)
-  return pool
+  try {
+    pool = createPool(poolConfig)
+    return pool
+  } catch (err) {
+    console.error(err)
+    throw err
+  }
 }
 
 export const multiQuery: Connection = createConnection({
@@ -111,6 +116,18 @@ async function simpleQuery(query: string, params?: any[]): Promise<any> {
   })
 }
 
+export function simpleQueryWithCb(
+  query: string,
+  params: any[],
+  cb: (...args: any) => any
+) {
+  simpleQuery(query, params)
+    .then((results) => {
+      cb(null, results)
+    })
+    .catch(cb)
+}
+
 export async function transaction(queries: { query: string; params: any }[]) {
   return new Promise((resolveTransaction, rejectTransaction) => {
     getPool().getConnection((getConnectionErr, conn) => {
@@ -159,19 +176,18 @@ export async function transaction(queries: { query: string; params: any }[]) {
  * Validate the database connection
  */
 async function testConnection(): Promise<boolean> {
-  return new Promise((resolveDbConnection) => {
+  return new Promise((resolveDbConnection, rejectDbConnection) => {
     try {
       getPool().getConnection((err, conn) => {
         if (err) {
-          console.error(err)
-          return resolveDbConnection(false)
+          rejectDbConnection(err)
         } else {
           conn.release()
           return resolveDbConnection(true)
         }
       })
     } catch (err) {
-      return resolveDbConnection(false)
+      return rejectDbConnection(err)
     }
   })
 }

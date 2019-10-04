@@ -20,13 +20,15 @@ import uiRoutes from './ui'
 import { tokenValidation } from './middleware/authentication'
 import { join } from 'path'
 import { clientPath } from '../config'
+import { debug } from '@lib/log'
 
 // Constants and global variables
 const router = Router()
+const log = debug('app:routes')
 
 // Advanced logging
 router.use((req, res, next) => {
-  console.log(req.method, req.path)
+  log(req.method, req.path)
   // RequestLog(req.method, req.path)
   return next()
 })

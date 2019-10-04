@@ -10,7 +10,6 @@ CREATE PROCEDURE osm.fetch_navigation (IN user_id CHAR(36), IN scope CHAR(3))
     BEGIN
         SELECT
             sn.inner_text,
-            sn.method,
             CONCAT(
                 sn.path_name,
                 '?',

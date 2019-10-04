@@ -1,4 +1,4 @@
-import { Queries } from './queries'
+import { IMetaInfo } from './queries'
 import { IDictionary } from './server'
 
 export interface IFieldMessage {
@@ -11,7 +11,7 @@ export interface IAPIGetByFieldsResponse {
   warnings?: IFieldMessage[]
   info?: IFieldMessage[]
   data: IDictionary<any>
-  meta: Queries.IMetaInfo
+  meta: IMetaInfo
 }
 
 export interface IAPIByIdResponse {
@@ -21,5 +21,5 @@ export interface IAPIByIdResponse {
   data: {
     [tableName: string]: any
   }
-  meta?: Queries.IMetaInfo
+  meta?: IMetaInfo
 }

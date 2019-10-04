@@ -32,6 +32,7 @@ SOURCE {{dirname}}/proc/fetch_user_role.sql;
 SOURCE {{dirname}}/proc/fetch_user_table_permissions.sql;
 SOURCE {{dirname}}/proc/login_email.sql;
 SOURCE {{dirname}}/proc/set_user_confirmation.sql;
+SOURCE {{dirname}}/proc/login_username.sql;
 
 /* Insert some default data */
 

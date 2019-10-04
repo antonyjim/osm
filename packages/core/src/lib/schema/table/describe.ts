@@ -1,5 +1,7 @@
 /*tslint:disable:class-name */ // Allows interfaces to be named after actual schema
 import { Connection, MysqlError } from 'mysql'
+import { getPool, simpleQueryWithCb } from '@lib/connection'
+import { simpleQuery } from '@lib/queries'
 
 export interface IFullColumn {
   name: string
@@ -17,7 +19,7 @@ export interface IFullColumn {
   attributes?: string[]
 }
 
-export interface ITableSchema {
+export interface IDetailedTable {
   columns: { [id: string]: IFullColumn }
   primaryKey: string
   engine: 'InnoDB' | 'ISAM'
@@ -101,7 +103,7 @@ namespace information_schema {
 // Helper function to convert information_schema.tables into ITableSchema
 function convertTableToFriendlyFormat(
   table: information_schema.tables
-): Promise<ITableSchema> {
+): Promise<IDetailedTable> {
   return new Promise((resolve, reject) => {
     let collation: 'UTF8' | 'LATIN1' = 'UTF8'
     // mysql stores collation in a different form than the table is created with
@@ -111,7 +113,7 @@ function convertTableToFriendlyFormat(
       collation = null // ... It can also be null
     }
 
-    const schema: ITableSchema = {
+    const schema: IDetailedTable = {
       columns: {},
       primaryKey: '',
       engine: table.ENGINE,
@@ -126,9 +128,12 @@ function convertTableToFriendlyFormat(
   })
 }
 
+/**
+ * Convert information schema data into normalized js object
+ * @param column Column information from information_schema
+ */
 function convertColumnToFriendlyFormat(
-  column: information_schema.column_with_key,
-  conn: Connection
+  column: information_schema.column_with_key
 ): Promise<IFullColumn> {
   return new Promise((resolve, reject) => {
     const col: IFullColumn = {
@@ -146,8 +151,7 @@ function convertColumnToFriendlyFormat(
       describeColumn(
         column.REFERENCED_TABLE_SCHEMA,
         column.REFERENCED_TABLE_NAME,
-        column.REFERENCED_COLUMN_NAME,
-        conn
+        column.REFERENCED_COLUMN_NAME
       )
         .then((refColumn: IFullColumn) => {
           col.reference = {
@@ -166,11 +170,10 @@ function convertColumnToFriendlyFormat(
 
 export function describeTable(
   databaseName: string,
-  tableName: string,
-  conn: Connection
-): Promise<ITableSchema> {
+  tableName: string
+): Promise<IDetailedTable> {
   return new Promise((resolve, reject) => {
-    conn.query(
+    simpleQueryWithCb(
       "SELECT t1.*, t2.COLUMN_NAME AS PRIMARY_KEY_COL FROM INFORMATION_SCHEMA.TABLES t1 LEFT JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE t2 ON t1.TABLE_NAME = t2.TABLE_NAME WHERE t1.TABLE_SCHEMA = ? AND t1.TABLE_NAME = ? AND t2.CONSTRAINT_NAME = 'PRIMARY'",
       [databaseName, tableName],
       (err: MysqlError, results: information_schema.tables[]) => {
@@ -195,21 +198,20 @@ export function describeTable(
 function describeColumn(
   databaseName: string,
   tableName: string,
-  columnName: string | [string],
-  conn: Connection
+  columnName: string | [string]
 ) {
   return new Promise((resolve, reject) => {
     if (!Array.isArray(columnName)) {
       columnName = [columnName]
     }
-    conn.query(
+    simpleQueryWithCb(
       'SELECT t1.*, t2.REFERENCED_TABLE_SCHEMA, t2.REFERENCED_TABLE_NAME, t2.REFERENCED_COLUMN_NAME, t2.CONTSTRAINT_NAME FROM INFORMATION_SCHEMA.COLUMNS t1 LEFT JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE ON t1.COLUMN_NAME = t2.COLUMN_NAME WHERE t1.TABLE_NAME = ? AND t1.COLUMN_NAME IN (?) AND t1.TABLE_SCHEMA = ?',
       [tableName, columnName, databaseName],
       (err: MysqlError, results: information_schema.column_with_key[]) => {
         if (err) reject(err)
         const allColumns = []
         results.forEach((column) => {
-          allColumns.push(convertColumnToFriendlyFormat(column, conn))
+          allColumns.push(convertColumnToFriendlyFormat(column))
         })
 
         Promise.all(allColumns)

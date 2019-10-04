@@ -6,6 +6,9 @@
 // Node Modules
 import { EventEmitter } from 'events'
 
+// NPM Modules
+import { clone } from 'lodash'
+
 // Local Modules
 import { simpleQuery } from '@lib/connection'
 import { ITableField, ITableSchema } from '@osm/forms'
@@ -16,29 +19,26 @@ const SYS_DB_OBJECT = 'sys_db_object'
 const SYS_DB_DICTIONARY = 'sys_db_dictionary'
 
 // This will eventually become the schema object
-let tables: IDictionary<ITableSchema> = null
+let tables: IDictionary<ITableSchema> = {}
 
 // This will store references that have to be resolved separately
 const references = []
 
-// This will provide a template for every table
-const TEMPLATE_TABLE: ITableSchema = {
-  columns: {},
-  defaultFields: [],
-  displayField: '',
-  primaryKey: '',
-  tableId: ''
-}
-
-function getTableDescription(tableName: string): Promise<void> {
+function getTableDescription(tableName: {
+  name: string
+  sys_id: string
+}): Promise<ITableSchema> {
   return new Promise((resolveTableDetails, rejectTableDetails) => {
-    tables[tableName] = {
+    let tableDescription: ITableSchema = {
       columns: {},
       defaultFields: [],
       displayField: '',
       primaryKey: '',
-      tableId: ''
+      tableId: '',
+      tableName: tableName.name
     }
+
+    // First check for the existence of the table in sys_db_object
     // Find the column name, reference field,
     // selectablility, table_name, table_display_name
     const statement =
@@ -79,7 +79,7 @@ function getTableDescription(tableName: string): Promise<void> {
       'table_name',
       'sys_id',
       'name',
-      tableName,
+      tableName.name,
       'column_order'
     ]
 
@@ -90,24 +90,14 @@ function getTableDescription(tableName: string): Promise<void> {
             'Table %s does not have any fields associated with it',
             tableName
           )
-          return resolveTableDetails()
-        }
-        // Assign a default template
-        if (!tables[tableName]) {
-          tables[tableName] = {
-            columns: {},
-            defaultFields: [],
-            displayField: '',
-            primaryKey: '',
-            tableId: ''
-          }
+          return resolveTableDetails(tableDescription)
         }
 
-        // Set the sys_id
-        tables[tableName].tableId = tableColumns[0].table_name
+        // Set the sys_id and all other data
+        tableDescription.tableId = tableColumns[0].table_name
         if (tableColumns) {
           tableColumns.forEach((col) => {
-            tables[tableName].columns[col.column_name] = {
+            tableDescription.columns[col.column_name] = {
               type: sqlToJsType(col.type),
               nullable: col.nullable,
               readonly: col.readonly,
@@ -120,7 +110,7 @@ function getTableDescription(tableName: string): Promise<void> {
               requiredCreate: col.required_on_create
             }
             if (col.default_view) {
-              tables[tableName].defaultFields.push(col.column_name)
+              tableDescription.defaultFields.push(col.column_name)
             }
             if (col.reference_id_display) {
               references.push({
@@ -132,14 +122,14 @@ function getTableDescription(tableName: string): Promise<void> {
             }
 
             if (col.display_field) {
-              tables[tableName].displayField = col.column_name
+              tableDescription.displayField = col.column_name
             }
             if (col.update_key) {
-              tables[tableName].primaryKey = col.column_name
+              tableDescription.primaryKey = col.column_name
             }
           })
         }
-        return resolveTableDetails()
+        return resolveTableDetails(tableDescription)
       })
       .catch((err) => {
         rejectTableDetails(err)
@@ -188,7 +178,6 @@ export function sqlToJsType(type: string) {
 
 export default function constructSchema(): Promise<IDictionary<ITableSchema>> {
   return new Promise((resolveTables, rejectTables) => {
-    if (tables) return resolveTables(tables)
     tables = {}
     const tableConstructorEmitter = new EventEmitter()
     /**
@@ -222,21 +211,20 @@ export default function constructSchema(): Promise<IDictionary<ITableSchema>> {
     })
 
     simpleQuery('SELECT ??, ?? FROM ??', ['sys_id', 'name', SYS_DB_OBJECT])
-      .then((gotTables: any[] | void) => {
-        if (!Array.isArray(gotTables)) {
-          throw new Error('No tables found')
-        }
+      .then((gotTables: any[]) => {
+        // if (!Array.isArray(gotTables) || gotTables.length === 0) {
+        //   throw new Error('No tables found')
+        // }
         return Promise.all(
-          gotTables.map(
-            (tableInfo, i): Promise<void> => {
-              return getTableDescription(tableInfo.name).catch((err) => {
-                console.error(err)
-              })
-            }
-          )
+          gotTables.map(getTableDescription as (
+            ...args: any
+          ) => Promise<ITableSchema>)
         )
       })
-      .then(() => {
+      .then((allDescriptions: ITableSchema[]) => {
+        allDescriptions.forEach((tableDescription: ITableSchema) => {
+          tables[tableDescription.tableName] = tableDescription
+        })
         tableConstructorEmitter.emit('done')
       })
       .catch((err) => {

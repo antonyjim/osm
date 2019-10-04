@@ -1,13 +1,13 @@
 import { IFieldMessage } from '../../types/api'
 import { IDictionary } from '../../types/server'
-import { Queries } from '../../types/queries'
+import { IMetaInfo } from '../../types/queries'
 
 export interface IApiResponse<T> {
   errors?: IFieldMessage[]
   warnings?: IFieldMessage[]
   info?: IFieldMessage[]
   data: IDictionary<T>
-  meta?: Queries.IMetaInfo
+  meta?: IMetaInfo
   success: boolean
 }
 

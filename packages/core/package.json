@@ -65,7 +65,7 @@
   "scripts": {
     "postinstall": "tsc -p .",
     "watch": "tsc -w -p .",
-    "debug": "nodemon --ignore ./dist/lib/hooks --legacy-watch --watch ./dist --inspect-brk --nolazy ./dist/",
+    "debug": "nodemon --ignore ./dist/lib/hooks --legacy-watch --watch ./dist --nolazy --inspect-brk ./dist/",
     "docker-debug": "docker-compose up",
     "start": "tsc -p . && node dist",
     "test": "mocha --no-timeouts --colors ./test/**/*.ts --require ts-node/register"

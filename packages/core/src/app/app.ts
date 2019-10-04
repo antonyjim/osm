@@ -8,6 +8,7 @@ import * as cluster from 'cluster'
 import { cpus } from 'os'
 import { createReadStream } from 'fs'
 import { resolve } from 'path'
+import { Server } from 'http'
 
 // NPM Modules
 import * as express from 'express'
@@ -19,10 +20,11 @@ import { getPool } from '../lib/connection'
 import constructSchema from './model/constructSchema'
 import { constructForms } from './model/constructForms'
 import generateHooks from './model/generateHooks'
-import { syncDbSchema } from './model/dbSchemaGen'
-import { Server } from 'http'
+import { initSchema } from './model/init'
+import { debug } from '@lib/log'
 
 let app: express.Application
+const logger = debug('app:startup')
 
 /**
  * Starts requiring all of the routes for the core plus any activated modules.
@@ -69,26 +71,24 @@ export function initOsmHttpListener() {
     // @ts-ignore
     global.app = app
 
-    syncDbSchema()
-      .then(constructSchema)
+    initSchema()
       .then((tables) => {
         // We need to assign the resulting tables object to **something** so that
         // the garbage collector does not collect it.
+        //@ts-ignore
         app.schema = tables
-        console.log('Completed bulding schema')
+        logger('Completed bulding schema')
         server = app.listen(port, () => {
           new Log(`Listening at port ${port} on process ${process.pid}`).info()
         })
         return constructForms()
       })
       .then(() => {
-        console.log('[STARTUP] Finished constructing forms')
+        logger('Finished constructing forms')
         generateHooks()
       })
       .catch((err) => {
-        console.error(
-          `[CONSTRUCT_SCHEMA] CRITICAL ERROR WHEN STARTING SERVER ${err.message}`
-        )
+        console.error(`CRITICAL ERROR WHEN STARTING SERVER ${err.message}`)
         getPool().end()
       })
   }
@@ -113,7 +113,7 @@ export function internalError() {
   })
 
   app.listen(port, () => {
-    console.log('[APP] Listening for fallback on port %d', port)
+    console.log('Listening for fallback on port %d', port)
   })
 }
 
