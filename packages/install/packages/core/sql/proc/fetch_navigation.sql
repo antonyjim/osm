@@ -3,7 +3,7 @@
   particular user in a particular scope.
 */
 
-DROP PROCEDURE IF EXISTS osm.fetch_navigation //
+DROP PROCEDURE IF EXISTS osm.fetch_navigation ;
 
 
 CREATE PROCEDURE osm.fetch_navigation (IN user_id CHAR(36), IN scope CHAR(3))
@@ -69,4 +69,4 @@ CREATE PROCEDURE osm.fetch_navigation (IN user_id CHAR(36), IN scope CHAR(3))
             sn.menu, 
             sn.header, 
             sn.inner_text;
-END //
+END ;

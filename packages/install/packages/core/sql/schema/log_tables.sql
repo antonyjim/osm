@@ -13,8 +13,8 @@ ALTER TABLE sys_log_request ADD COLUMN request_method VARCHAR(6) DEFAULT 'GET';
 ALTER TABLE sys_log_request ADD COLUMN request_uri VARCHAR(100) DEFAULT '/';
 
 
-CREATE TABLE log_message (
+/* CREATE TABLE log_message (
   PRIMARY KEY(sys_auto_id),
   sys_auto_id INT AUTO_INCREMENT,
   log_message VARCHAR(255)
-);
+); */

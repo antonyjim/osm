@@ -63,9 +63,7 @@ class Log {
       if (!objectId) {
         console.error(
           new TypeError(
-            `Logging to ${this.tableName} requires a primary key of ${
-              this.primaryKey
-            }`
+            `Logging to ${this.tableName} requires a primary key of ${this.primaryKey}`
           )
         )
       }
@@ -109,9 +107,7 @@ class Log {
       if (!objectId) {
         console.error(
           new TypeError(
-            `Logging errors to ${this.tableName} requires a primary key of ${
-              this.primaryKey
-            }`
+            `Logging errors to ${this.tableName} requires a primary key of ${this.primaryKey}`
           )
         )
       }

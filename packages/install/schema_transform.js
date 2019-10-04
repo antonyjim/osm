@@ -53,6 +53,7 @@ function replaceTags(text, obj) {
   return resultString
 }
 
+
 module.exports = function (inputFile, package) {
   var availableVars = {
     ...process.env,
@@ -86,10 +87,13 @@ module.exports = function (inputFile, package) {
 
     // Replace SOURCE calls with content from those files
     const sourceRegexp = /^SOURCE[^]/igm
-    const semiColonRegexp = /;$/mg
+    const semiColonRegexp = /(?:;)$/m
     let sourceMatch
 
+    // Look for SOURCE in the index sql file
     while ((sourceMatch = sourceRegexp.exec(wholeFile))) {
+
+      // Store the start of the file path
       let firstSourceIndex = sourceRegexp.lastIndex
       // Look from the end of SOURCE to the end of the file for a semicolon
       const semiColonMatch = semiColonRegexp.exec(wholeFile.slice(firstSourceIndex, -1))
@@ -102,16 +106,17 @@ module.exports = function (inputFile, package) {
 /******************************************
  * File sourced from ${sourceFileName}
  * ***************************************/
-        `
+`
         let firstPart = wholeFile.substring(0, sourceMatch.index)
-        let lastPart = wholeFile.slice(firstSourceIndex + endOfStatement)
+        // Append the rest of the file after the SOURCE statment, excluding the SOURCE statement
+        let lastPart = wholeFile.slice(firstSourceIndex + semiColonMatch.index + 1)
         wholeFile = firstPart + fileHeader + replaceTags(sqlFromFile, availableVars) + lastPart
       } else {
         throw new Error('Could not resolve filename ' + sourceFileName)
       }
     }
 
-    return wholeFile
+    return newFile + wholeFile
 
   })(readFileSync(inputFile))
 

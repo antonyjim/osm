@@ -2,7 +2,7 @@
   Fetches a user's login information by email
 */
 
-DROP PROCEDURE IF EXISTS osm.login_username //
+DROP PROCEDURE IF EXISTS osm.login_username ;
 CREATE PROCEDURE osm.login_email (IN u_email VARCHAR(90))
     BEGIN
         SELECT
@@ -38,4 +38,4 @@ CREATE PROCEDURE osm.login_email (IN u_email VARCHAR(90))
             su.app_scope = so.scope_prefix
         AND
             su.email = u_email;
-END //
+END ;

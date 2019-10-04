@@ -18,7 +18,7 @@ import { getHostname } from '@lib/utils'
 import { simpleQuery } from '@lib/queries'
 import { authorize } from '../middleware/authorization'
 import Towel from '@lib/queries/towel/towel'
-import { clientPath } from '../../config'
+import { clientPath, staticDir } from '../../config'
 // import * as routes from '../../../../service-tomorrow-client/server'
 // import * as routes from 'serve-client'
 
@@ -49,7 +49,7 @@ export default function(): Promise<Router> {
     /*
       Require routes from the sys_route_module table.
     */
-    new Towel('sys_route_module').setFields(['routing', 'file_path'])
+    // new Towel('sys_route_module').setFields(['routing', 'file_path'])
     simpleQuery(
       'SELECT routing, file_path FROM sys_route_module WHERE (host = ? OR host = ?) AND pre_auth = 0',
       [getHostname(), '*']
@@ -108,7 +108,7 @@ export default function(): Promise<Router> {
         uiRoutes.all('*', (req: Request, res: Response): void => {
           res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' })
           const fileStream = createReadStream(
-            resolve(__dirname, '../../../static/error404.html')
+            resolve(staticDir, 'error404.html')
           )
           fileStream.on('data', (data) => {
             res.write(data)

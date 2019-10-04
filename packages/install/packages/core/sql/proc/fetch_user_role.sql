@@ -3,7 +3,7 @@
     user in a particular scope.
 */
 
-DROP PROCEDURE IF EXISTS osm.fetch_user_role//
+DROP PROCEDURE IF EXISTS osm.fetch_user_role;
 CREATE PROCEDURE osm.fetch_user_role (IN user_id CHAR(36), IN scope CHAR(3))
     BEGIN
         SELECT
@@ -48,4 +48,4 @@ CREATE PROCEDURE osm.fetch_user_role (IN user_id CHAR(36), IN scope CHAR(3))
                 AND
                     sur.user_id = user_id
             );
-END //
+END ;

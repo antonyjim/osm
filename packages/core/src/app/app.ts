@@ -27,7 +27,11 @@ let app: express.Application
 /**
  * Starts requiring all of the routes for the core plus any activated modules.
  */
-export function routes() {
+export function initOsmHttpListener() {
+  /**
+   * Check for production environment, if found:
+   * - Start web server as cluster
+   */
   if (process.env.NODE_ENV === 'production') {
     const cores: number = cpus().length
     if (cluster.isMaster) {
@@ -100,7 +104,9 @@ export function internalError() {
   app.get('*', (req, res) => {
     try {
       res.writeHead(200, { 'Content-Type': 'text/html' })
-      createReadStream(resolve(__dirname, '../static/error505.html')).pipe(res)
+      createReadStream(resolve(__dirname, '../../static/error505.html')).pipe(
+        res
+      )
     } catch (err) {
       res.send('<html>Internal server error</html>')
     }

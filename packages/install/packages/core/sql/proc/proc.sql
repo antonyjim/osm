@@ -1,12 +1,12 @@
 /*
     Set the delimiter to declare procedures
 */
-DELIMITER //
+DELIMITER ;
 
 /*
 	Validate every endpoint on every request
 */
-    DROP FUNCTION IF EXISTS endpoint_validation //
+    DROP FUNCTION IF EXISTS endpoint_validation ;
     CREATE FUNCTION endpoint_validation (_role CHAR(7), _path VARCHAR(120), _method VARCHAR(6))
         RETURNS BOOLEAN
         BEGIN
@@ -35,10 +35,10 @@ DELIMITER //
             INTO
                 _authorized;
             RETURN _authorized;
-        END//
+        END;
 
 /* Create new users */
-DROP PROCEDURE IF EXISTS newUser //
+DROP PROCEDURE IF EXISTS newUser ;
 CREATE PROCEDURE newUser (
     IN _userId CHAR(36),
     IN _userName VARCHAR(36),
@@ -98,10 +98,10 @@ CREATE PROCEDURE newUser (
                 0,
                 0
             );
-    END//
+    END;
 
 /* Update user passwords */
-DROP FUNCTION IF EXISTS changePassword //
+DROP FUNCTION IF EXISTS changePassword;
 CREATE FUNCTION changePassword(_userId CHAR(36), _confirmation CHAR(36), _hashedPassword BINARY(60))
     RETURNS BOOLEAN
     BEGIN
@@ -132,10 +132,10 @@ CREATE FUNCTION changePassword(_userId CHAR(36), _confirmation CHAR(36), _hashed
             END IF;
         END IF;
         RETURN 0;
-    END //
+    END ;
 
 /* Confirm new users */
-DROP FUNCTION IF EXISTS confirmUser //
+DROP FUNCTION IF EXISTS confirmUser ;
 CREATE FUNCTION confirmUser(_confirmation CHAR(36), _password BINARY(60))
     RETURNS BOOLEAN
     BEGIN
@@ -169,10 +169,10 @@ CREATE FUNCTION confirmUser(_confirmation CHAR(36), _password BINARY(60))
         ELSE RETURN 1;
         END IF;
         RETURN 0;
-    END //
+    END ;
 
 /* Set the forgot password indicator */
-DROP FUNCTION IF EXISTS setForgotPassword //
+DROP FUNCTION IF EXISTS setForgotPassword ;
 CREATE FUNCTION setForgotPassword(_userName VARCHAR(36), _userEmail VARCHAR(90), _passwordResetToken CHAR(36))
     RETURNS VARCHAR(90)
     BEGIN
@@ -214,10 +214,10 @@ CREATE FUNCTION setForgotPassword(_userName VARCHAR(36), _userEmail VARCHAR(90),
     ELSE RETURN NULL;
 	END IF;
         RETURN _resolvedEmail;
-    END //
+    END ;
 
 /* Add new customers */
-DROP FUNCTION IF EXISTS AddCustomer //
+DROP FUNCTION IF EXISTS AddCustomer ;
 CREATE FUNCTION AddCustomer(
         _nsNonsig CHAR(9),
         _nsTradeStyle VARCHAR(100),
@@ -279,9 +279,9 @@ CREATE FUNCTION AddCustomer(
         ELSE RETURN 1;
 	END IF; 
        RETURN 0;
-    END //
+    END ;
 
-DROP FUNCTION IF EXISTS tbl_validation //
+DROP FUNCTION IF EXISTS tbl_validation ;
 CREATE FUNCTION tbl_validation (
     _role CHAR(7),
     _table VARCHAR(40),
@@ -432,9 +432,9 @@ BEGIN
     ELSE RETURN 0;
     END IF;
     RETURN 0;
-END //
+END ;
 
-/* DROP PROCEDURE IF EXISTS create_table //
+/* DROP PROCEDURE IF EXISTS create_table ;
 CREATE PROCEDURE create_table (
     IN _table_name VARCHAR(40),
     IN _table_id CHAR(36)
@@ -472,5 +472,5 @@ BEGIN
 
     SELECT * FROM sys_db_object WHERE sys_id = _table_id;
 
-END // */
+END ; */
 DELIMITER ;

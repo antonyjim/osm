@@ -29,12 +29,12 @@ require('module-alias/register')
           console.log(
             '[STARTUP] Successfully established database connection. Starting http listener'
           )
-          require('./app').routes()
+          require('./app/app').initOsmHttpListener()
         } else {
           console.log(
             '[STARTUP] Failed to establish database connection. Defaulting to fallback http listener'
           )
-          require('./app').internalError()
+          require('./app/app').internalError()
         }
       })
       .catch((dbConnectionErr) => {
@@ -43,7 +43,7 @@ require('module-alias/register')
           '[STARTUP] Failed to establish database connection with error %s. Defaulting to fallback http listener',
           dbConnectionErr
         )
-        require('./app').internalError()
+        require('./app/app').internalError()
       })
   })
 })()

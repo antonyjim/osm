@@ -1,9 +1,9 @@
 /*
     Return a list of user table permissions for the specified table in the specified scope.
 */
-DROP PROCEDURE IF EXISTS osm.fetch_user_table_permissions//
+DROP PROCEDURE IF EXISTS {{database}}.fetch_user_table_permissions;
 
-CREATE PROCEDURE osm.fetch_user_table_permissions (
+CREATE PROCEDURE {{database}}.fetch_user_table_permissions (
     IN user_id CHAR(36),
     IN scope CHAR(3),
     IN table_name VARCHAR(40)
@@ -107,7 +107,7 @@ BEGIN
     CLOSE role_cursor;
 
     SELECT can_read AS `read`, can_edit AS `edit`, can_delete AS `delete`;
-END//
+END;
 
 /* END fetch_user_table_permissions */
 

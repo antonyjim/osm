@@ -2,8 +2,8 @@
   Return a user's login informatino by username
 */
 
-DROP PROCEDURE IF EXISTS osm.login_username //
-CREATE PROCEDURE osm.login_username (IN u_username VARCHAR(40))
+DROP PROCEDURE IF EXISTS {{database}}.login_username ;
+CREATE PROCEDURE {{database}}.login_username (IN u_username VARCHAR(40))
     BEGIN
         SELECT
             su.sys_id,
@@ -38,4 +38,4 @@ CREATE PROCEDURE osm.login_username (IN u_username VARCHAR(40))
             su.app_scope = so.scope_prefix
         AND
             su.username = username;
-END //
+END ;

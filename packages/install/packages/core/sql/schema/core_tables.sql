@@ -109,22 +109,29 @@ CREATE TABLE sys_navigation (
 /* Store generated sql statements from apiResource loader */
 CREATE TABLE sys_generated_resource (
   PRIMARY KEY (sys_auto_id),
-  resource_hash CHAR(8) NOT NULL,
+  sys_auto_id INT AUTO_INCREMENT,
+  resource_hash CHAR(8) NOT NULL UNIQUE,
   params JSON,
   sql_query TEXT
 ) CHARSET = utf8;
 
+/* Assign role limits to generated resources */
 CREATE TABLE sys_generated_resource_role (
   PRIMARY KEY (sys_auto_id),
-  sys_auto_id INT,
-  resource_hash CHAR(8),
-  role_limiter CHAR(36),
-  access_rule BOOLEAN,
+  sys_auto_id INT AUTO_INCREMENT,
+  /* resource_hash is the randomly generated hash that is also the url */
+  resource_hash CHAR(8) NOT NULL UNIQUE,
+  /* role_limiter is the role that is either allowed or 
+  disallowed from accessing the resource */
+  role_limiter CHAR(36) NOT NULL,
+  /* access_rule is whether the user does or does not have
+  access to the resource */
+  access_rule BOOLEAN NOT NULL DEFAULT TRUE,
 
-  FOREIGN KEY(resource_hash)
+  /* FOREIGN KEY(resource_hash)
     REFERENCES sys_generated_resource(resource_hash)
     ON UPDATE CASCADE
-    ON DELETE CASCADE,
+    ON DELETE CASCADE, */
 
   FOREIGN KEY(role_limiter)
     REFERENCES sys_role(sys_id)
@@ -132,9 +139,12 @@ CREATE TABLE sys_generated_resource_role (
     ON DELETE CASCADE
 ) CHARSET = utf8;
 
+
+/* This is just a prototype for later use. Ignore for now
+
 CREATE TABLE sys_pending_request (
   PRIMARY KEY (sys_auto_id),
-  sys_auto_id INT,
+  sys_auto_id INT AUTO_INCREMENT,
   return_token CHAR(16),
   user_id CHAR(36),
   request_url VARCHAR(255),
@@ -145,4 +155,4 @@ CREATE TABLE sys_pending_request (
     REFERENCES sys_user.sys_id
     ON UPDATE CASCADE
     ON DELETE CASCADE
-) CHARSET = utf8;
+) CHARSET = utf8; */

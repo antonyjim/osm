@@ -16,6 +16,7 @@ const clientPath: string = resolve(__dirname, '..', '..', 'client')
 const version: string = '0.1.0a'
 const domain: string = 'osm'
 const resourceDir: string = resolve(__dirname, '..', 'resources')
+const staticDir: string = resolve(__dirname, '..', 'static')
 const databaseConfig: ConnectionConfig = {
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'node',
@@ -28,4 +29,12 @@ const poolConfig: PoolConfig = {
   connectionLimit: parseInt(process.env.DB_POOL_LIMIT, 10) || 1
 }
 
-export { clientPath, version, domain, resourceDir, databaseConfig, poolConfig }
+export {
+  clientPath,
+  version,
+  domain,
+  resourceDir,
+  databaseConfig,
+  poolConfig,
+  staticDir
+}

@@ -2,7 +2,7 @@
 DROP DATABASE IF EXISTS {{database}};
 
 CREATE DATABASE {{database}};
-USE osm;
+USE {{database}};
 
 /* Store some default sys_id here */
 SET @sys_app_scope_sys_id = '74d5c12ea-51e4-68fa-28cefaa9fe5cb53';
@@ -31,7 +31,7 @@ SOURCE {{dirname}}/proc/fetch_navigation.sql;
 SOURCE {{dirname}}/proc/fetch_user_role.sql;
 SOURCE {{dirname}}/proc/fetch_user_table_permissions.sql;
 SOURCE {{dirname}}/proc/login_email.sql;
-SOURCE {{dirname}}/set_user_confirmation.sql;
+SOURCE {{dirname}}/proc/set_user_confirmation.sql;
 
 /* Insert some default data */
 
@@ -110,10 +110,9 @@ INSERT INTO sys_user_role (user_id, role_id) VALUES (
     @default_admin_role_sys_id
 );
 
-INSERT INTO sys_navigation (sys_id, inner_text, method, path_name, header, menu, role_required) VALUES (
+INSERT INTO sys_navigation (sys_id, inner_text, path_name, header, menu, role_required) VALUES (
     'f334d193-8906-4402-a073-d238ee5dd597',
     'Navigation Links',
-    'GET',
     '/t/sys_navigation_list',
     'Site Administration',
     'Admin',
