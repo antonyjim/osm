@@ -1,0 +1,36 @@
+/**
+ * Test storage of an ApiResource request
+ * with multiple resources requested in batch
+ */
+
+new ApiResource([{
+    table: 'sys_user',
+    fields: [
+      'sys_id',
+      'user_name',
+      'given_name'
+    ],
+    conditions: {
+      'last_login[<]': (new Date(1570321600469)),
+      last_scope: OSM.session.scope,
+      given_name: OSM.form.customer.given_name,
+      '$1.active': true
+    },
+    alias: 'empFirstNames',
+    joins: {
+      type: 'left',
+      table: 'apos_customer',
+      on: '$1.sys_id = $2.employee_id'
+    }
+  },
+  {
+    alias: 'customerList',
+    raw: {
+      sql: 'SELECT $1.sys_id as cust_id, $1.given_name as cust_first_name, $1.surname as cust_last_name, IFNULL($2.sys_id, FALSE, TRUE) AS is_emp FROM apos_customer $1 LEFT JOIN sys_user $2 ON $1.sys_id = $2.sys_id WHERE active = ? AND $1.sys_id != ?',
+      params: [
+        some_param,
+        OSM.session.user
+      ]
+    }
+  }
+])

@@ -1,0 +1,6 @@
+/**
+ * Test storage of an ApiResource request
+ * with multiple resources requested in batch
+ */
+
+fetch(`/_/generated_multiple_request?aa=${new Date(1570321600469)}&ab=${OSM.form.customer.given_name}&ac=${some_param}`)

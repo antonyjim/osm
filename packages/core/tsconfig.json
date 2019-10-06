@@ -25,7 +25,8 @@
       "@lib/*": ["lib/*"],
       "@osm/*": ["types/*"],
       "@root/*": ["./*"],
-      "@config": ["config"]
+      "@config": ["config"],
+      "@test_utils": ["test/utils/*"]
     }
   },
   "include": ["./src/**/*"],

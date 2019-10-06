@@ -111,8 +111,9 @@ CREATE TABLE sys_generated_resource (
   PRIMARY KEY (sys_auto_id),
   sys_auto_id INT AUTO_INCREMENT,
   resource_hash CHAR(8) NOT NULL UNIQUE,
-  params JSON,
-  sql_query TEXT
+  build_id CHAR(8) NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP(),
+  sql_query JSON NOT NULL
 ) CHARSET = utf8;
 
 /* Assign role limits to generated resources */

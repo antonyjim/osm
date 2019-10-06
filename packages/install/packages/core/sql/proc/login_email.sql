@@ -2,8 +2,9 @@
   Fetches a user's login information by email
 */
 
-DROP PROCEDURE IF EXISTS osm.login_username ;
-CREATE PROCEDURE osm.login_email (IN u_email VARCHAR(90))
+DROP PROCEDURE IF EXISTS {{database}}.login_username ;
+
+CREATE PROCEDURE {{database}}.login_email (IN u_email VARCHAR(90))
     BEGIN
         SELECT
             su.sys_id,

@@ -22,7 +22,7 @@ new ApiResource({
 When webpack is bundling the files for this client side module, it will output something like:
 
 ```ts
-fetch(`/api/_/fda4oi5?search=${state.searchPhrase}`)
+fetch(`/_/fda4oi5?search=${state.searchPhrase}`)
 ```
 
 The `fda4oi5` in the previous example is a randomly generated hash created by the loader and stored in the `sys_generated_resource` table. There are several different options that can be passed to the ApiResource constructor:

@@ -6,10 +6,10 @@ import { readdirSync, Stats, statSync, readFile, readFileSync } from 'fs'
 
 import * as mocha from 'mocha'
 import { expect } from 'chai'
-import Querynator from './unit/lib/queries/Querynator'
-import constructSchema from '../src/lib/model/constructSchema'
-import builder from './unit/lib/queries/builder'
-import sheet from './unit/lib/excel'
+import Querynator from './unit/lib/queries/Querynator.spec'
+import constructSchema from '../src/app/model/constructSchema'
+import builder from './unit/lib/queries/builder.spec'
+import sheet from './unit/lib/excel.spec'
 import { resolve } from 'path'
 
 const testDirectories = ['./API/tables', './lib/Querynator']

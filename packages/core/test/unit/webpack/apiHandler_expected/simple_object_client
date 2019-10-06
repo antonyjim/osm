@@ -1,0 +1,5 @@
+/**
+ * Test a bare minimum request
+ */
+
+fetch(`/_/generated_simple_object?`)

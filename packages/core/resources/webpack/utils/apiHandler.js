@@ -1,3 +1,8 @@
+/**
+ * The purpose of this loader is to transform ApiResource calls
+ * in client source code into actual server-side 
+ */
+
 // Transform `new ApiResource()` calls into `fetch()` calls
 const connection = require('mysql').createConnection({
   user: process.env.DB_USER || 'node',
@@ -7,7 +12,6 @@ const connection = require('mysql').createConnection({
   port: process.env.DB_PORT || 3306
 })
 
-const vm = require('vm')
 const env = {
   OSM: {
     user: {
@@ -19,9 +23,13 @@ const env = {
     domain: true
   }
 }
-const context = vm.createContext()
 
-export default (function parseResourceRequests(source) {
+/**
+ * Process client ts/js files and transform ApiResource requests into
+ * a server route in the form of /_/{some_random_key}
+ * @param {string} source String containing client code
+ */
+module.exports = (function parseResourceRequests(source) {
   let matchEnd = 0
   const objName = 'new ApiResource'
   // Look for the first match on objName

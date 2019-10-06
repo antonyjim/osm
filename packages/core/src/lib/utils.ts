@@ -25,6 +25,12 @@ import { resolve } from 'path'
 
 // Constants and global variables
 
+const isTestEnv = process.env.NODE_ENV === 'test'
+
+export function isTest() {
+  return isTestEnv
+}
+
 export function LoginException(message: string, details?: Error) {
   this.message = message
   this.details = details
@@ -143,6 +149,16 @@ export function isBool(value): boolean {
  * @param length Length of hash to generate
  */
 export function generateKeyHash(length: number = 6) {
+  /**
+   * Check for test env. If found, look for special env
+   * variable called OVERRIDE_KEY_HASH. This allows for special
+   * hashes to be generated for predictable test results.
+   */
+  if (isTest) {
+    if (process.env.OVERRIDE_KEY_HASH) {
+      return process.env.OVERRIDE_KEY_HASH
+    }
+  }
   let result: string = ''
   const characters: string =
     'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'

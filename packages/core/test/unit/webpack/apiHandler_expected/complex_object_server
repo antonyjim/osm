@@ -1,0 +1,40 @@
+[{
+  "sql_query": [{
+    "table": "sys_user",
+    "alias": "empFirstNames",
+    "fields": [
+      "sys_id",
+      "user_name",
+      "given_name"
+    ],
+    "dynamic_conditions": [{
+        "field": "$1.last_login",
+        "operator": "<",
+        "alias": "aa",
+        "required": true
+      },
+      {
+        "field": "$1.given_name",
+        "operator": "=",
+        "alias": "ab",
+        "required": true
+      }
+    ],
+    "static_conditions": [{
+        "field": "$1.last_scope",
+        "operator": "=",
+        "value": "OSM.session.scope"
+      },
+      {
+        "field": "$1.active",
+        "operator": "=",
+        "value": "true"
+      }
+    ],
+    "joins": [{
+      "type": "left",
+      "table": "apos_customer",
+      "on": "$1.sys_id = $2.employee_id"
+    }]
+  }]
+}]

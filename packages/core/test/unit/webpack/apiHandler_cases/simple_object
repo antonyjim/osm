@@ -1,0 +1,8 @@
+/**
+ * Test a bare minimum request
+ */
+
+new ApiResource({
+  table: 'sys_user',
+  limit: 5
+})

@@ -1,0 +1,8 @@
+[{
+  "sql_query": [{
+    "table": "sys_user",
+    "pagination": {
+      "limit": 5
+    }
+  }]
+}]

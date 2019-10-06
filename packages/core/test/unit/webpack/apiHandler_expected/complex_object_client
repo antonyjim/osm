@@ -1,0 +1,5 @@
+/**
+ * A test with a nested object
+ */
+
+fetch(`/_/generated_complex_object?aa=${new Date(1570321600469)}&ab=${OSM.form.customer.given_name}`)

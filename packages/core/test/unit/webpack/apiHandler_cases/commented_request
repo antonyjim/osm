@@ -1,0 +1,7 @@
+/**
+ * new ApiResource({
+ *  raw: {sql: 'SELECT * FROM USERS WHERE USER_ID = ?', params: [OSM.user.id]}
+ * })
+ */
+
+var some_random_variable = 'some_random_string'

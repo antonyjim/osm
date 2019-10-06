@@ -1,8 +1,9 @@
 /*
-  Return a user's login informatino by username
+  Return a user's login information by username
 */
 
 DROP PROCEDURE IF EXISTS {{database}}.login_username ;
+
 CREATE PROCEDURE {{database}}.login_username (IN u_username VARCHAR(40))
     BEGIN
         SELECT
@@ -37,5 +38,5 @@ CREATE PROCEDURE {{database}}.login_username (IN u_username VARCHAR(40))
         WHERE
             su.app_scope = so.scope_prefix
         AND
-            su.username = username;
+            su.username = username ;
 END ;
