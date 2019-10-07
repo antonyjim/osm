@@ -17,7 +17,7 @@ const {
 } = require('fs')
 const exec = require('child_process').exec
 const join = require('path').join
-const connection = require('@lib/connection').multiQuery
+const connection = require('@lib/connection').overrideConnectionVar('database', null)
 const transformSql = require('./schema_transform')
 
 const packagesDir = join(__dirname, 'packages')

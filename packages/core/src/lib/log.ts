@@ -32,7 +32,7 @@ class Log {
         new TypeError('Any logging requires a message to be supplied')
       )
     } else if (context && context.table && context.primaryKey) {
-      console.log(`Context of ${context} supplied`)
+      console.log(`Context of %o supplied`, context)
       context.table.endsWith('_log')
         ? (this.tableName = context.table)
         : (this.tableName = context.table + '_log')

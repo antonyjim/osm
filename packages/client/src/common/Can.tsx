@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ITHQWindowNamespace } from '../typings'
+import { IOSMWindowNamespace } from '../types/global'
 interface ICanProps {
   if?: boolean
   role?: string
@@ -9,16 +9,19 @@ declare global {
   interface Window {
     MonacoEnvironment: any
     $: JQuery
-    THQ: ITHQWindowNamespace
+    OSM: IOSMWindowNamespace
   }
 }
 
 function Can(props: React.PropsWithChildren<ICanProps>) {
-  let privs: string[] = window.THQ.user.privs || []
+  let privs: string[] = window.OSM.session.user.privs || []
 
-  if (window.THQ.user.privs && window.THQ.user.privs.length === 0) {
-    document.addEventListener('thq.receivedNav', (e) => {
-      privs = window.THQ.user.privs
+  if (
+    window.OSM.session.user.privs &&
+    window.OSM.session.user.privs.length === 0
+  ) {
+    document.addEventListener('osm.receivedNav', (e) => {
+      privs = window.OSM.session.user.privs
     })
   }
 

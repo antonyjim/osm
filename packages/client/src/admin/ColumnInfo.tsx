@@ -104,9 +104,9 @@ export class ColumnGeneralInformation extends Component<
     let length = {}
     let colNameReadonly = {}
     if (!(this.state.type in ['CHAR', 'VARCHAR'])) {
-      length = { readOnly: 'readonly' }
+      length = { readOnly: 'readOnly' }
     }
-    if (this.props.sys_id !== 'new') colNameReadonly = { readOnly: 'readonly' }
+    if (this.props.sys_id !== 'new') colNameReadonly = { readOnly: 'readOnly' }
     return (
       <>
         <h4> General Information </h4>
@@ -189,10 +189,10 @@ export class ColumnGeneralInformation extends Component<
             type='text'
           />
           <Field
-            id='col_order'
-            name='col_order'
+            id='column_order'
+            name='column_order'
             label='Col Order'
-            value={this.state.fields.col_order}
+            value={this.state.fields.column_order}
             onChange={this.handleChange.bind(this)}
             className='col-lg-6 col-md-12'
             type='number'

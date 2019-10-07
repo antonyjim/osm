@@ -87,7 +87,7 @@ export default function FileUpload(props: IFileUploadProps) {
           '/api/attachments/anonymous/' +
             thisFile.name +
             '?token=' +
-            window.THQ.token,
+            window.OSM.session.token,
           {
             method: 'POST',
             // headers: {

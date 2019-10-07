@@ -32,6 +32,7 @@ export interface ITableField {
   displayAs?: string
   type: string
   visible: boolean
+  order?: number
 }
 
 export interface ISysForm {

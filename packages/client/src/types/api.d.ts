@@ -1,5 +1,5 @@
 import { ITableField } from './forms'
-import { ITablePermissions } from '../typings'
+import { ITablePermissions } from './global'
 import { IStatusMessage } from './server'
 
 export interface IFieldError {

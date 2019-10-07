@@ -9,8 +9,8 @@
 // NPM Modules
 
 // Local Modules
-import { Querynator } from '../../../lib/queries'
-import { getTables } from '../../model/constructSchema'
+import { Querynator } from '../../lib/queries'
+import { getTables } from '../model/constructSchema'
 
 // Constants and global variables
 

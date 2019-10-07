@@ -7,8 +7,17 @@ import constructSchema, { tables } from '@app/model/constructSchema'
 import { IDictionary } from '@osm/server'
 import { ITableSchema } from '@osm/forms'
 import { IDescribeResult } from '@osm/queries'
+import { MAX_SQL_COL, databaseConfig } from '@root/config'
+import { describeColumn, IFullColumn } from '@lib/schema/table/describe'
+import specialColumnNames from './specialColumnNames'
+import * as humanize from 'humanize-string'
 
 const log = debug('app:init')
+const flaggedKeyFields: {
+  table: string
+  field: string
+  columnId: string
+}[] = []
 
 /**
  * Copy everything using SHOW TABLES
@@ -27,8 +36,7 @@ export function initSchema() {
           IDictionary<ITableSchema>,
           IDictionary<string>[]
         ]) => {
-          const flaggedKeyFields = []
-          Promise.all(
+          return Promise.all(
             allTables.map((table) => {
               return new Promise(
                 (resolveTableDescription, rejectTableDescription) => {
@@ -73,42 +81,71 @@ export function initSchema() {
                         'enum',
                         'display_field'
                       ]
+                      let minColIndex = 0
                       let hasSetDisplay = false
-                      let theseColumns = columns.map((col, i) => {
+
+                      let theseColumns = columns.map((col) => {
+                        // Check if the column is already defined, and figure out sort order
                         if (
                           tables[tableName] &&
                           tables[tableName].columns[col.Field]
                         ) {
+                          if (tables[tableName].columns[col.Field])
+                            if (tables[tableName].columns[col.Field].order) {
+                              // Check if the column order is less than that of the minColIndex,
+                              // If so, do not allow any future columns from having a column index
+                              // equal to or below this column's col index
+                              if (
+                                tables[tableName].columns[col.Field].order <=
+                                minColIndex
+                              ) {
+                                minColIndex =
+                                  tables[tableName].columns[col.Field].order + 1
+                              }
+                            }
+
                           return // Column already defined
                         } else {
-                          console.log('Column %s is not defined', col.Field)
-
+                          // Define a new column
+                          log('Column %s is not defined', col.Field)
+                          const columnId = uuid()
+                          let columnOrder = minColIndex
+                          minColIndex++
                           let displayField = false
+
+                          // Lets look for special field details
+                          const specialDetails =
+                            specialColumnNames[col.Field] || {}
+                          // Set the first non-id and non-foreign reference
+                          // to be a display field.
                           if (
                             col.Field !== 'sys_id' &&
-                            hasSetDisplay === false
+                            hasSetDisplay === false &&
+                            col.Key !== 'MUL'
                           ) {
                             displayField = true
                             hasSetDisplay = true
                           }
 
+                          // We'll look for foreign keys after inserting descriptions
                           if (col.Key === 'MUL') {
                             flaggedKeyFields.push({
                               table: tableName,
-                              field: col.Field
+                              field: col.Field,
+                              columnId
                             })
                           }
 
                           return [
-                            uuid(), // sys_id
+                            columnId, // sys_id
                             null, // reference_id
                             col.Field, // column_name,
-                            true, // visible
+                            specialDetails.visible || true, // visible
                             false, // admin_view
                             false, // readonly
                             col.Null === 'NO', // nullable
-                            col.Field, // label
-                            null, // hint
+                            specialDetails.label || humanize(col.Field), // label
+                            specialDetails.hint || null, // hint
                             parseType(col.Type).dataType.toUpperCase(), // type
                             parseType(col.Type).dataLength, // len
                             col.Default, // default_value
@@ -117,7 +154,7 @@ export function initSchema() {
                             currTableId, // table_name
                             true, // default_view
                             col.Key === 'PRI' ? true : false, // update_key
-                            100, // column_order
+                            columnOrder, // column_order
                             null, // enum
                             displayField // display_field
                           ]
@@ -135,20 +172,16 @@ export function initSchema() {
                         )
                       } else {
                         // If we aren't doing anything, then we just need to move on so that we can resolve the whole function
-                        return new Promise((resolve) => {
-                          resolve()
-                        })
+                        return Promise.resolve()
                       }
                     })
-                    .then(() => {
-                      // Resolve after creating all table descriptions in sys_db_dictionary
-                      resolveTableDescription()
-                    })
+                    .then(resolveTableDescription)
                     .catch((err) => {
                       console.error(
                         '[CONSTRUCT_SCHEMA] Error inserting table descriptions'
                       )
                       console.error(err)
+                      rejectTableDescription(err)
                     })
                 }
               )
@@ -156,6 +189,38 @@ export function initSchema() {
           )
         }
       )
+      .then(() => {
+        // Take all of the flagged fields and search for their reference
+        return Promise.all(
+          flaggedKeyFields.map((refCol) => {
+            return new Promise((resolveDesc, rejectDesc) => {
+              describeColumn(
+                databaseConfig.database,
+                refCol.table,
+                refCol.field
+              )
+                .then((describedColumn: IFullColumn) => {
+                  if (describedColumn.reference) {
+                    // Try to find the reference id
+                    simpleQuery(
+                      'UPDATE sys_db_dictionary SET reference_id = (SELECT t1.sys_id FROM sys_db_dictionary t1 LEFT JOIN sys_db_object t2 ON t1.table_name = t2.sys_id WHERE t1.column_name = ? and t2.name = ? LIMIT 1) WHERE sys_id = ?',
+                      [
+                        describedColumn.reference.name,
+                        describedColumn.reference.table,
+                        refCol.columnId
+                      ]
+                    )
+                      .then(resolveDesc)
+                      .catch(rejectDesc)
+                  } else {
+                    return resolveDesc()
+                  }
+                })
+                .catch(rejectDesc)
+            })
+          })
+        )
+      })
       .then(constructSchema)
       .then(resolveSchema)
       .catch((err) => {
@@ -169,7 +234,11 @@ export function initSchema() {
 
   function parseType(sqlType: string) {
     function getLen(type) {
-      const len = parseInt(type.match(/[^\(\)]+(?=\))/g)[0], 10)
+      const numInParens: string[] = type.match(/\(\d*\)/g)
+      if (numInParens.length === 0) {
+        return 0
+      }
+      const len = parseInt(numInParens[0].slice(1, -1), 10)
       if (isNaN(len)) {
         return 0
       } else {
@@ -181,7 +250,10 @@ export function initSchema() {
       dataType: 'tinyint',
       dataLength: 0
     }
-    const switchVal = sqlType.toLowerCase()
+    const switchVal = sqlType
+      .replace(/\s?\(\d*\)/g, '')
+      .trim()
+      .toLowerCase()
     switch (switchVal) {
       // Check for unicode
       case 'nchar':

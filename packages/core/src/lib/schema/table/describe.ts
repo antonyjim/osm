@@ -11,11 +11,7 @@ export interface IFullColumn {
   table: string
   position: number
   default?: number | string | boolean | Date
-  reference?: {
-    database: string
-    table: string
-    column: IFullColumn
-  }
+  reference?: IFullColumn
   attributes?: string[]
 }
 
@@ -60,7 +56,7 @@ namespace information_schema {
     CHARACTER_SET_NAME: string
     COLLATION_NAME: string
     COLUMN_TYPE: string
-    COLUMN_KEY: 'YES' | 'NO'
+    COLUMN_KEY: 'PRI' | 'MUL' | 'UNI'
     EXTRA: string
   }
 
@@ -92,7 +88,7 @@ namespace information_schema {
     CHARACTER_SET_NAME: string
     COLLATION_NAME: string
     COLUMN_TYPE: string
-    COLUMN_KEY: 'YES' | 'NO'
+    COLUMN_KEY: 'PRI' | 'MUL' | 'UNI'
     EXTRA: string
     REFERENCED_TABLE_SCHEMA: string
     REFERENCED_TABLE_NAME: string
@@ -132,39 +128,72 @@ function convertTableToFriendlyFormat(
  * Convert information schema data into normalized js object
  * @param column Column information from information_schema
  */
-function convertColumnToFriendlyFormat(
-  column: information_schema.column_with_key
+export function describeColumn(
+  databaseName: string,
+  tableName: string,
+  columnName: string
 ): Promise<IFullColumn> {
   return new Promise((resolve, reject) => {
-    const col: IFullColumn = {
-      name: column.COLUMN_NAME,
-      type: column.COLUMN_TYPE,
-      length: column.CHARACTER_MAXIMUM_LENGTH,
-      database: column.TABLE_SCHEMA,
-      table: column.TABLE_NAME,
-      position: column.ORDINAL_POSITION,
-      default: column.COLUMN_DEFAULT,
-      attributes: column.EXTRA.split(' ')
-    }
+    simpleQuery(
+      `
+SELECT TABLE_SCHEMA,
+TABLE_NAME,
+COLUMN_NAME,
+ORDINAL_POSITION,
+COLUMN_DEFAULT,
+IS_NULLABLE,
+DATA_TYPE,
+CHARACTER_MAXIMUM_LENGTH,
+NUMERIC_PRECISION,
+NUMERIC_SCALE,
+DATETIME_PRECISION,
+CHARACTER_SET_NAME,
+COLLATION_NAME,
+COLUMN_TYPE,
+COLUMN_KEY,
+EXTRA FROM INFORMATION_SCHEMA.COLUMNS WHERE
+TABLE_NAME = ? AND
+COLUMN_NAME = ? AND
+TABLE_SCHEMA = ?`,
+      [tableName, columnName, databaseName]
+    ).then((column: information_schema.columns) => {
+      column = column[0]
+      const col: IFullColumn = {
+        name: column.COLUMN_NAME,
+        type: column.COLUMN_TYPE,
+        length: column.CHARACTER_MAXIMUM_LENGTH,
+        database: column.TABLE_SCHEMA,
+        table: column.TABLE_NAME,
+        position: column.ORDINAL_POSITION,
+        default: column.COLUMN_DEFAULT,
+        attributes: column.EXTRA && column.EXTRA.split(' ')
+      }
 
-    if (column.REFERENCED_COLUMN_NAME) {
-      describeColumn(
-        column.REFERENCED_TABLE_SCHEMA,
-        column.REFERENCED_TABLE_NAME,
-        column.REFERENCED_COLUMN_NAME
-      )
-        .then((refColumn: IFullColumn) => {
-          col.reference = {
-            database: column.REFERENCED_TABLE_SCHEMA,
-            table: column.REFERENCED_TABLE_NAME,
-            column: refColumn
-          }
-          return resolve(col)
-        })
-        .catch(reject)
-    } else {
-      return resolve(col)
-    }
+      if (column.COLUMN_KEY === 'MUL') {
+        getForeignKey(
+          column.TABLE_SCHEMA,
+          column.TABLE_NAME,
+          column.COLUMN_NAME
+        )
+          .then((refColumn: IFullColumn) => {
+            col.reference = refColumn
+            return resolve(col)
+          })
+          .catch(reject)
+      } else {
+        return resolve(col)
+      }
+    })
+  })
+}
+
+export function getTableColumns(databaseName: string, tableName: string) {
+  return new Promise((resolveAllColumns, rejectAllColumns) => {
+    simpleQuery(
+      'SELECT COLUMN_NAME, COLUMN_DEFAULT, IS_NULLABLE, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, \
+      COLUMN_KEY, EXTRA\
+      '
+    )
   })
 }
 
@@ -195,28 +224,28 @@ export function describeTable(
   })
 }
 
-function describeColumn(
+export function getForeignKey(
   databaseName: string,
   tableName: string,
-  columnName: string | [string]
-) {
+  columnName: string
+): Promise<IFullColumn> {
   return new Promise((resolve, reject) => {
-    if (!Array.isArray(columnName)) {
-      columnName = [columnName]
-    }
     simpleQueryWithCb(
-      'SELECT t1.*, t2.REFERENCED_TABLE_SCHEMA, t2.REFERENCED_TABLE_NAME, t2.REFERENCED_COLUMN_NAME, t2.CONTSTRAINT_NAME FROM INFORMATION_SCHEMA.COLUMNS t1 LEFT JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE ON t1.COLUMN_NAME = t2.COLUMN_NAME WHERE t1.TABLE_NAME = ? AND t1.COLUMN_NAME IN (?) AND t1.TABLE_SCHEMA = ?',
+      'SELECT REFERENCED_TABLE_SCHEMA, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME, CONSTRAINT_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME = ? AND COLUMN_NAME IN (?) AND TABLE_SCHEMA = ? AND NOT REFERENCED_TABLE_SCHEMA IS NULL',
       [tableName, columnName, databaseName],
-      (err: MysqlError, results: information_schema.column_with_key[]) => {
+      (err: MysqlError, results: information_schema.key_column_usage[]) => {
         if (err) reject(err)
-        const allColumns = []
-        results.forEach((column) => {
-          allColumns.push(convertColumnToFriendlyFormat(column))
-        })
-
-        Promise.all(allColumns)
-          .then(resolve)
-          .catch(reject)
+        if (results.length > 0 && results[0].REFERENCED_TABLE_SCHEMA) {
+          describeColumn(
+            results[0].REFERENCED_TABLE_SCHEMA,
+            results[0].REFERENCED_TABLE_NAME,
+            results[0].REFERENCED_COLUMN_NAME
+          )
+            .then(resolve)
+            .catch(reject)
+        } else {
+          resolve()
+        }
       }
     )
   })

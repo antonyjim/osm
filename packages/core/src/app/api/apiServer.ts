@@ -10,15 +10,13 @@
 // Local Modules
 import { Querynator } from '../../lib/queries'
 import { Log } from '../../lib/log'
-import { rootQueries } from './schema/queries'
-import rootMutations from './schema/mutations'
 import { getTables } from '../model/constructSchema'
 import {
   genericTableQuery,
   genericTableDelete,
   genericTableUpdate,
   genericTableCreate
-} from './schema/GeneralTable'
+} from './GenericTable'
 import {
   IFieldMessage,
   IAPIByIdResponse,
@@ -115,9 +113,7 @@ export default class APICall extends Querynator {
     // rootQueries[queryTable](fields, this.context.req.params.id, this.context)
     const queryTable: string = this.context.req.params.table
     let handler
-    if (rootMutations.create[queryTable]) {
-      handler = rootMutations.create[queryTable]
-    } else if (queryTable in getTables()) {
+    if (queryTable in getTables()) {
       handler = genericTableCreate
     }
     if (handler) {
@@ -170,9 +166,7 @@ export default class APICall extends Querynator {
     const updateBody = this.context.req.body
     const queryFields = this.context.req.query.fields
     let handler
-    if (rootMutations.update[queryTable]) {
-      handler = rootMutations.update[queryTable]
-    } else if (queryTable in getTables()) {
+    if (queryTable in getTables()) {
       handler = genericTableUpdate
     }
     /* Update the table by calling on the resolver function */
@@ -245,9 +239,7 @@ export default class APICall extends Querynator {
     const id = this.context.req.params.id
     const queryFields = this.context.req.query.fields
     let handler
-    if (rootMutations.delete[queryTable]) {
-      handler = rootMutations.delete[queryTable]
-    } else if (queryTable in getTables()) {
+    if (queryTable in getTables()) {
       handler = genericTableDelete
     }
     if (handler && id) {
@@ -299,9 +291,7 @@ export default class APICall extends Querynator {
     let queryFields: string[] = []
     let args: any = null
     let handler
-    if (rootQueries[queryTable]) {
-      handler = rootQueries[queryTable]
-    } else if (
+    if (
       (queryTable.endsWith('_list') &&
         queryTable.slice(0, -5) in getTables()) ||
       queryTable in getTables()

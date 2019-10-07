@@ -21,6 +21,7 @@ import User, { forgotPassword } from '@app/users/users'
 import { createReadStream } from 'fs'
 import { resolve } from 'path'
 import { setResponseToken, jwtKeys } from '../middleware/authentication'
+import { staticDir } from '@root/config'
 
 // Constants and global variables
 const authRoutes = Router()
@@ -28,9 +29,7 @@ const authRoutes = Router()
 authRoutes.get('/login', (req: Request, res: Response) => {
   res.cookie('token', null)
   res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' })
-  const fileStream = createReadStream(
-    resolve(__dirname, '../../../static/login.html')
-  )
+  const fileStream = createReadStream(resolve(staticDir, 'login.html'))
   fileStream.on('data', (data) => {
     res.write(data)
   })
@@ -57,6 +56,9 @@ authRoutes.get('/logout', (req: Request, res: Response) => {
   // })
 })
 
+/**
+ * Handle a login request
+ */
 authRoutes.post('/login', (req: Request, res: Response) => {
   let responseBody: IResponseMessage = {}
   let tokenPayload: UserTypes.IAuthToken = null

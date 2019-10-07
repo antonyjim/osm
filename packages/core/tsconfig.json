@@ -18,7 +18,12 @@
       "lodash",
       "bcrypt",
       "jsonwebtoken",
-      "nodemailer"
+      "nodemailer",
+      "mocha",
+      "chai",
+      "formidable",
+      "sinon",
+      "webpack"
     ],
     "paths": {
       "@app/*": ["app/*"],

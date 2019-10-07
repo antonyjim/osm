@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Component } from 'react'
-import Pills from '../common/PillLayout'
+import Pills from '../common/Pills'
 import { Table } from '../common/Table'
 import API from '../lib/API'
 import { ColumnGeneralInformation } from './ColumnInfo'
@@ -51,7 +51,8 @@ export default function Column(props) {
       'table_name_display',
       'reference_id_display',
       'required_on_update',
-      'required_on_create'
+      'required_on_create',
+      'column_order'
     ],
     loaded: props.match.params.id !== 'new' ? false : true
   })

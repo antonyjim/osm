@@ -29,6 +29,8 @@ const poolConfig: PoolConfig = {
   connectionLimit: parseInt(process.env.DB_POOL_LIMIT, 10) || 1
 }
 
+const MAX_SQL_COL: number = 750
+
 export {
   clientPath,
   version,
@@ -36,5 +38,6 @@ export {
   resourceDir,
   databaseConfig,
   poolConfig,
-  staticDir
+  staticDir,
+  MAX_SQL_COL
 }

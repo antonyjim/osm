@@ -8,7 +8,6 @@ import { IDictionary, IStatusMessage } from '../../types/server'
 import { generateKeyHash, noop } from '../../lib/util'
 import { Alert } from '../Alerts'
 import { FormValue, ITableField } from '../../types/forms'
-import { ITablePermissions } from '../../typings'
 import { IAPIGETResponse, ITableDescriptionResponse } from '../../types/api'
 
 export interface ITableColumn {
@@ -16,6 +15,13 @@ export interface ITableColumn {
     boundTo: string
     type: string
   }
+}
+
+export interface ITablePermissions {
+  edit: boolean
+  create: boolean
+  read: boolean
+  delete: boolean
 }
 
 export interface IActionItem {

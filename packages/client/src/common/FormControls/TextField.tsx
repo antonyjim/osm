@@ -41,7 +41,7 @@ function Field(props: ITextField): JSX.Element {
         value={props.value || ''}
         onChange={handleChange}
         maxLength={props.maxLength}
-        readonly={props.readOnly ? 'readonly' : false}
+        readOnly={props.readOnly ? 'readonly' : false}
       />
     </div>
   ) : (

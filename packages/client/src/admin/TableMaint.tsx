@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Component } from 'react'
-import Pills from '../common/PillLayout'
+import Pills from '../common/Pills'
 import { Field } from '../common/FormControls'
 import API from '../lib/API'
 import Table from '../common/Table'

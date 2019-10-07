@@ -42,7 +42,7 @@ function getTableDescription(tableName: {
     // Find the column name, reference field,
     // selectablility, table_name, table_display_name
     const statement =
-      'SELECT `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??,   \
+      'SELECT `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??,   \
       `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??, `t1`.??,  \
       `t2`.?? AS ??, `t3`.?? AS ??, `t4`.?? AS ?? FROM ?? `t1` LEFT   \
       JOIN ?? `t2` ON `t1`.?? = `t2`.?? INNER JOIN ?? `t3` ON `t1`.?? \
@@ -58,6 +58,7 @@ function getTableDescription(tableName: {
       'required_on_update',
       'required_on_create',
       'default_view',
+      'column_order',
       'update_key',
       'len',
       'readonly',
@@ -107,7 +108,8 @@ function getTableDescription(tableName: {
               label: col.label,
               visible: col.visible || false,
               requiredUpdate: col.required_on_update,
-              requiredCreate: col.required_on_create
+              requiredCreate: col.required_on_create,
+              order: col.column_order
             }
             if (col.default_view) {
               tableDescription.defaultFields.push(col.column_name)
@@ -188,7 +190,7 @@ export default function constructSchema(): Promise<IDictionary<ITableSchema>> {
       references.forEach((ref) => {
         // const colName = ref.col + '_display'
         const colName = ref.col
-        const colTable = ref.table
+        const colTable = ref.table.name
         const refTable = ref.refTable
         const refCol = ref.refCol
         const colDetails = tables[refTable].columns[refCol]

@@ -53,7 +53,7 @@ export function setResponseToken(res: Response, token: string) {
 }
 
 /**
- * Validate tokens present in the cookie of the request, really only applicable to the main login/app page
+ * Validate tokens present in the Bearer token
  */
 export function tokenValidation() {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -63,6 +63,7 @@ export function tokenValidation() {
       tokenCookie = tokenCookie.split('Bearer ')[1] || tokenCookie
     }
     req.auth = {}
+
     function handleOnAuthError(error: Error) {
       req.auth = {
         [jwtKeys.isAuthenticated]: false,
@@ -87,10 +88,10 @@ export function tokenValidation() {
           setResponseToken(res, token)
 
           next()
-          return
         }
       )
     }
+
     if (!tokenCookie) {
       sign(
         anonToken,

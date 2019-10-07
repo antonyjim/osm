@@ -38,13 +38,12 @@ useradminRoutes.get('/me', (req: Request, res: Response) => {
   //   })
   new User({ req, res })
     .profile(req.query.sys_id)
-    .then(([user, logs, customers]) => {
+    .then(([user, logs]) => {
       res.status(200).json({
         errors: null,
         data: {
           user,
-          logs,
-          customers
+          logs
         }
       })
     })
@@ -68,13 +67,12 @@ useradminRoutes.get('/myusers', (req: Request, res: Response) => {
 useradminRoutes.get('/profile', (req: Request, res: Response) => {
   new User({ req, res })
     .profile(req.query.sys_id)
-    .then(([user, logs, customers]) => {
+    .then(([user, logs]) => {
       res.status(200).json({
         errors: null,
         data: {
           user: user[0],
-          logs,
-          customers
+          logs
         }
       })
     })

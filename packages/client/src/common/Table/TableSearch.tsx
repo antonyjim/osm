@@ -1,10 +1,9 @@
 import * as React from 'react'
 import { Component } from 'react'
-import { ITablePermissions } from '../../typings'
+import { ITablePermissions } from './Table'
 import { Can } from '../Can'
 import { Link } from 'react-router-dom'
 import { generateKeyHash } from '../../lib/util'
-import { ITableColumn } from './Table'
 import { ITableField } from '../../types/forms'
 import { IDictionary } from '../../types/server'
 

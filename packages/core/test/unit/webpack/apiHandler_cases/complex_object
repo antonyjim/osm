@@ -20,5 +20,10 @@ new ApiResource({
     type: 'left',
     table: 'apos_customer',
     on: '$1.sys_id = $2.employee_id'
+  },
+  roles: {
+    minimum: [
+      'read_customer'
+    ]
   }
 })

@@ -2,22 +2,23 @@ import * as React from 'react'
 import { Component } from 'react'
 import { Can } from '../common/Can'
 import FileUpload from '../common/FormControls/FileUpload'
+import { INavigationMenu } from '../lib/authentication'
 
 interface IDashboardState {
-  menus: string[]
+  menus: INavigationMenu | {}
 }
 
-export default class Dashboard extends Component<{}, IDashboardState> {
-  constructor(props: any) {
-    super(props)
-    this.state = {
-      menus: window.THQ.menus || []
-    }
-    document.addEventListener('thq.receivedNav', () => {
-      this.setState({ menus: window.THQ.menus })
-    })
-  }
-  public render() {
+export default function Dashboard() {
+  const [menus, setMenus]: [
+    INavigationMenu,
+    React.Dispatch<INavigationMenu>
+  ] = React.useState(window.OSM.menus)
+
+  document.addEventListener('osm.receivedNav', () => {
+    setMenus({ menus: window.OSM.menus })
+  })
+
+  if (menus) {
     return (
       <div className='container-fluid'>
         <div className='row'>
@@ -87,7 +88,7 @@ export default class Dashboard extends Component<{}, IDashboardState> {
                 </div>
               </div>
             </div>
-            <Can if={this.state.menus.indexOf('Tires And Ordering') > -1}>
+            <Can if={!!menus['Tires And Ordering']}>
               <div className='card shadow mb-3'>
                 <a href='#'>
                   <div className='card-header bg-info shadow-sm'>
@@ -115,7 +116,7 @@ export default class Dashboard extends Component<{}, IDashboardState> {
                 </div>
               </div>
             </Can>
-            <Can if={this.state.menus.indexOf('Financial') > -1}>
+            <Can if={!!menus['Financial']}>
               <div className='card shadow mb-3'>
                 <a href='#'>
                   <div className='card-header bg-secondary'>
@@ -146,7 +147,7 @@ export default class Dashboard extends Component<{}, IDashboardState> {
                 </div>
               </div>
             </Can>
-            <Can if={this.state.menus.indexOf('Dealer Programs') > -1}>
+            <Can if={!!menus['Dealer Programs']}>
               <div className='card mb-3 mb-4'>
                 <a href='#'>
                   <div className='card-header bg-warning'>
@@ -259,5 +260,7 @@ export default class Dashboard extends Component<{}, IDashboardState> {
         />
       </div>
     )
+  } else {
+    return <></>
   }
 }

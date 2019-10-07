@@ -1,15 +1,15 @@
 import * as React from 'react'
 import { Component, useState } from 'react'
 import { Alert } from '../common/Alerts'
-import Pills from '../common/PillLayout'
+import Pills from '../common/Pills'
 // import * as $ from 'jquery'
 import { SelectField, Field } from '../common/FormControls'
-import { ITHQWindowNamespace } from '../typings'
+import { IOSMWindowNamespace } from '../types/global'
 
 declare global {
   interface Window {
     MonacoEnvironment: any
-    THQ: ITHQWindowNamespace
+    OSM: IOSMWindowNamespace
   }
 }
 

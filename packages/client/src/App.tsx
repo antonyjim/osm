@@ -11,8 +11,9 @@ import Dashboard from './home/Dashboard'
 import { TableList } from './common/ListView'
 import Form from './forms/Form'
 // import $ from 'jquery'
-import { ITHQWindowNamespace } from './typings'
+import { IOSMWindowNamespace } from './types/global'
 import { Workspace } from './customComponents/Workspace'
+import { UserDetails } from './lib/authentication'
 
 const Admin = React.lazy(() => import('./admin/Admin'))
 const UserProfile = React.lazy(() => import('./home/UserProfile'))
@@ -22,7 +23,7 @@ declare global {
   interface Window {
     MonacoEnvironment: any
     $: JQuery
-    THQ: ITHQWindowNamespace
+    OSM: IOSMWindowNamespace
     monaco: any
     require: any
   }
@@ -38,7 +39,7 @@ const SuspenseLoader = (
 
 // Get a new token from the server when the old one is less than 3 minutes from expiring
 const refreshToken = () => {
-  const token = window.THQ.token
+  const token = window.OSM.session.token
   if (!token) {
     window.location.href = '/auth/logout'
   } else {
@@ -48,7 +49,7 @@ const refreshToken = () => {
       $.ajax('/api/refresh?token=' + token, {
         success: (response) => {
           if (response.token && !response.error) {
-            window.THQ.token = response.token
+            window.OSM.session.token = response.token
             sessionStorage.setItem('token', response.token)
           } else {
             console.log(response)
@@ -76,28 +77,26 @@ let parsedAt: number = 0
 export default function App() {
   // Expect that a token will be in the query string
   const token = qs('token')
-  const user = {
-    userId: null,
-    privs: []
-  }
+  const user: UserDetails = new UserDetails('')
+  user.privs = []
 
-  window.THQ = { ...window.THQ, token, user }
+  window.OSM = { ...window.OSM, session: { token, user, scope: 'SYS' } }
   if (token) {
     // Remove the token from the query string
     if (window.localStorage) {
       window.localStorage.setItem('token', token)
       window.history.pushState(
         { loaded: true },
-        'Tire-HQ',
+        'Open Service Management',
         window.location.pathname
       )
     }
   } else {
     if (window.localStorage) {
       // Default to looking for the token in session storage
-      window.THQ.token = localStorage.getItem('token')
+      window.OSM.session.token = localStorage.getItem('token')
       // window.history.pushState({ loaded: true }, 'Tire-HQ', '/')
-      if (!window.THQ.token) {
+      if (!window.OSM.session.token) {
         window.location.href = '/auth/logout'
       }
     }

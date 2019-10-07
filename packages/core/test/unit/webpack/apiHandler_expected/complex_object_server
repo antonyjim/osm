@@ -23,7 +23,7 @@
     "static_conditions": [{
         "field": "$1.last_scope",
         "operator": "=",
-        "value": "OSM.session.scope"
+        "reqKey": "scope"
       },
       {
         "field": "$1.active",

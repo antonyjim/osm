@@ -1,4 +1,4 @@
-import { ITHQWindowNamespace } from '../typings'
+import { IOSMWindowNamespace } from '../types/global'
 import { IAPIGETResponse } from '../types/api'
 import { IDictionary } from '../types/server'
 
@@ -6,7 +6,7 @@ declare global {
   interface Window {
     MonacoEnvironment: any
     $: JQuery
-    THQ: ITHQWindowNamespace
+    THQ: IOSMWindowNamespace
   }
 }
 
@@ -74,7 +74,7 @@ function makeFetchRequest(
 }
 
 function flattenQuery(queryObject?: any) {
-  const queryStringArray = [`token=${window.THQ.token || ''}`]
+  const queryStringArray = [`token=${window.OSM.session.token || ''}`]
   if (queryObject && typeof queryObject === 'object') {
     Object.keys(queryObject).map((queryKey) => {
       queryStringArray.push(

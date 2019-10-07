@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Field, Reference } from '../common/FormControls'
 import { TowelRecord } from '../lib/API'
-import { ITHQWindowNamespace } from '../typings'
+import { IOSMWindowNamespace } from '../types/global'
 import { Monaco } from '../common/Monaco'
 import { IRefUpdate } from '../common/FormControls/Reference'
 // const Monaco = React.lazy(() => import('./../common/Monaco'))
@@ -12,7 +12,7 @@ declare global {
   interface Window {
     MonacoEnvironment: any
     $: JQuery
-    THQ: ITHQWindowNamespace
+    OSM: IOSMWindowNamespace
     monaco: any
   }
 }

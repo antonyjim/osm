@@ -1,9 +1,10 @@
 import * as React from 'react'
 import { Component } from 'react'
-import { fetchLogin } from '../lib/getNavigation'
+import { fetchLogin, INavigationMenu } from '../lib/authentication'
 import { Can } from '../common/Can'
 import { Link } from 'react-router-dom'
 import { generateKeyHash } from '../lib/util'
+import { IAPIGETResponse } from '../types/api'
 
 interface INavigationLink {
   href: string
@@ -82,9 +83,9 @@ export default class Navigation extends Component<any, any> {
 
   private getNav() {
     fetchLogin()
-      .then((navigation: any) => {
-        if (navigation.error) {
-          console.error(navigation.error)
+      .then((navigation: INavigationMenu) => {
+        if (navigation.errors) {
+          console.error(navigation.errors)
         }
         this.setState({ nav: navigation, loaded: true })
       })

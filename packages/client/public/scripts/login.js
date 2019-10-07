@@ -29,7 +29,7 @@ function passLogin() {
         }
 
       } else {
-        $('#passwordError').text(authenticationResults.message)
+        $('#passwordError').text(authenticationResults.errors[0].message)
         $('#passwordError').show()
         $('#loginLoading').hide()
         $('#loginDisplay').show()

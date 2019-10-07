@@ -2,7 +2,7 @@ import * as React from 'react'
 import { useState, useEffect } from 'react'
 
 import { TowelRecord } from '../lib/API'
-import Pills, { IPillProps, IPillBody } from '../common/PillLayout'
+import Pills, { IPillProps, IPillBody } from '../common/Pills'
 import { IFormDetails, FormValue } from '../types/forms'
 import { Loading } from '../common/Loading'
 import { getFormDetails } from '../lib/formLoader'
@@ -33,10 +33,7 @@ export default function Form(
   //   (props: any) => JSX.Element
   // > | null = null
 
-  const [CustomForm, setCustomForm]: [
-    any,
-    React.Dispatch<React.SetStateAction<any>>
-  ] = useState(null)
+  const [CustomForm, setCustomForm]: [any, React.Dispatch<any>] = useState(null)
 
   // Store the pill bodies
   const [pills, setPills]: [IPillProps, React.Dispatch<IPillProps>] = useState(

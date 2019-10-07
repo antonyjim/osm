@@ -10,3 +10,7 @@ export namespace Common {
     }
   }
 }
+
+export interface IDictionary<T> {
+  [key: string]: T
+}

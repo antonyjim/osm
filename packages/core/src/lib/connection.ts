@@ -192,4 +192,19 @@ async function testConnection(): Promise<boolean> {
   })
 }
 
-export { getPool, jwtSecret, simpleQuery, testConnection, HOOKS_DIR }
+function overrideConnectionVar(objKey: string, objValue: string): Connection {
+  return createConnection({
+    ...databaseConfig,
+    multipleStatements: true,
+    [objKey]: objValue
+  })
+}
+
+export {
+  getPool,
+  jwtSecret,
+  simpleQuery,
+  testConnection,
+  HOOKS_DIR,
+  overrideConnectionVar
+}

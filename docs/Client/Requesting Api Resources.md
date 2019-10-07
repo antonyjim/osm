@@ -11,7 +11,7 @@ new ApiResource({
   role: 'admin',
   fields: ['sys_id', 'user_name', 'last_login', 'last_app_scope'],
   conditions: {
-    last_app_scope: OSM.currentScope,
+    last_app_scope: OSM.session.scope,
     active: true,
     'last_login[<]': new Date(),
     search: state.searchPhrase
@@ -30,6 +30,6 @@ The `fda4oi5` in the previous example is a randomly generated hash created by th
 | Key          | Required  | Value                                                                                                        |
 | ------------ | :-------: | ------------------------------------------------------------------------------------------------------------ |
 | `role`       |     N     | Can be a string or array of strings used to ensure unauthorized access does not occur                        |
-| `able`       | Sometimes | A simple string representing the name of a table that is being queried. Is not required when `raw` is passed |
+| `table`      | Sometimes | A simple string representing the name of a table that is being queried. Is not required when `raw` is passed |
 | `conditions` |     N     | An object describing the query to be used in the sql `WHERE` clause.                                         |
 | `fields`     |     Y     | An array representing the fields to fetch from the request                                                   |

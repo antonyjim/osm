@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { Fragment } from 'react'
 import { Alert } from './Alerts'
 // import $ from 'jquery'
 import { ContextMenu, IContextMenuProps } from './ContextMenu'
@@ -25,15 +26,19 @@ function InlineModifier(props: { val: string }) {
   return true
 }
 
+/**
+ * Render a Pill layout for forms and other pages.
+ * @param props
+ */
 export default function Pills(props: { pills: IPillProps }) {
   const [pillAs, setPillAs]: [
     JSX.Element[],
     React.Dispatch<React.SetStateAction<JSX.Element[]>>
-  ] = React.useState([<></>])
+  ] = React.useState([<Fragment key={generateKeyHash()}></Fragment>])
   const [pillBodies, setPillBodies]: [
     JSX.Element[],
     React.Dispatch<React.SetStateAction<JSX.Element[]>>
-  ] = React.useState([<></>])
+  ] = React.useState([<Fragment key={generateKeyHash()}></Fragment>])
   const [messages, setMessages]: [
     IMessages,
     React.ComponentState

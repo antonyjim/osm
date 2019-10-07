@@ -20,7 +20,6 @@ import {
   sendPasswordReset
 } from '@lib/email/emails'
 import { UserTypes } from '@osm/users'
-import { Customer } from '../api/customers/customers'
 import { resolve } from 'path'
 import { Log } from '@lib/log'
 
@@ -105,8 +104,7 @@ class User extends Querynator {
       new Log(this.context, {
         table: this.tableName,
         primaryKey: this.primaryKey
-      }).get([], user),
-      new Customer(this.context, null).getMyCustomers(user)
+      }).get([], user)
     ])
     // return {
     //   logs: await new Log(this.context, {

@@ -1,5 +1,5 @@
 import { IFormTab } from '../types/forms'
-import { IPillProps, IPillBody } from '../common/PillLayout'
+import { IPillProps, IPillBody } from '../common/Pills'
 
 export function buildForm(tabDetails: IFormTab) {
   if (tabDetails.fields) {

@@ -6,7 +6,7 @@ import {
   FormValue,
   IFormTab
 } from '../types/forms'
-import { IPillProps } from '../common/PillLayout'
+import { IPillProps } from '../common/Pills'
 import { IDataModel } from './Form'
 import { IDictionary } from '../types/server'
 import { useState, useEffect } from 'react'
@@ -133,7 +133,7 @@ export default function FieldForm(props: {
   // @ts-ignore
   const [errors, setErrors]: [
     JSX.Element[],
-    React.Dispatch<React.SetStateAction<JSX.Element[]>>
+    React.Dispatch<JSX.Element[]>
   ] = useState([])
 
   // @ts-ignore
