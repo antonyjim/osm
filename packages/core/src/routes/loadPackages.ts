@@ -166,11 +166,13 @@ export default function loadPackages(
         osmDetails.entry.proxy &&
         osmDetails.entry.proxy.toLowerCase() === 'env'
       ) {
-        const forwardPort = loadSimpleProxy(
+        const proxyDetails = loadSimpleProxy(
           packagePackageJson.name,
           proxyPortPool.shift().toString(),
           osmDetails
         )
+
+        const forwardPort = proxyDetails[0]
         router.use(osmDetails.basePath, (req: Request, res: Response) => {
           proxy.web(req, res, { target: '127.0.0.1:' + forwardPort })
         })

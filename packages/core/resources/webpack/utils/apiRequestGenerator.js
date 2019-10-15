@@ -399,11 +399,12 @@ module.exports = function (source) {
     newSource += source.slice(0, slice.from) + fetch[i] + source.slice(slice.to)
   })
 
-  simpleQuery('INSERT INTO sys_generated_resource ?', queries, function (err) {
-    if (err) {
-      this.emitError(err)
-    } else {
+  simpleQuery('INSERT INTO sys_generated_resource ?', queries)
+    .then(() => {
       this.callback(newSource)
-    }
-  })
+    })
+    .catch((err) => {
+      this.emitError
+      this.callback(newSource)
+    })
 }

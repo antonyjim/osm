@@ -1,6 +1,9 @@
 // Use this config to separate libraries from
 // main entry modules.
 
+require('dotenv').config({
+  path: '../../.env'
+})
 const {
   readdirSync
 } = require('fs')
@@ -9,6 +12,7 @@ const {
 } = require('path')
 
 const updateInstall = require('./utils/updateInstall')
+const packagesDir = resolve(__dirname, '..', '..')
 
 function generateRandomHash(length = 8) {
   var result = ''
@@ -21,9 +25,9 @@ function generateRandomHash(length = 8) {
 }
 
 
-module.exports = function (env, argv) {
+module.exports = (function (env, argv) {
   // Figure out if we are building a production build or dev
-  const isProduction = env.NODE_ENV === 'production' || env.NODE_ENV === 'testing' ? 'production' : 'development'
+  const isProduction = env.NODE_ENV === 'production'
   const uniqueBuildId = generateRandomHash()
   process.env.OSM_BUILD_ID = uniqueBuildId
   updateInstall(uniqueBuildId)
@@ -61,30 +65,82 @@ module.exports = function (env, argv) {
         const package = require(resolve(resolvedSrcDir, 'package.json'))
         const packageName = package.name
         const entryPoints = {}
-        if (package.osm.entry.lib) {
-          entryPoints[packageName + '_lib'] = resolve(resolvedSrcDir, 'src', package.osm.entry.lib)
+        if (package.OSM.entry.lib) {
+          entryPoints[packageName + '_lib'] = resolve(resolvedSrcDir, 'src', package.OSM.entry.lib)
         }
 
-        if (package.osm.client === 'core' && package.osm.entryPoints.client) {
-          entryPoints[packageName + '_client']
-        } else if (package.osm.client === 'standalone' && package.osm.entryPoints.client) {
-
-        } else {
-
+        // Look for the type of client we are working with.
+        // For `core` clients, we will be building with the normal
+        // config settings.
+        // Any other client type needs its own config
+        if (package.OSM.client === 'core' && package.OSM.entry.client) {
+          entryPoints[packageName + '_client'] = resolve(resolvedSrcDir, package.OSM.entry.client)
+        } else if (package.OSM.client === 'standalone' && package.OSM.entry.client) {
+          console.warn('%s has a package type of %s, but an entry point for client was also provided, \
+this entry point will be ignored. %s clients require a seperate webpack configuration.', package.name, package.OSM.client, package.OSM.client)
         }
 
-        return {
-          mode: isProduction,
+        return resolveConfig({
+          mode: isProduction ? 'production' : 'development',
           devtool: isProduction === 'production' ? 'source-maps' : 'eval',
-          context: resolve(resolvedSrcDir, 'src'),
+          context: resolve(resolvedSrcDir),
           entry: {
             ...entryPoints
+          },
+          output: {
+            path: resolve(__dirname, 'build'),
+            // path: resolve(packagesDir, 'client', 'build'),
+            filename: isProduction ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
+            chunkFilename: isProduction ? 'static/js/[name].[contenthash:8].chunk.js' : 'static/js/[name].chunk.js',
+            publicPath: '/public/'
+          },
+          optimization: {
+            splitChunks: {
+              chunks: 'all',
+              name: false,
+            },
+            runtimeChunk: true,
+          },
+          resolve: {
+            alias: {
+              '@lib': resolve(packagesDir, 'client', 'src', 'lib'),
+              '@components': resolve(packagesDir, 'client', 'src', 'common')
+            },
+            modules: ['node_modules'],
+            extensions: ['.ts', '.tsx', '.js', '.jsx']
+          },
+          module: {
+            rules: [
+              // Process ts files
+              {
+                test: /\.(j|t)sx?$/,
+                loader: './utils/apiRequestGenerator'
+              },
+              {
+                test: /\.tsx?$/,
+                loader: 'awesome-typescript-loader'
+              },
+              {
+                test: /\.js$/,
+                loader: 'source-map-loader'
+              },
+              {
+                oneOf: [{
+                  test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
+                  loader: require.resolve('url-loader'),
+                  options: {
+                    limit: 10000,
+                    name: 'static/media/[name].[hash:8].[ext]',
+                  },
+                }]
+              }
+            ]
           }
 
-        }
+        })
       })
 
       // Rethrow nested errors, let webpack report error
       .catch(rejectConfig)
   })
-}
+})(process.env, process.argv)

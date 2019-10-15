@@ -20,7 +20,7 @@ module.exports = function (buildId) {
   packages.forEach(function (package) {
     var installJsObj = {}
     try {
-      var existingInstallFile = readFileSync(resolve(packagesDir, package, '.installed'))
+      var existingInstallFile = readFileSync(resolve(packagesDir, package, '.installed'), 'utf8')
       installJsObj = JSON.parse(existingInstallFile.toString())
     } catch (e) {
       // .installed file not found
@@ -29,6 +29,6 @@ module.exports = function (buildId) {
 
     installJsObj.build_id = buildId
 
-    writeFileSync(packagesDir, package, '.installed', JSON.stringify(installJsObj))
+    writeFileSync(resolve(packagesDir, '.installed'), package, 'utf8', JSON.stringify(installJsObj))
   })
 }

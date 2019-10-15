@@ -14,11 +14,7 @@ import {
   Connection
 } from 'mysql'
 
-// NPM Modules
-import { IDictionary } from '@osm/server'
-import { poolConfig, databaseConfig } from '@config'
-
-// Local Modules
+import { poolConfig, databaseConfig } from '../config'
 
 // Constants and global variables
 const jwtSecret = process.env.JWT_KEY || 'secret'
