@@ -10,9 +10,9 @@ import { cpus, freemem, totalmem, hostname, platform, arch } from 'os'
 // NPM Modules
 
 // Local Modules
-import { IServerStats } from '../../types/server'
-import { simpleQuery } from '../../lib/queries'
-import { version, domain } from '../../config'
+import { IServerStats } from '../../../types/server'
+import { simpleQuery } from '../../../lib/queries'
+import { version, domain } from '../../../config'
 
 export async function getServerStats(): Promise<IServerStats> {
   const cpuCount = cpus().length

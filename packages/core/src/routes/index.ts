@@ -24,69 +24,70 @@ import { debug } from '@lib/log'
 import loadPackages from './loadPackages'
 
 // Constants and global variables
-const router = Router()
 const log = debug('app:routes')
 
-// Advanced logging
-router.use((req, res, next) => {
-  log(req.method, req.path)
-  // RequestLog(req.method, req.path)
-  return next()
-})
-
-simpleQuery(
-  'SELECT routing, file_path FROM sys_route_module WHERE (host = ? OR host = ?) AND pre_auth = 1',
-  [getHostname(), '*']
-)
-  // .then((results: { file_path: string; routing: string }[]) => {
-  //   results.forEach((moduleInfo) => {
-  //     try {
-  //       const routeHandler = require(moduleInfo.file_path)
-  //       console.log(
-  //         '[STARTUP] Using module located at %s for route %s',
-  //         join(__dirname, moduleInfo.file_path),
-  //         moduleInfo.routing
-  //       )
-  //       router.use(moduleInfo.routing, routeHandler)
-  //     } catch (e) {
-  //       console.error(
-  //         '[STARTUP] Could not require route located at %s for route %s',
-  //         join(__dirname, moduleInfo.file_path),
-  //         moduleInfo.routing
-  //       )
-  //       console.error(e)
-  //     }
-  //   })
-  //   return 0
-  // })
-  .then(() => {
-    router.use(
-      '/public/static',
-      serveStaticDirectory(join(clientPath, 'build/static'))
-    )
-    router.use('/public/', serveStaticDirectory(join(clientPath, 'public')))
-    router.get('/excel', (req, res) => {
-      cell().then((status) => {
-        res.status(200).json(status)
-      })
+function getRoutes(): Promise<Router> {
+  return new Promise((resolveRoutes, rejectRoutes) => {
+    const router = Router()
+    // Advanced logging
+    router.use((req, res, next) => {
+      log(req.method, req.path)
+      // RequestLog(req.method, req.path)
+      return next()
     })
 
-    router.use(bodyParser.json())
-    // Parse cookies on routes that return a webpage
-    router.use(cookieParser())
-    router.use(tokenValidation())
-    router.use('/api', apiRoutes)
+    simpleQuery(
+      'SELECT routing, file_path FROM sys_route_module WHERE (host = ? OR host = ?) AND pre_auth = 1',
+      [getHostname(), '*']
+    )
+      // .then((results: { file_path: string; routing: string }[]) => {
+      //   results.forEach((moduleInfo) => {
+      //     try {
+      //       const routeHandler = require(moduleInfo.file_path)
+      //       console.log(
+      //         '[STARTUP] Using module located at %s for route %s',
+      //         join(__dirname, moduleInfo.file_path),
+      //         moduleInfo.routing
+      //       )
+      //       router.use(moduleInfo.routing, routeHandler)
+      //     } catch (e) {
+      //       console.error(
+      //         '[STARTUP] Could not require route located at %s for route %s',
+      //         join(__dirname, moduleInfo.file_path),
+      //         moduleInfo.routing
+      //       )
+      //       console.error(e)
+      //     }
+      //   })
+      //   return 0
+      // })
+      .then(() => {
+        router.use(
+          '/public/static',
+          serveStaticDirectory(join(clientPath, 'build/static'))
+        )
+        router.use('/public/', serveStaticDirectory(join(clientPath, 'public')))
+        router.get('/excel', (req, res) => {
+          cell().then((status) => {
+            res.status(200).json(status)
+          })
+        })
 
-    // Load other non-core packages
-    loadPackages(router, apiRoutes)
+        router.use(bodyParser.json())
+        // Parse cookies on routes that return a webpage
+        router.use(cookieParser())
+        router.use(tokenValidation())
+        // Load other non-core packages
+        let [newRouter, newApiRouter] = loadPackages(router, apiRoutes)
+        newRouter.use('/api', newApiRouter)
 
-    return uiRoutes()
+        return Promise.all([uiRoutes(), newRouter])
+      })
+      .then(([withUiRoutes, newRouter]: Router[]) => {
+        newRouter.use('/', withUiRoutes)
+        resolveRoutes(newRouter)
+      })
+      .catch(rejectRoutes)
   })
-  .then((withUiRoutes: Router) => {
-    router.use('/', withUiRoutes)
-  })
-  .catch((err) => {
-    console.error('[STARTUP] Error in evaluating routes:')
-    console.error(err)
-  })
-export { router }
+}
+export { getRoutes }

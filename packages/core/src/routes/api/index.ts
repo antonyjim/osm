@@ -71,6 +71,14 @@ apiRoutes.get('/getToken', (req: Request, res: Response) => {
           message: err
         })
       })
+  } else {
+    res.status(401).json({
+      error: {
+        message: 'Invalid username or password',
+        code: 401
+      },
+      success: false
+    })
   }
 })
 

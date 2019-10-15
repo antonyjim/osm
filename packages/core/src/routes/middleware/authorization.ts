@@ -5,11 +5,11 @@ import { jwtKeys } from './authentication'
 
 function sendUnauthorized(res: Response) {
   res.status(403).json({
-    errors: [
-      {
-        message: 'Unauthorized to access route.'
-      }
-    ]
+    error: {
+      message: 'Unauthorized to access route',
+      code: 403
+    },
+    success: false
   })
 }
 
@@ -24,7 +24,13 @@ export function getUserRoles(userId: string, scope: string): Promise<string[]> {
     const query = 'CALL fetch_user_role(?, ?)'
     const params = [userId, scope]
     simpleQuery(query, params)
-      .then(resolve)
+      .then((roles: { role: string }[]) => {
+        resolve(
+          roles.map((role: { role: string }) => {
+            return role.role
+          })
+        )
+      })
       .catch(reject)
   })
 }
@@ -42,15 +48,16 @@ export function authorize(
     if (!sourceReq.auth[jwtKeys.user] || !sourceReq.auth[jwtKeys.scope]) {
       sendUnauthorized(sourceRes)
     } else {
-      getUserRoles(sourceReq[jwtKeys.user], sourceReq[jwtKeys.scope]).then(
-        (roles: string[]) => {
-          if (roles.indexOf(roleRequired) > -1) {
-            callback(sourceReq, sourceRes)
-          } else {
-            sendUnauthorized(sourceRes)
-          }
+      getUserRoles(
+        sourceReq.auth[jwtKeys.user],
+        sourceReq.auth[jwtKeys.scope]
+      ).then((roles: string[]) => {
+        if (roles.indexOf(roleRequired) > -1) {
+          callback(sourceReq, sourceRes)
+        } else {
+          sendUnauthorized(sourceRes)
         }
-      )
+      })
     }
   }
 }

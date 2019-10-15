@@ -119,3 +119,21 @@ INSERT INTO sys_navigation (sys_id, inner_text, path_name, header, menu, role_re
     'Admin',
     'd6692dc1-9d32-4894-badf95820d09431b'
 );
+
+INSERT INTO sys_navigation (sys_id, inner_text, path_name, header, menu, role_required) VALUES (
+    'f334d193-8906-4402-a073-d238ee5dd596',
+    'Server Host Info',
+    '/admin/stats',
+    'Site Administration',
+    'Admin',
+    'd6692dc1-9d32-4894-badf95820d09431b'
+);
+
+INSERT INTO sys_navigation (sys_id, inner_text, path_name, header, menu, role_required) VALUES (
+    'f334d193-8906-4402-a073-d238ee5dd595',
+    'Wetty',
+    '/admin/wetty',
+    'Site Administration',
+    'Admin',
+    'd6692dc1-9d32-4894-badf95820d09431b'
+);

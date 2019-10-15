@@ -14,7 +14,7 @@ import { Server } from 'http'
 import * as express from 'express'
 
 // Local Modules
-import { router } from '../routes/index'
+import { getRoutes } from '../routes/index'
 import { Log } from '../lib/log'
 import { getPool } from '../lib/connection'
 import constructSchema from './model/constructSchema'
@@ -61,7 +61,6 @@ export function initOsmHttpListener() {
     let server: Server
     // Routes
     app.disable('x-powered-by')
-    app.use('/', router)
     process.on('SIGTERM', (e) => {
       getPool().end()
       server.close()
@@ -86,6 +85,10 @@ export function initOsmHttpListener() {
       .then(() => {
         logger('Finished constructing forms')
         generateHooks()
+        return getRoutes()
+      })
+      .then((router: express.Router) => {
+        app.use('/', router)
       })
       .catch((err) => {
         console.error(`CRITICAL ERROR WHEN STARTING SERVER ${err.message}`)

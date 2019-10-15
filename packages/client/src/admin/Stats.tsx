@@ -33,7 +33,7 @@ export default function Stats() {
   })
 
   React.useEffect(() => {
-    API.get({ path: '/stats' })
+    API.get({ path: '/api/admin/stats' })
       .then((serverStats: IServerStats) => {
         console.log(serverStats)
         setStats({ ...serverStats, loaded: true })

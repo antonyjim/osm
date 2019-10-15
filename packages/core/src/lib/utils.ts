@@ -156,8 +156,8 @@ export function range(fromOrTo: number, to?: number) {
     from = fromOrTo
   }
 
-  let i: number = fromOrTo
-  while (i < to) {
+  let i: number = 0
+  while (from + i < to) {
     arr[i] = from + i
     i++
   }

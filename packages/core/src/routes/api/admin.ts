@@ -14,7 +14,9 @@ import { IStatusMessage } from '../../types/server'
 import { Roles } from '../../app/users/roles'
 import { Querynator } from '../../lib/queries'
 import { authorize } from '../middleware/authorization'
-import { getServerStats } from '../../app/administration/hostInfo'
+import { getServerStats } from '../../app/administration/meta/hostInfo'
+import { workers } from '../loadPackages'
+import { ChildProcess } from 'child_process'
 
 // Constants and global variables
 const adminRoutes = Router()
@@ -163,6 +165,41 @@ adminRoutes.get(
       .catch((err) => {
         res.status(500).json({ error: err })
       })
+  })
+)
+
+adminRoutes.get(
+  '/server-processes',
+  authorize('administrator', (req: Request, res: Response) => {
+    res.status(200).json({
+      success: true,
+      body: [...workers]
+    })
+  })
+)
+
+adminRoutes.get(
+  '/server-processes/kill/:pid?',
+  authorize('administrator', (req: Request, res: Response) => {
+    if (!req.params.pid) {
+      res.status(400).json({
+        error: {
+          message: 'No PID provided to kill()',
+          code: 400
+        },
+        success: false
+      })
+    } else {
+      let killed: boolean = false
+      workers.forEach((w: ChildProcess) => {
+        if (w[1].pid.toString() === req.params.pid) {
+          w[1].kill()
+          killed = true
+        }
+      })
+
+      res.status(200).json({ success: killed })
+    }
   })
 )
 
