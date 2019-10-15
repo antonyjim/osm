@@ -3,5 +3,7 @@
     "tslint.alwaysShowRuleFailuresAsWarnings": true,
     "prettier.tslintIntegration": false,
     "editor.formatOnSave": true,
-    "javascript.format.enable": false
+    "javascript.format.enable": false,
+    "python.pythonPath": "D:\\Projects\\node\\open-sm\\packages\\domain\\app\\.env\\Scripts\\python.exe",
+    "python.formatting.provider": "black"
 }

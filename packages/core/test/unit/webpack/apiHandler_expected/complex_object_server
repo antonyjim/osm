@@ -10,14 +10,12 @@
     "dynamic_conditions": [{
         "field": "$1.last_login",
         "operator": "<",
-        "alias": "aa",
-        "required": true
+        "alias": "aa"
       },
       {
         "field": "$1.given_name",
         "operator": "=",
-        "alias": "ab",
-        "required": true
+        "alias": "ab"
       }
     ],
     "static_conditions": [{

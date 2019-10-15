@@ -1,9 +1,39 @@
 'use strict'
 
 var parse = require('@babel/parser').parse
+var generateHash = require('../../../dist/lib/utils').generateHash
+var simpleQuery = require('../../../dist/lib/connection').simpleQuery
 
-function findOSMNamespace(astObj) {
+/**
+ * 
+ * @param {*} astObj Ast representation of object reference
+ */
+function getDotNotation(astObj) {
+  if (astObj.type === 'MemberExpression') {
+    var currentNode = astObj
+    var parts = []
+    while (currentNode.type === 'MemberExpression') {
+      if (currentNode.property.type === 'Identifier') {
+        parts.push(currentNode.property.name)
+      } else if (currentNode.property.type === 'StringLiteral') {
+        if (currentNode.property.value.indexOf(' ') > -1) {
+          // Eventually need to push this to a specific thing
+          parts.push(currentNode.property.value)
+        }
+      } else {
+        parts.push()
+      }
+      currentNode = currentNode.object
+    }
 
+    if (currentNode.type === 'Identifier') {
+      parts.push(currentNode.name)
+    }
+  }
+  parts = parts.filter((val) => {
+    return val !== 'window'
+  })
+  return parts.reverse().join('.')
 }
 
 function getObjPropName(obj) {
@@ -21,38 +51,12 @@ function getObjPropName(obj) {
   return propKeyName
 }
 
-function astObjToJsObj(astObjProps) {
-  var jsObj = {}
-  astObjProps.forEach(function (astObjProp) {
-    var propKeyName = getObjPropName(astObjProp)
-
-    switch (astObjProp.value.type) {
-      case 'StringLiteral':
-      case 'NumericLiteral':
-      case 'NullLiteral':
-      case 'RegExpLiteral':
-      case 'BooleanLiteral': {
-
-        jsObj[propKeyName] = astObjProp.value.value
-        break
-      }
-      case 'LogicalExpression': {
-
-      }
-    }
-
-    jsObj[astObjProp.key.name]
-  })
-
-
-}
-
 /**
  * Parses the ApiResource constructor looking for the query descriptors,
  * then return a serialization of that query.
  * @param {*} astArgs AST representation of object properties passed to new ApiResource
  */
-function parseApiResourceArg(astArgs) {
+function parseApiResourceArg(astArgs, sourceFile) {
   var jsObj = {}
   // Search through each property listed in the `new ApiResource` call.
   // Handle each one appropriately
@@ -86,12 +90,14 @@ function parseApiResourceArg(astArgs) {
               //   'last_login[<]': new Date()
               // }
               var propName = getObjPropName(condProp)
-              var operator = '='
+              var operator
 
               // Since the operator is not required, we do a search for [OPERATOR] syntax
               if ((operator = propName.match(/\[(.*)\]/)) !== null) {
                 propName = propName.replace(operator[0], '').trim()
                 operator = operator[1]
+              } else {
+                operator = '='
               }
 
               // After getting the name of the prop, look for its type.
@@ -100,7 +106,7 @@ function parseApiResourceArg(astArgs) {
               // static arguments as well.
 
               // Any other Identifiers can be be turned into dynamic arguments
-              switch (condProp.type) {
+              switch (condProp.value.type) {
                 case 'StringLiteral':
                 case 'NumericLiteral':
                 case 'NullLiteral':
@@ -112,16 +118,44 @@ function parseApiResourceArg(astArgs) {
                   })
                   break
                 }
+
+                // Get the 'object.child.childItem' notation
                 case 'MemberExpression': {
-                  if (condProp.object) {
-                    var originalSlice = source.slice(condProp.object.start, condProp.object.end)
+                  if (condProp.value) {
+                    var dots = getDotNotation(condProp.value)
+                    if (dots.startsWith('OSM.session')) {
+                      _staticArgs.push({
+                        field: propName,
+                        operator: operator,
+                        reqKey: dots.replace('OSM.session.', '')
+                      })
+                    } else {
+                      _dynamicArgs.push({
+                        field: propName,
+                        operator: operator,
+                        rawVal: sourceFile.slice(condProp.value.start, condProp.value.end)
+                      })
+                    }
                   }
+
+                  break
+                }
+
+                default: {
+                  // Create dynamic args
+                  _dynamicArgs.push({
+                    field: propName,
+                    operator: operator,
+                    literalVal: sourceFile.slice(condProp.value.start, condProp.value.end)
+                  })
                 }
               }
             })
 
             return [_staticArgs, _dynamicArgs]
           })(astObjProp.value)
+          jsObj.static_conditions = staticArgs
+          jsObj.dynamic_conditions = dynamicArgs
         } else {
           throw new Error('`conditions` must be specified as an object literal. Got ' + condProp.type)
         }
@@ -130,7 +164,7 @@ function parseApiResourceArg(astArgs) {
       case 'table':
       case 'role':
       case 'alias': {
-        if (astObjProp.type === 'StringLiteral') {
+        if (astObjProp.value.type === 'StringLiteral') {
           jsObj[propKeyName] = astObjProp.value.value
         } else {
           throw new Error('`' + propKeyName + '` may only be represented by a string literal. Got ' + astObjProp.type)
@@ -139,7 +173,7 @@ function parseApiResourceArg(astArgs) {
       }
 
       case 'fields': {
-        if (astObjProp.type !== 'ArrayExpression') {
+        if (astObjProp.value.type !== 'ArrayExpression') {
           throw new Error('`fields` may only be represented by an array of string literals.')
         } else {
           jsObj.fields = astObjProp.value.elements.map(function (el) {
@@ -152,17 +186,21 @@ function parseApiResourceArg(astArgs) {
         }
         break
       }
-    }
 
-    jsObj[astObjProp.key.name]
+      default: {
+        console.warn('Unknown ApiResource option: %s', propKeyName)
+      }
+    }
   })
+
+  return jsObj
 }
 
 /**
  * Converts ast representation of object into JS representation
  * @param {*} apiResourceNode Ast representation of new ApiResource.arguments
  */
-function parseApiResourceNode(apiResourceNode) {
+function parseApiResourceNode(apiResourceNode, sourceFile) {
   if (apiResourceNode.length > 1) {
     throw new Error('ApiResource constructor may only be called with 1 object argument. Received ' + apiResourceNode.length)
   } else if (apiResourceNode.length === 0) {
@@ -170,7 +208,7 @@ function parseApiResourceNode(apiResourceNode) {
   } else if (apiResourceNode[0].type !== 'ObjectExpression') {
     throw new Error('ApiResource constructor may only be called with 1 object argument. Received 1 ' + apiResourceNode[0].type)
   } else {
-    parseApiResourceArg(apiResourceNode[0].properties)
+    return parseApiResourceArg(apiResourceNode[0].properties, sourceFile)
   }
 }
 
@@ -178,7 +216,7 @@ function parseApiResourceNode(apiResourceNode) {
  * Look for new ApiResource calls
  * @param {*} astNode Ast Representation of any Node
  */
-function parseNode(astNode) {
+function parseNode(astNode, sourceFile) {
   // Slices are what need to be removed from the source file in place
   // of the fetch request
   var slices = []
@@ -186,11 +224,11 @@ function parseNode(astNode) {
   var apiResourceObjsInNode = []
   switch (astNode.type) {
     case 'NewExpression': {
-      if (astNode.expression.callee.name === 'ApiResource') {
-        var apiResource = parseApiResourceNode(astNode.expression.arguments)
+      if (astNode.callee.name === 'ApiResource') {
+        var apiResource = parseApiResourceNode(astNode.arguments, sourceFile)
         slices.push({
-          start: apiResource.start,
-          end: apiResource.end
+          start: astNode.start,
+          end: astNode.end
         })
         if (!Array.isArray(apiResource)) {
           apiResourceObjsInNode.push(apiResource)
@@ -204,7 +242,15 @@ function parseNode(astNode) {
     /**
      * All of these statements have a body that can be parsed
      */
-    case 'ExpressionStatement':
+    case 'ArrowFunctionExpression':
+    case 'ExpressionStatement': {
+      var apiResourceObj = parseNode(astNode.expression, sourceFile)
+      if (apiResourceObj !== null) {
+        apiResourceObjsInNode.push(...apiResourceObj.resources)
+        slices.push(...apiResourceObj.slices)
+      }
+      break
+    }
     case 'BlockStatement':
     case 'ReturnStatement':
     case 'LabeledStatement':
@@ -217,16 +263,15 @@ function parseNode(astNode) {
     case 'ForStatement':
     case 'ForInStatement':
     case 'ForOfStatement':
-    case 'ArrowFunctionExpression':
     case 'DoExpression':
     case 'Function': {
       astNode.forEach(function (rootNode) {
-        var apiResourceObj = parseNode(rootNode)
+        var apiResourceObj = parseNode(rootNode, sourceFile)
         if (apiResourceObj !== null) {
           apiResourceObjsInNode.push(...apiResourceObj)
         }
       })
-      break;
+      break
     }
 
     default: {
@@ -240,22 +285,22 @@ function parseNode(astNode) {
   }
 }
 
-function parseAst(ast) {
+function parseAst(ast, sourceFile) {
   var rootProgram = ast.program.body
   var apiResourceObjs = []
   var slices = []
   rootProgram.forEach(function (rootNode) {
-    var apiResourceObj = parseNode(rootNode)
-    if (apiResourceObj.resources !== null) {
+    var apiResourceObj = parseNode(rootNode, sourceFile)
+    if (apiResourceObj.resources) {
       apiResourceObjs.push(...apiResourceObj.resources)
     }
 
-    if (apiResourceObjs.slices !== null) {
+    if (apiResourceObjs.slices) {
       slices.push(...apiResourceObjs.slices)
     }
   })
 
-  return apiResourceObjs
+  return [apiResourceObjs, slices]
 }
 
 /**
@@ -264,18 +309,101 @@ function parseAst(ast) {
  * @param {*} obj An object containing details for a single query
  */
 function generateQuery(obj) {
+  console.log('%o', obj)
+  var buildHash = process.env.OSM_BUILD_ID
+  var returnObj = {}
+  var requestHash = generateHash()
+  var returnQuery = '/api/_/' + buildHash + '/' + requestHash + '?'
+
+  // Look for raw options
+  if (obj.raw && obj.raw.sql) {
+    return {
+      raw: {
+        sql: obj.raw.sql,
+        params: obj.raw.params
+      }
+    }
+  } else {
+    returnObj = {
+      dynamic_conditions: [],
+      static_conditions: []
+    }
+    // Check to make sure all required attributes are there
+    if (!obj.table) {
+      throw new Error('`table` is required when creating an ApiResource request.')
+    } else {
+      returnObj.table = obj.table
+    }
+
+    if (obj.alias) {
+      returnObj.alias = obj.alias
+    }
+
+    if (obj.fields) {
+      returnObj.fields = obj.fields
+    } else {
+      console.warn('`fields` was null or undefined. Server generated code will \
+use the default fields at app startup which are subject to change through configuration.')
+    }
+
+    obj.dynamic_conditions.forEach(function (dynArg, i) {
+      // If there is no table alias specified, then we will assume
+      // the dev is attempting to select a field from the first table.
+      // Joined fields are required to have the alias specified
+      var tableAlias
+      if (!(tableAlias = dynArg.field.match(/^\$(\d*)/g))) {
+        dynArg.field = '$1.' + dynArg.field
+      }
+
+      // Create a random alias for this field
+      var queryAlias = generateHash(5)
+      if (i > 0) {
+        returnQuery += '&'
+      }
+      returnQuery += (queryAlias + '=' + dynArg.rawVal)
+
+      returnObj.dynamic_conditions.push({
+        field: dynArg.field,
+        operator: dynArg.operator,
+        alias: queryAlias
+      })
+    })
+
+  }
+
+  return [returnQuery, {
+    resource_hash: requestHash,
+    sql_query: JSON.stringify(returnObj),
+    build_id: buildHash
+  }]
 
 }
 
 module.exports = function (source) {
-  var queries = []
+  this.async()
+  // Since this is very much dependent on build ids
+  this.cacheable = false
+  var newSource = ''
   var ast = parse(source, {
     strictMode: true,
     plugins: ['jsx']
   })
-  var objToSerialize = parseAst(ast)
-  queries = objToSerialize.map(generateQuery)
+  var [objToSerialize, slices] = parseAst(ast, source)
+  var [fetch, queries] = objToSerialize.map(generateQuery)
 
+  if (slices.length !== objToSerialize.length) {
+    console.warn('An unequal amount of slices were found compared to ApiResource requests.')
+  }
 
-  return source
+  slices.forEach(function (slice, i) {
+    newSource += source.slice(0, slice.from) + fetch[i] + source.slice(slice.to)
+  })
+
+  simpleQuery('INSERT INTO sys_generated_resource ?', queries, function (err) {
+    if (err) {
+      this.emitError(err)
+    } else {
+      this.callback(newSource)
+    }
+  })
 }

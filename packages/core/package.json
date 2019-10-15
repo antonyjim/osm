@@ -6,6 +6,7 @@
   "repository": "https://github.com/antonyjim/osm",
   "dependencies": {
     "@babel/core": "^7.4.5",
+    "@types/http-proxy": "^1.17.0",
     "awesome-typescript-loader": "^5.2.1",
     "bcrypt": "^3.0.2",
     "body-parser": "^1.18.3",
@@ -15,12 +16,14 @@
     "ejs": "^2.6.1",
     "express": "^4.16.3",
     "formidable": "^1.2.1",
+    "http-proxy": "^1.18.0",
     "humanize-string": "^2.1.0",
     "jsonwebtoken": "^8.4.0",
     "lodash": "^4.17.15",
     "module-alias": "^2.2.1",
     "mysql": "^2.16.0",
     "nodemailer": "^4.7.0",
+    "proxy": "^1.0.1",
     "typescript": "^3.3.3333",
     "uuid": "^3.3.2",
     "webpack": "^4.35.0"
@@ -48,7 +51,7 @@
     "sinon": "^7.5.0",
     "ts-node": "^8.0.3"
   },
-  "osm": {
+  "OSM": {
     "basePath": "/",
     "entry": {
       "lib": "lib/index.ts",

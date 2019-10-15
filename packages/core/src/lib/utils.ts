@@ -145,6 +145,27 @@ export function isBool(value): boolean {
 }
 
 /**
+ * Generates an array of specified length from specified index
+ * @param fromOrTo Start of array (or end of `to` is not provided)
+ * @param to End of array
+ */
+export function range(fromOrTo: number, to?: number) {
+  let from: number = 0
+  let arr: number[] = []
+  if (to) {
+    from = fromOrTo
+  }
+
+  let i: number = fromOrTo
+  while (i < to) {
+    arr[i] = from + i
+    i++
+  }
+
+  return arr
+}
+
+/**
  * Generates a random key hash
  * @param length Length of hash to generate
  */

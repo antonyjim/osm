@@ -1,0 +1,20 @@
+{
+  "name": "osm-domain",
+  "version": "1.0.0",
+  "description": "Manages godaddy domain services",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run test"
+  },
+  "author": "Anthony Jund <antonyjund@gmail.com>",
+  "license": "ISC",
+  "OSM": {
+    "baseApiPath": "/api/domain",
+    "client": "core",
+    "lib": "shared",
+    "entry": {
+      "proxy": "env",
+      "spawn": "py app/server.py"
+    }
+  }
+}

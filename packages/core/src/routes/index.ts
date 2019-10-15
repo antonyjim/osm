@@ -21,6 +21,7 @@ import { tokenValidation } from './middleware/authentication'
 import { join } from 'path'
 import { clientPath } from '../config'
 import { debug } from '@lib/log'
+import loadPackages from './loadPackages'
 
 // Constants and global variables
 const router = Router()
@@ -75,6 +76,9 @@ simpleQuery(
     router.use(cookieParser())
     router.use(tokenValidation())
     router.use('/api', apiRoutes)
+
+    // Load other non-core packages
+    loadPackages(router, apiRoutes)
 
     return uiRoutes()
   })

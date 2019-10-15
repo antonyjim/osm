@@ -12,7 +12,7 @@ new ApiResource({
   conditions: {
     'last_login[<]': (new Date(1570321600469)),
     last_scope: OSM.session.scope,
-    given_name: OSM.form.customer.given_name,
+    given_name: window.OSM.form.customer.given_name,
     '$1.active': true
   },
   alias: 'empFirstNames',
@@ -20,10 +20,5 @@ new ApiResource({
     type: 'left',
     table: 'apos_customer',
     on: '$1.sys_id = $2.employee_id'
-  },
-  roles: {
-    minimum: [
-      'read_customer'
-    ]
   }
 })

@@ -8,6 +8,8 @@ const {
   resolve
 } = require('path')
 
+const updateInstall = require('./utils/updateInstall')
+
 function generateRandomHash(length = 8) {
   var result = ''
   var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
@@ -22,6 +24,9 @@ function generateRandomHash(length = 8) {
 module.exports = function (env, argv) {
   // Figure out if we are building a production build or dev
   const isProduction = env.NODE_ENV === 'production' || env.NODE_ENV === 'testing' ? 'production' : 'development'
+  const uniqueBuildId = generateRandomHash()
+  process.env.OSM_BUILD_ID = uniqueBuildId
+  updateInstall(uniqueBuildId)
 
   // Find the nearest `src` folder by starting at cwd,
   // then working up to the root dir
@@ -57,11 +62,11 @@ module.exports = function (env, argv) {
         const packageName = package.name
         const entryPoints = {}
         if (package.osm.entry.lib) {
-          entryPoints[packageName + 'lib'] = resolve(resolvedSrcDir, 'src', package.osm.entry.lib)
+          entryPoints[packageName + '_lib'] = resolve(resolvedSrcDir, 'src', package.osm.entry.lib)
         }
 
         if (package.osm.client === 'core' && package.osm.entryPoints.client) {
-          entryPoints[packageName + 'client']
+          entryPoints[packageName + '_client']
         } else if (package.osm.client === 'standalone' && package.osm.entryPoints.client) {
 
         } else {
@@ -73,7 +78,7 @@ module.exports = function (env, argv) {
           devtool: isProduction === 'production' ? 'source-maps' : 'eval',
           context: resolve(resolvedSrcDir, 'src'),
           entry: {
-
+            ...entryPoints
           }
 
         }
