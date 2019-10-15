@@ -57,7 +57,7 @@ export function initOsmHttpListener() {
   function listen() {
     // Constants and global variables
     app = express()
-    const port = parseInt(process.env.SERVER_PORT, 10) || 8020
+    const port = parseInt(process.env.SERVER_PORT, 10) || 8080
     let server: Server
     // Routes
     app.disable('x-powered-by')

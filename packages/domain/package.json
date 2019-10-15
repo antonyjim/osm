@@ -14,7 +14,7 @@
     "lib": "shared",
     "entry": {
       "proxy": "env",
-      "spawn": "python ./app/server.py"
+      "spawn": "py ./app/server.py"
     }
   }
 }

@@ -19,9 +19,17 @@
     "noEmit": true,
     "jsx": "preserve",
     "noImplicitAny": false,
-    "typeRoots": ["./src/types"]
+    "types": [
+      "react",
+      "react-dom",
+      "react-router-dom",
+    ],
+    "typeRoots": [
+      "./src/types"
+    ]
   },
   "include": [
-    "src", "test/App.test.tsx"
+    "src",
+    "test/App.test.tsx"
   ]
 }
