@@ -6,6 +6,7 @@
     "repository": "https://github.com/antonyjim/osm",
     "dependencies": {
         "@babel/core": "^7.4.5",
+        "@types/ejs": "^2.6.3",
         "bcrypt": "^3.0.2",
         "body-parser": "^1.18.3",
         "cookie-parser": "^1.4.3",

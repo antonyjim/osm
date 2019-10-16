@@ -103,6 +103,7 @@ export function initOsmHttpListener() {
 export function internalError() {
   const app = express()
   const port = parseInt(process.env.SERVER_PORT, 10) || 8020
+  // app.set('view engine', 'ejs')
 
   app.get('*', (req, res) => {
     try {
