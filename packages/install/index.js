@@ -51,6 +51,12 @@ module.exports = function (cb) {
             })
           }))
         }
+      } else if (statsForFileOrDir.isFile() && fileOrDir.startsWith('install_')) {
+        // Expect any install_* files to export a single function
+        const installFn = require(fileOrDir)()
+        if (installFn instanceof Promise) {
+          sqlSourceQueries.push(installFn)
+        }
       }
     })
   }
@@ -64,7 +70,8 @@ module.exports = function (cb) {
         }
         const installedData = {
           installed_at: new Date().toISOString(),
-          commit: stdout.replace('\n', '')
+          commit: stdout.replace('\n', ''),
+          enabled: true
         }
 
         // For each package we just installed, write a .installed file at the root of each dir

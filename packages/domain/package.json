@@ -9,6 +9,7 @@
   "author": "Anthony Jund <antonyjund@gmail.com>",
   "license": "ISC",
   "OSM": {
+    "basePath": "/domains",
     "baseApiPath": "/api/ds",
     "client": "core",
     "lib": "shared",
@@ -16,5 +17,11 @@
       "proxy": "env",
       "spawn": "python ./app/server.py"
     }
+  },
+  "dependencies": {
+    "@types/react": "^16.9.9",
+    "@types/react-router-dom": "^5.1.0",
+    "react": "^16.10.2",
+    "react-router-dom": "^5.1.2"
   }
 }

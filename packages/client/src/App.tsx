@@ -17,6 +17,9 @@ import { UserDetails } from './lib/authentication'
 
 const Admin = React.lazy(() => import('./admin/Admin'))
 const UserProfile = React.lazy(() => import('./home/UserProfile'))
+/// #if PACKAGE_DOMAIN
+const DomainClient = React.lazy(() => import('../../domain/src/index'))
+/// #endif
 
 // Handle pesky window types
 declare global {
@@ -129,6 +132,9 @@ export default function App() {
                   <Route path='/t/:table' component={TableList} />
                   <Route path='/f/:table/:id' component={Form} />
                   <Route path='/c/:componentTitle' component={Workspace} />
+                  /// #if PACKAGE_DOMAIN
+                  <Route path='/domain' component={DomainClient} />
+                  /// #endif
                   <Route component={E404} />
                 </Switch>
               </Suspense>

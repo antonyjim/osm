@@ -38,11 +38,19 @@
         "typescript": "3.4.1",
         "webpack": "4.28.3"
     },
-    "osm": {
-        "baseRoute": "{{baseRoute}}",
-        "longName": "{{friendlyName}}",
-        "module": {{type}},
-        "scope": "{{appScope}}"
+    "OSM": {
+        "shortName": "{{shortName}}",
+        "longName": "{{longName}}",
+        "basePath": "{{baseClientPath}}",
+        "baseApiPath": "{{baseApiPath}}",
+        "client": "core",
+        "lib": "shared",
+        "scope": "{{appScope}}",
+        "entry": {
+            "client": "{{clientEntryPoint}}",
+            "lib": "{{libEntryPoint}}",
+            "api": "{{apiEntryPoint}}"
+        }
     },
     "scripts": {
         "test": "mocha",

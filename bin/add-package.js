@@ -1,3 +1,10 @@
+`
+Bootstrap a new package. New packages are one of 3 types:
+ 0: Separate client and server, but the server is written in typescript/javascript
+ 1: Separate server not written in javascript, but shared client
+ 2: Unified server and client, both to be required by their respective core module
+`
+
 // Read certain setup vars from input and copy the appropriate bootstrapper to the packages directory
 var readline = require('readline')
 var fs = require('fs')
@@ -15,14 +22,14 @@ var rl = readline.createInterface({
  * @param {function} transform Callback to apply in addition to validation
  */
 function ask(question, allowed, transform) {
-  return new Promise(function(resolveAnswer, reject) {
+  return new Promise(function (resolveAnswer, reject) {
     // Allow the user to provide a callback function
     let resolve = resolveAnswer
     if (typeof transform === 'function') {
       resolve = transform(resolveAnswer)
     }
 
-    rl.question(question, function(answer) {
+    rl.question(question, function (answer) {
       if (allowed && Array.isArray(allowed) && allowed.indexOf(answer) > -1) {
         resolve(answer)
       } else if (allowed && Array.isArray(allowed)) {
@@ -72,10 +79,41 @@ function ask(question, allowed, transform) {
   })
 }
 
+function execBootstrapper(bootstrapType) {
+  var tagRegex = /\{\{((?:.|\r?\n)+?)\}\}/g
+
+  // If no matches are found, return immediately
+  if (!tagRegex.test(text)) {
+    return text
+  }
+
+  var resultString = ''
+  var match, index, tokenValue, resolvedValue
+  let lastIndex = (tagRegex.lastIndex = 0)
+
+  while ((match = tagRegex.exec(text))) {
+    index = match.index
+    console.log(availableVars[match[1].trim()])
+
+    // Clean off any extra spaces on the interpolated var
+    resultString += text.slice(lastIndex, index)
+    resultString += availableVars[match[1].trim()]
+    lastIndex = index + match[0].length
+  }
+
+  if (lastIndex < text.length) {
+    resultString += text.slice(lastIndex)
+  }
+
+  return resultString
+
+}
+
+
+
 var nameRegex = new RegExp(
   '^(?:@[a-z0-9-~][a-z0-9-._~]*/)?[a-z0-9-~][a-z0-9-._~]*$'
 )
-var tagRegex = /\{\{((?:.|\r?\n)+?)\}\}/g
 
 var availableVars = {
   ...process.env,
@@ -109,29 +147,60 @@ ask('Enter short url friendly package name: ', nameRegex)
   })
   .then((description) => {
     availableVars.description = description
+    return ask(`
+Which type of module are you creating?
+1: Standalone client with server written in ts/js
+2: Shared client with standalone server written in different language
+3: Shared client & server with both written in ts/js
+`, ['1', '2', '3'])
   })
+  .then((selectedType) => {
+    switch (selectedType) {
+      case '1': {
+        execBootstrapper('0')
+        break
+      }
+      case '2': {
+        ask(`
+With this sort of deployment, OSM can automatically spawn a new process, or forward
+authenticated requests to your sub-app. Would you like to:
+ 1: Have OSM spawn a new instance of your app
+ 2: Have OSM proxy authenticated requests to your app
+        `, ['1', '2'])
+          .then(spawnOpt => {
+            if (spawnOpt === '1') {
+              ask(`
+By default, OSM will pass an environment arg called OSM_PROXY_LISTEN_${availableVars.shortName.toUpperCase()} 
+which contains the port number for OSM to forward requests to. If your app listens on a static port, enter that port now.`, ).then(listenPort => {
+                if (listenPort) {
+                  availableVars.proxyArgs = 'localhost:' + listenPort
+                } else {
+                  availableVars.proxyArgs = 'env'
+                }
 
-// If no matches are found, return immediately
-if (!tagRegex.test(text)) {
-  return text
-}
+                return ask(`
+Enter the command line arguments to spawn your sub-application, relative to the root of your package.
+e.g. For the \`domain\` package, the spawn args are \`python app/server.py\`
+`).then(spawnArgs => {
+                  availableVars.spawnArgs = spawnArgs
+                  execBootstrapper('1')
+                })
+              })
+            } else {
+              // spawnOpt = 2
+              ask(`Enter the proxy port in [address]:[port] notation.`)
+                .then(proxyArgs => {
+                  availableVars.proxyArgs = proxyArgs
+                  availableVars.spawnArgs = ''
+                  execBootstrapper('1')
+                })
+            }
+          })
+        break
+      }
 
-var resultString = ''
-var match, index, tokenValue, resolvedValue
-let lastIndex = (tagRegex.lastIndex = 0)
+      case '3': {
 
-while ((match = tagRegex.exec(text))) {
-  index = match.index
-  console.log(availableVars[match[1].trim()])
-
-  // Clean off any extra spaces on the interpolated var
-  resultString += text.slice(lastIndex, index)
-  resultString += availableVars[match[1].trim()]
-  lastIndex = index + match[0].length
-}
-
-if (lastIndex < text.length) {
-  resultString += text.slice(lastIndex)
-}
-
-return resultString
+      }
+    }
+  })

@@ -20,9 +20,7 @@ const proxyPortPool: number[] = range(12000, 24000)
 const proxy = createProxy.createProxyServer()
 export let workers = []
 
-proxy.on('error', (err) => {
-  logger(err)
-})
+proxy.on('error', logger)
 
 function spawnChild(
   spawnArgs: string[],
@@ -45,12 +43,10 @@ function spawnChild(
     workerProcess.pid
   )
 
-  workerProcess.on('error', (err) => {
-    console.error(err)
-  })
+  workerProcess.on('error', logger)
 
   workerProcess.on('exit', (err) => {
-    console.error(err)
+    logger(err)
     workers = workers.filter((w: [string, ChildProcess]) => {
       if (w[1].pid === workerProcess.pid) {
         return false
@@ -58,6 +54,7 @@ function spawnChild(
         return true
       }
     })
+
     workers.push([port, spawnChild(spawnArgs, packageDir, packageName, port)])
   })
 
