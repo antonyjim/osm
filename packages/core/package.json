@@ -54,9 +54,9 @@
   },
   "OSM": {
     "basePath": "/",
+    "client": "core",
     "entry": {
-      "lib": "lib/index.ts",
-      "route": "app/"
+      "app": "app/index.ts"
     },
     "lib": "shared"
   },

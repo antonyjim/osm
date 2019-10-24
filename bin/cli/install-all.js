@@ -1,4 +1,8 @@
-// Loop through all packages and run `npm install`
+#!/usr/bin/node
+
+`
+Loop through all packages and run \`npm install\`
+`
 
 var {
   exec

@@ -1,3 +1,5 @@
+#!/usr/bin/node
+
 `
 Bootstrap a new package. New packages are one of 3 types:
  0: Separate client and server, but the server is written in typescript/javascript

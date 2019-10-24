@@ -15,7 +15,7 @@ var {
 
 var {
   generateHash
-} = require('@lib/utils')
+} = require('../core/dist/lib/utils')
 
 
 var resultFile = `gen_schema_source_${generateHash()}.sql`

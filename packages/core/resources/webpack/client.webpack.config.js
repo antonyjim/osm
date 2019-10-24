@@ -35,8 +35,10 @@ module.exports = (function (env, argv) {
   updateInstall(uniqueBuildId)
 
   readdirSync(resolve(__dirname, '..', '..', '..')).forEach(function (package) {
-    const installedData = JSON.parse(readFileSync(resolve(__dirname, '..', '..', '..', package, '.installed')).toString())
-    if (installedData && installedData.enabled) {
+    const installedData = JSON.parse(readFileSync(resolve(__dirname, '..', '..', '..', '..', '.installed')).toString())
+    if (installedData && installedData.packages.find((val) => {
+        val.name === package && val.enabled
+      })) {
       buildOpts['PACKAGE_' + installedData.name] = true
     }
   })
@@ -74,20 +76,22 @@ module.exports = (function (env, argv) {
         const package = require(resolve(resolvedSrcDir, 'package.json'))
         const packageName = package.name
         const entryPoints = {}
-        if (package.OSM.entry.lib) {
+        if (package.OSM && package.OSM.entry && package.OSM.entry.lib) {
           entryPoints[packageName + '_lib'] = resolve(resolvedSrcDir, 'src', package.OSM.entry.lib)
         }
 
-        // Look for the type of client we are working with.
+        // Look for the type of client we are working iwth.
         // For `core` clients, we will be building with the normal
         // config settings.
         // Any other client type needs its own config
-        if (package.OSM.client === 'core' && package.OSM.entry.client) {
-          entryPoints[packageName + '_client'] = resolve(resolvedSrcDir, package.OSM.entry.client)
-        } else if (package.OSM.client === 'standalone' && package.OSM.entry.client) {
+        if (package.OSM && package.OSM.client === 'core') {
+          entryPoints['client'] = resolve(packagesDir, '..', 'client', 'src', 'index.tsx')
+        } else if (package.OSM && package.OSM.client === 'standalone' && package.OSM.entry.client) {
           console.warn('%s has a package type of %s, but an entry point for client was also provided, \
 this entry point will be ignored. %s clients require a seperate webpack configuration.', package.name, package.OSM.client, package.OSM.client)
         }
+
+        console.log('%o', entryPoints)
 
         return resolveConfig({
           mode: isProduction ? 'production' : 'development',
@@ -125,7 +129,8 @@ this entry point will be ignored. %s clients require a seperate webpack configur
               {
                 test: /\.tsx?$/,
                 exclude: /node_modules/,
-                loader: 'awesome-typescript-loader'
+                loader: require.resolve(resolve(__dirname, '..', '..', 'node_modules', 'awesome-typescript-loader')),
+                options: {}
               },
               {
                 test: /\.js$/,
@@ -135,12 +140,13 @@ this entry point will be ignored. %s clients require a seperate webpack configur
               {
                 test: /\.(j|t)sx?$/,
                 exclude: /node_modules/,
-                loader: './utils/apiRequestGenerator'
+                loader: require.resolve(resolve(__dirname, './utils/apiRequestGenerator'))
               },
               {
                 test: /\.(j|t)sx?$/,
                 exclude: /node_modules/,
-                loader: 'ifdef-loader'
+                loader: require.resolve(resolve(packagesDir, '..', 'client', 'node_modules', 'ifdef-loader')),
+                options: buildOpts
               },
               {
                 oneOf: [{

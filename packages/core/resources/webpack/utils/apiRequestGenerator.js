@@ -386,7 +386,8 @@ module.exports = function (source) {
   var newSource = ''
   var ast = parse(source, {
     strictMode: true,
-    plugins: ['jsx']
+    plugins: ['jsx'],
+    sourceType: 'module'
   })
   var [objToSerialize, slices] = parseAst(ast, source)
   var [fetch, queries] = objToSerialize.map(generateQuery)

@@ -4,6 +4,7 @@
   "description": "Manages godaddy domain services",
   "main": "index.js",
   "scripts": {
+    "build": "cd ../client && npm run build",
     "test": "npm run test"
   },
   "author": "Anthony Jund <antonyjund@gmail.com>",

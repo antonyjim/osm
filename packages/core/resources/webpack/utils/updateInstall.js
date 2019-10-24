@@ -11,24 +11,17 @@ module.exports = function (buildId) {
   const packagesDir = resolve(
     __dirname, // utils
     '..', // webpack
+    '..', // resources
     '..', // core
-    '..' // packages
+    '..', // packages
+    '..', // osm
   )
-  const packages = readdirSync(
-    packagesDir
-  )
-  packages.forEach(function (package) {
-    var installJsObj = {}
-    try {
-      var existingInstallFile = readFileSync(resolve(packagesDir, package, '.installed'), 'utf8')
-      installJsObj = JSON.parse(existingInstallFile.toString())
-    } catch (e) {
-      // .installed file not found
-      console.warn('.installed not found in ', package)
-    }
-
-    installJsObj.build_id = buildId
-
-    writeFileSync(resolve(packagesDir, '.installed'), package, 'utf8', JSON.stringify(installJsObj))
+  const buildInfo = JSON.parse(readFileSync(resolve(packagesDir, '.installed')).toString())
+  fs.writeFileSync(resolve(packagesDir, '.installed'), JSON.stringify({
+    ...buildInfo,
+    build_id: buildId
+  }, null, 2), {
+    encoding: 'utf8'
   })
+
 }
