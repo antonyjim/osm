@@ -1,19 +1,22 @@
 // Use this config to separate libraries from
 // main entry modules.
 
-require('dotenv').config({
-  path: '../../.env'
-})
+require('dotenv').config()
+
 const {
   readdirSync,
   readFileSync
 } = require('fs')
+
 const {
   resolve
 } = require('path')
 
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
+const HtmlWebpackPlugin = require(resolve(__dirname, '..', '..', '..', 'client', 'node_modules', 'html-webpack-plugin'));
+
 const updateInstall = require('./utils/updateInstall')
-const packagesDir = resolve(__dirname, '..', '..')
+const packagesDir = resolve(__dirname, '..', '..', '..')
 
 function generateRandomHash(length = 8) {
   var result = ''
@@ -31,15 +34,18 @@ module.exports = (function (env, argv) {
   const isProduction = env.NODE_ENV === 'production'
   const uniqueBuildId = generateRandomHash()
   const buildOpts = {}
+
   process.env.OSM_BUILD_ID = uniqueBuildId
   updateInstall(uniqueBuildId)
 
-  readdirSync(resolve(__dirname, '..', '..', '..')).forEach(function (package) {
+  readdirSync(resolve(__dirname, '..', '..', '..')).forEach(function (package, i) {
     const installedData = JSON.parse(readFileSync(resolve(__dirname, '..', '..', '..', '..', '.installed')).toString())
     if (installedData && installedData.packages.find((val) => {
-        val.name === package && val.enabled
+        return val.name === package && val.enabled
       })) {
-      buildOpts['PACKAGE_' + installedData.name] = true
+      buildOpts['PACKAGE_' + package.toUpperCase()] = true
+    } else {
+      buildOpts['PACKAGE_' + package.toUpperCase()] = false
     }
   })
 
@@ -85,13 +91,11 @@ module.exports = (function (env, argv) {
         // config settings.
         // Any other client type needs its own config
         if (package.OSM && package.OSM.client === 'core') {
-          entryPoints['client'] = resolve(packagesDir, '..', 'client', 'src', 'index.tsx')
+          entryPoints['client'] = resolve(packagesDir, 'client', 'src', 'client', 'index.tsx')
         } else if (package.OSM && package.OSM.client === 'standalone' && package.OSM.entry.client) {
           console.warn('%s has a package type of %s, but an entry point for client was also provided, \
 this entry point will be ignored. %s clients require a seperate webpack configuration.', package.name, package.OSM.client, package.OSM.client)
         }
-
-        console.log('%o', entryPoints)
 
         return resolveConfig({
           mode: isProduction ? 'production' : 'development',
@@ -101,8 +105,8 @@ this entry point will be ignored. %s clients require a seperate webpack configur
             ...entryPoints
           },
           output: {
-            path: resolve(__dirname, 'build'),
-            // path: resolve(packagesDir, 'client', 'build'),
+            // path: resolve( 'build'),
+            path: resolve(packagesDir, 'client', 'build'),
             filename: isProduction ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
             chunkFilename: isProduction ? 'static/js/[name].[contenthash:8].chunk.js' : 'static/js/[name].chunk.js',
             publicPath: '/public/'
@@ -116,8 +120,9 @@ this entry point will be ignored. %s clients require a seperate webpack configur
           },
           resolve: {
             alias: {
-              '@lib': resolve(packagesDir, 'client', 'src', 'lib'),
-              '@components': resolve(packagesDir, 'client', 'src', 'common')
+              '@lib': resolve(packagesDir, 'client', 'src', 'client', 'lib'),
+              '@components': resolve(packagesDir, 'client', 'src', 'client', 'common'),
+              '@domain': resolve(packagesDir, 'domain', 'src', 'client')
             },
             modules: ['node_modules'],
             extensions: ['.ts', '.tsx', '.js', '.jsx']
@@ -125,27 +130,45 @@ this entry point will be ignored. %s clients require a seperate webpack configur
           module: {
             rules: [
               // Process ts files
-
+              {
+                test: /\.(j|t)sx?$/,
+                exclude: /node_modules/,
+                include: [
+                  resolve(__dirname, '..', '..', '..', 'domain', 'src'),
+                  resolve(__dirname, '..', '..', '..', 'client', 'src')
+                ],
+                loader: require.resolve(resolve(__dirname, './utils/apiRequestGenerator'))
+              },
               {
                 test: /\.tsx?$/,
                 exclude: /node_modules/,
-                loader: require.resolve(resolve(__dirname, '..', '..', 'node_modules', 'awesome-typescript-loader')),
-                options: {}
+                include: [
+                  resolve(__dirname, '..', '..', '..', 'domain', 'src'),
+                  resolve(__dirname, '..', '..', '..', 'client', 'src')
+                ],
+                loader: require.resolve(resolve(__dirname, '..', '..', 'node_modules', 'ts-loader')),
+                options: {
+                  transpileOnly: true,
+                  configFile: resolve(packagesDir, 'client', 'tsconfig.json')
+                }
               },
               {
                 test: /\.js$/,
                 exclude: /node_modules/,
+                include: [
+                  resolve(__dirname, '..', '..', '..', 'domain', 'src'),
+                  resolve(__dirname, '..', '..', '..', 'client', 'src')
+                ],
                 loader: 'source-map-loader'
               },
               {
                 test: /\.(j|t)sx?$/,
                 exclude: /node_modules/,
-                loader: require.resolve(resolve(__dirname, './utils/apiRequestGenerator'))
-              },
-              {
-                test: /\.(j|t)sx?$/,
-                exclude: /node_modules/,
-                loader: require.resolve(resolve(packagesDir, '..', 'client', 'node_modules', 'ifdef-loader')),
+                include: [
+                  resolve(__dirname, '..', '..', '..', 'domain', 'src'),
+                  resolve(__dirname, '..', '..', '..', 'client', 'src')
+                ],
+                loader: require.resolve(resolve(packagesDir, 'client', 'node_modules', 'ifdef-loader')),
                 options: buildOpts
               },
               {
@@ -159,7 +182,32 @@ this entry point will be ignored. %s clients require a seperate webpack configur
                 }]
               }
             ]
-          }
+
+          },
+          plugins: [
+            new ForkTsCheckerWebpackPlugin(),
+            new HtmlWebpackPlugin(
+              Object.assign({}, {
+                  inject: true,
+                  template: resolve(packagesDir, 'client', 'static', 'index.html'),
+                },
+                isProduction ? {
+                  minify: {
+                    removeComments: true,
+                    collapseWhitespace: true,
+                    removeRedundantAttributes: true,
+                    useShortDoctype: true,
+                    removeEmptyAttributes: true,
+                    removeStyleLinkTypeAttributes: true,
+                    keepClosingSlash: true,
+                    minifyJS: true,
+                    minifyCSS: true,
+                    minifyURLs: true,
+                  },
+                } :
+                undefined
+              ))
+          ]
 
         })
       })

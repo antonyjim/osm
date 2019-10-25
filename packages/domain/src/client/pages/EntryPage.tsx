@@ -7,6 +7,7 @@ under the nav bar and above the footer
 import * as React from 'react'
 import { RouteComponentProps } from 'react-router'
 import Button from '../components/Button'
+import PillLayout from '@components/Pills'
 
 export default function EntryPage(
   routeProps: RouteComponentProps

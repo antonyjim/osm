@@ -386,7 +386,7 @@ module.exports = function (source) {
   var newSource = ''
   var ast = parse(source, {
     strictMode: true,
-    plugins: ['jsx'],
+    plugins: ['jsx', 'dynamicImport'],
     sourceType: 'module'
   })
   var [objToSerialize, slices] = parseAst(ast, source)
@@ -400,12 +400,17 @@ module.exports = function (source) {
     newSource += source.slice(0, slice.from) + fetch[i] + source.slice(slice.to)
   })
 
-  simpleQuery('INSERT INTO sys_generated_resource ?', queries)
-    .then(() => {
-      this.callback(newSource)
-    })
-    .catch((err) => {
-      this.emitError
-      this.callback(newSource)
-    })
+  if (queries) {
+    simpleQuery('INSERT INTO sys_generated_resource ?', queries)
+      .then(() => {
+        this.callback(null, newSource)
+      })
+      .catch((err) => {
+        this.callback(err, source)
+        // this.callback(source)
+      })
+  } else {
+    this.callback(null, source)
+  }
+
 }

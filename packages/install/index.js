@@ -37,7 +37,7 @@ module.exports = function (singlePackage, callback) {
   }
 
   if (existsSync(installFile)) {
-    enabledPackages = JSON.parse(readFileSync(installFile).toString()).packages
+    enabledPackages.concat(JSON.parse(readFileSync(installFile).toString()).packages)
   }
 
   function handlePackageInstallation(package, reinstall) {

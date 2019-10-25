@@ -18,7 +18,7 @@ import { UserDetails } from './lib/authentication'
 const Admin = React.lazy(() => import('./admin/Admin'))
 const UserProfile = React.lazy(() => import('./home/UserProfile'))
 /// #if PACKAGE_DOMAIN
-const DomainClient = React.lazy(() => import('../../domain/src/index'))
+const DomainClient = React.lazy(() => import('@domain/index'))
 /// #endif
 
 // Handle pesky window types
@@ -105,8 +105,8 @@ export default function App() {
     }
   }
   setInterval(refreshToken, 300000)
-  if (window.THQ.loadingInterval) {
-    clearInterval(window.THQ.loadingInterval)
+  if (window.OSM && window.OSM.loadingInterval) {
+    clearInterval(window.OSM.loadingInterval)
     const container = document.getElementById('loading-container')
     const loadingContainer = document.getElementById('loading-container')
     if (container && container.parentElement && loadingContainer) {
@@ -150,7 +150,7 @@ export default function App() {
 parsedAt = performance.now()
 console.log(
   'Calling render DOM %s milliseconds after pageload',
-  parsedAt - (window.THQ.pageLoad || performance.now())
+  parsedAt - (window.OSM.pageLoad || performance.now())
 )
 
 // if ('serviceWorker' in navigator) {

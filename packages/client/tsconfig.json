@@ -9,7 +9,7 @@
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    // "allowSyntheticDefaultImports": true,
+    "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "module": "esnext",
@@ -17,11 +17,24 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "preserve",
+    "jsx": "react",
     "noImplicitAny": false,
-    "typeRoots": ["./src/types"]
+    "baseUrl": "..",
+    "rootDir": "..",
+    "paths": {
+      "@domain/*": ["domain/src/client/*"],
+      "@lib/*": ["client/src/client/lib/*"],
+      "@components/*": ["client/src/client/common/*"]
+    },
+    "typeRoots": ["src/client/types"]
   },
+  "files": [
+    "suppress-ts180002"
+  ],
   "include": [
-    "src", "test/App.test.tsx"
+    "**/src/client/**/*"
+  ],
+  "exclude": [
+    "**/node_modules/**/*"
   ]
 }

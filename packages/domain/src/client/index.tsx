@@ -14,7 +14,7 @@ import EntryPage from './pages/EntryPage'
 export default function MyRoutes(): JSX.Element {
   return (
     <Switch>
-      <Route path='/' component={EntryPage} />
+      <Route path='/domain' component={EntryPage} />
     </Switch>
   )
 }

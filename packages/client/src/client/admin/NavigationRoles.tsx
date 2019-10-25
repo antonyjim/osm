@@ -55,7 +55,7 @@ declare global {
 //   }
 
 //   private getLinks() {
-//     $.ajax('/api/admin/getAllRoutes?token=' + window.THQ.token, {
+//     $.ajax('/api/admin/getAllRoutes?token=' + window.OSM.token, {
 //       method: 'GET',
 //       success: (links) => {
 //         if (links.error) {
@@ -153,7 +153,7 @@ declare global {
 //   }
 
 //   private getRoles() {
-//     $.ajax('/api/admin/getPrivs?token=' + window.THQ.token, {
+//     $.ajax('/api/admin/getPrivs?token=' + window.OSM.token, {
 //       method: 'GET',
 //       success: (roles) => {
 //         if (roles.error) {
@@ -201,7 +201,7 @@ declare global {
 
 //     submitForm({
 //       body: [body],
-//       action: '/api/admin/addRoute?token=' + window.THQ.token,
+//       action: '/api/admin/addRoute?token=' + window.OSM.token,
 //       method: 'POST',
 //       cb: (err, response) => {
 //         if (err) {
@@ -253,7 +253,7 @@ declare global {
 
 //     submitForm({
 //       body,
-//       action: '/api/admin/updateRoute?token=' + window.THQ.token,
+//       action: '/api/admin/updateRoute?token=' + window.OSM.token,
 //       method: 'POST',
 //       cb: (err, response) => {
 //         if (err) {
@@ -544,7 +544,7 @@ declare global {
 //   }
 
 //   private getRoles() {
-//     $.ajax('/api/admin/getRoles?token=' + window.THQ.token, {
+//     $.ajax('/api/admin/getRoles?token=' + window.OSM.token, {
 //       success: (response) => {
 //         if (response.error) {
 //           this.setState({
@@ -577,12 +577,12 @@ declare global {
 //   private getPrivs(all: any, specificRole?: any) {
 //     let url = ''
 //     if (all) {
-//       url = `/api/admin/getPrivs?token=${window.THQ.token}`
+//       url = `/api/admin/getPrivs?token=${window.OSM.token}`
 //     } else if (specificRole) {
-//       url = `/api/admin/getPrivs?role=${specificRole}&token=${window.THQ.token}`
+//       url = `/api/admin/getPrivs?role=${specificRole}&token=${window.OSM.token}`
 //     } else {
 //       url = `/api/admin/getPrivs?role=${this.state.rpId}&token=${
-//         window.THQ.token
+//         window.OSM.token
 //       }`
 //     }
 //     $.ajax(url, {
@@ -623,7 +623,7 @@ declare global {
 //     const rpPriv = e.target.getAttribute('data-target')
 //     fetch(
 //       `/api/admin/roles/remove?rpId=${this.state.rpId}&rpPriv=${rpPriv}&token=${
-//         window.THQ.token
+//         window.OSM.token
 //       }`,
 //       {
 //         method: 'POST'
@@ -666,7 +666,7 @@ declare global {
 //       if (rpId && rpPriv) {
 //         $.ajax(
 //           `/api/admin/roles/add?rpId=${rpId}&rpPriv=${rpPriv}&token=${
-//             window.THQ.token
+//             window.OSM.token
 //           }`,
 //           {
 //             method: 'POST',

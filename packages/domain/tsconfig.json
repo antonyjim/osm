@@ -9,6 +9,7 @@
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "module": "esnext",
@@ -16,19 +17,18 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "preserve",
+    "jsx": "react",
     "noImplicitAny": false,
-    "typeRoots": ["../client/src/types"],
+    "baseUrl": "..",
+    "rootDir": "..",
     "paths": {
-      "@lib/*": ["../client/src/lib/*"],
-      "@components/*": ["../client/src/common/*"]
+      "@domain/*": ["domain/src/client/*"],
+      "@lib/*": ["client/src/client/lib/*"],
+      "@components/*": ["client/src/client/common/*"]
     },
-    "types": [
-      "react",
-      "react-router-dom"
-    ]
+    "typeRoots": ["src/client/types"]
   },
   "include": [
-    "src", "test/App.test.tsx"
+    "**/src/client/**/*"
   ]
 }
