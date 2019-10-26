@@ -8,7 +8,7 @@
 // NPM Modules
 import { hashSync } from 'bcrypt'
 import { verify } from 'jsonwebtoken'
-import uuid = require('uuid')
+import { v4 as uuid } from 'uuid'
 
 // Local Modules
 import { Querynator, simpleQuery } from '@lib/queries'
@@ -291,8 +291,8 @@ class User extends Querynator {
                   }
                 ])
                 .defaults({
-                  userId: uuid.v4(),
-                  userConfirmation: uuid.v4()
+                  userId: uuid(),
+                  userConfirmation: uuid()
                 })
             }
           })
@@ -421,7 +421,7 @@ class User extends Querynator {
 //  * @param {string} suppliedEmail Email supplied from forgot password form
 //  */
 async function forgotPassword(suppliedEmail: string) {
-  const token = uuid.v4()
+  const token = uuid()
   const query = 'SELECT setForgotPassword(?, ?, ?) AS SUCCESS'
   const params = [null, suppliedEmail, token]
   const success = await new Querynator()

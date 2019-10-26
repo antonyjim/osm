@@ -24,8 +24,5 @@
   "bugs": {
     "url": "https://github.com/antonyjim/osm/issues"
   },
-  "homepage": "https://github.com/antonyjim/osm#readme",
-  "devDependencies": {
-    "@types/humanize-string": "^2.0.2"
-  }
+  "homepage": "https://github.com/antonyjim/osm#readme"
 }

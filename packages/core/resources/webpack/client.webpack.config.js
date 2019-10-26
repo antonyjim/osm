@@ -207,7 +207,11 @@ this entry point will be ignored. %s clients require a seperate webpack configur
                 } :
                 undefined
               ))
-          ]
+          ],
+          externals: {
+            'react': 'React',
+            'react-dom': 'ReactDOM'
+          }
 
         })
       })

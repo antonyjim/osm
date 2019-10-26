@@ -1,16 +1,17 @@
 {
   "compilerOptions": {
-    "baseUrl": "src",
-    "outDir": "dist/",
+    "baseUrl": "..",
+    "outDir": "core/dist/",
     "sourceMap": true,
-    "rootDir": "./src/",
+    "rootDir": "..",
     "removeComments": true,
     "jsx": "react",
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "node",
-    "typeRoots": ["./src/types", "./node_modules/@types"],
+    "typeRoots": ["./core/src/types", "./core/node_modules/@types"],
     "lib": ["es6", "esnext.asynciterable", "es2016"],
+    "target": "es6",
     "types": [
       "node",
       "express",
@@ -27,14 +28,14 @@
       "webpack"
     ],
     "paths": {
-      "@app/*": ["app/*"],
-      "@lib/*": ["lib/*"],
-      "@osm/*": ["types/*"],
+      "@app/*": ["core/src/app/*"],
+      "@lib/*": ["core/src/lib/*"],
+      "@osm/*": ["core/src/types/*"],
       "@root/*": ["./*"],
-      "@config": ["config"],
-      "@test_utils": ["test/utils/*"]
+      "@config": ["core/src/config"],
+      "@test_utils": ["core/test/utils/*"],
     }
   },
-  "include": ["./src/**/*"],
-  "exclude": ["node_modules", "./test/**/*"]
+  "include": ["**/src/server/**/*", "src/**/*"],
+  "exclude": ["node_modules", "./core/test/**/*", "**/node_modules/**/*", "node_modules/**/*"]
 }

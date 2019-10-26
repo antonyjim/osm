@@ -4,15 +4,26 @@
 require('dotenv').config({
   path: '../../.env'
 })
+
+require('module-alias/register')
 const {
   readdirSync
 } = require('fs')
 const {
   resolve
 } = require('path')
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 
-const updateInstall = require('./utils/updateInstall')
-const packagesDir = resolve(__dirname, '..', '..')
+// const updateInstall = require('./utils/updateInstall')
+const packagesDir = resolve(__dirname, '..', '..', '..')
+const moduleAliases = (() => {
+  const oAliases = require(resolve(packagesDir, 'core', 'package.json'))._moduleAliases
+  const newAliases = {}
+  Object.keys(oAliases).forEach(function (k) {
+    newAliases[k] = resolve(packagesDir, 'core', oAliases[k]).replace('/dist/', '/src/')
+  })
+  return newAliases
+})()
 
 function generateRandomHash(length = 8) {
   var result = ''
@@ -30,7 +41,7 @@ module.exports = (function (env, argv) {
   const isProduction = env.NODE_ENV === 'production'
   const uniqueBuildId = generateRandomHash()
   process.env.OSM_BUILD_ID = uniqueBuildId
-  updateInstall(uniqueBuildId)
+  // updateInstall(uniqueBuildId)
 
   // Find the nearest `src` folder by starting at cwd,
   // then working up to the root dir
@@ -62,81 +73,61 @@ module.exports = (function (env, argv) {
         }
       })
       .then(function withSrc(resolvedSrcDir) {
-        const package = require(resolve(resolvedSrcDir, 'package.json'))
-        const packageName = package.name
-        const entryPoints = {}
-        if (package.OSM.entry.lib) {
-          entryPoints[packageName + '_lib'] = resolve(resolvedSrcDir, 'src', package.OSM.entry.lib)
+        const entryPoints = {
+          "app": resolve(packagesDir, 'core', 'src', 'app', 'app')
         }
 
-        // Look for the type of client we are working with.
-        // For `core` clients, we will be building with the normal
-        // config settings.
-        // Any other client type needs its own config
-        if (package.OSM.client === 'core' && package.OSM.entry.client) {
-          entryPoints[packageName + '_client'] = resolve(resolvedSrcDir, package.OSM.entry.client)
-        } else if (package.OSM.client === 'standalone' && package.OSM.entry.client) {
-          console.warn('%s has a package type of %s, but an entry point for client was also provided, \
-this entry point will be ignored. %s clients require a seperate webpack configuration.', package.name, package.OSM.client, package.OSM.client)
-        }
+        readdirSync(packagesDir).forEach(function (pkg) {
+          const package = require(resolve(packagesDir, pkg, 'package.json'))
+          const packageName = package.name
+          if (package.OSM && package.OSM.entry && package.OSM.entry.lib && package.OSM.lib === 'shared') {
+            entryPoints[packageName + '_lib'] = resolve(packagesDir, pkg, package.OSM.entry.lib)
+          }
+        })
+
 
         return resolveConfig({
           mode: isProduction ? 'production' : 'development',
           devtool: isProduction === 'production' ? 'source-maps' : 'eval',
-          context: resolve(resolvedSrcDir),
-          entry: {
-            ...entryPoints
-          },
+          context: packagesDir,
+          entry: entryPoints,
+          target: "node",
           output: {
-            path: resolve(__dirname, 'build'),
+            path: resolve(packagesDir, 'core', 'dist'),
             // path: resolve(packagesDir, 'client', 'build'),
-            filename: isProduction ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
-            chunkFilename: isProduction ? 'static/js/[name].[contenthash:8].chunk.js' : 'static/js/[name].chunk.js',
-            publicPath: '/public/'
-          },
-          optimization: {
-            splitChunks: {
-              chunks: 'all',
-              name: false,
-            },
-            runtimeChunk: true,
+            filename: '[name].js',
           },
           resolve: {
-            alias: {
-              '@lib': resolve(packagesDir, 'client', 'src', 'lib'),
-              '@components': resolve(packagesDir, 'client', 'src', 'common')
-            },
-            modules: ['node_modules'],
+            alias: moduleAliases,
+            modules: [resolve(packagesDir, 'core', 'node_modules')],
             extensions: ['.ts', '.tsx', '.js', '.jsx']
           },
           module: {
             rules: [
               // Process ts files
               {
-                test: /\.(j|t)sx?$/,
-                loader: './utils/apiRequestGenerator'
+                test: /\.(j|t)s?$/,
+                loader: require.resolve(resolve(__dirname, '..', '..', 'node_modules', 'ts-loader')),
+                exclude: /node_modules/,
+                options: {
+                  transpileOnly: true,
+                  configFile: resolve(packagesDir, 'core', 'tsconfig.json')
+                }
               },
-              {
-                test: /\.tsx?$/,
-                loader: 'awesome-typescript-loader'
-              },
-              {
-                test: /\.js$/,
-                loader: 'source-map-loader'
-              },
-              {
-                oneOf: [{
-                  test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
-                  loader: require.resolve('url-loader'),
-                  options: {
-                    limit: 10000,
-                    name: 'static/media/[name].[hash:8].[ext]',
-                  },
-                }]
-              }
+              // {
+              //   test: /\.(j|t)s$/,
+              //   loader: require.resolve(resolve(__dirname, '..', '..', 'node_modules', 'source-map-loader'))
+              // }
             ]
+          },
+          plugins: [
+            new ForkTsCheckerWebpackPlugin({
+              tsconfig: resolve(packagesDir, 'core', 'tsconfig.json')
+            }),
+          ],
+          externals: {
+            express: 'require(\'express\')'
           }
-
         })
       })
 

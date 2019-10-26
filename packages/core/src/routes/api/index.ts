@@ -16,7 +16,7 @@ import { login, getToken, sysUser } from '../../app/users/login'
 import { IStatusMessage } from '../../types/server'
 import { jwtSecret } from '../../lib/connection'
 import { q } from './q'
-import bodyParser = require('body-parser')
+import * as bodyParser from 'body-parser'
 import { UserTypes } from '../../types/users'
 import useradminRoutes from './users'
 import descriptions from './descriptions'

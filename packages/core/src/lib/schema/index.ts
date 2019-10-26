@@ -8,7 +8,7 @@ import { createDatabaseIfNotExists } from './database/create'
 import { dropDatabase } from './database/drop'
 import { createTable, INewTable } from './table/create'
 import { Towel, TowelRecord } from '@lib/towel'
-import { databaseConfig } from 'config'
+import { databaseConfig } from '@config'
 
 export default class TowelSchema {
   private connection: Connection

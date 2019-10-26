@@ -21,7 +21,7 @@ import User, { forgotPassword } from '@app/users/users'
 import { createReadStream } from 'fs'
 import { resolve } from 'path'
 import { setResponseToken, jwtKeys } from '../middleware/authentication'
-import { staticDir } from '@root/config'
+import { staticDir } from '@config'
 
 // Constants and global variables
 const authRoutes = Router()

@@ -62,12 +62,12 @@
     "lib": "shared"
   },
   "_moduleAliases": {
-    "@app": "dist/app",
-    "@lib": "dist/lib",
-    "@config": "dist/config",
+    "@app": "src/app",
+    "@lib": "src/lib",
+    "@config": "src/config",
     "@client": "../client",
-    "@osm": "dist/types",
-    "@root": "dist/",
+    "@osm": "src/types",
+    "@root": "../",
     "@test_utils": "test/utils"
   },
   "scripts": {

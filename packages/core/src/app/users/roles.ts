@@ -12,7 +12,7 @@ import { getPool } from '@lib/connection'
 import { IRolePermissions } from '@osm/roles'
 import { IStatusMessage } from '@osm/server'
 import { Validation } from '@lib/validation'
-import uuid = require('uuid')
+import * as uuid from 'uuid'
 
 // Constants and global variables
 const pool = getPool()
