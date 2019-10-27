@@ -23,7 +23,7 @@ const transformSql = require('./schema_transform')
 const packagesDir = join(__dirname, 'packages')
 const packages = readdirSync(packagesDir)
 const sourceDirs = join(__dirname, '..')
-const enabledPackages = []
+let enabledPackages = []
 const installFile = join(sourceDirs, '..', '.installed')
 
 module.exports = function (singlePackage, callback) {
@@ -37,15 +37,15 @@ module.exports = function (singlePackage, callback) {
   }
 
   if (existsSync(installFile)) {
-    enabledPackages.concat(JSON.parse(readFileSync(installFile).toString()).packages)
+    enabledPackages = enabledPackages.concat(JSON.parse(readFileSync(installFile).toString()).packages)
   }
 
   function handlePackageInstallation(package, reinstall) {
     const allFiles = readdirSync(join(packagesDir, package))
     const packagePackageJSON = require(join(sourceDirs, package, 'package.json'))
-    if (!reinstall && enabledPackages.filter(p => {
-        p.name === package && p.enabled
-      }).length > 0) {
+    if (!reinstall && enabledPackages.find(p => {
+        return p.name === package && p.enabled
+      })) {
       return
     }
 
@@ -102,12 +102,12 @@ module.exports = function (singlePackage, callback) {
         const installedData = {
           installed_at: new Date().toISOString(),
           commit: stdout.replace('\n', ''),
-          packages: [...(packageResults.map(function (packageName) {
+          packages: [...enabledPackages, ...packageResults.map(function (packageName) {
             return {
               name: packageName,
               enabled: true
             }
-          }))]
+          })]
         }
 
         // Write a .installed file at root dir

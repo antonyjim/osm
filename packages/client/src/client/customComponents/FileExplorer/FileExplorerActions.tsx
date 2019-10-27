@@ -1,3 +1,5 @@
+import * as React from 'react'
+
 export function FileExplorerActions(props) {
   return (
     <div className='file-explorer-action-toolbar'>

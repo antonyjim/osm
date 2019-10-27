@@ -10,6 +10,7 @@ export interface IOSMPackageOpt {
     proxy?: string
     spawn?: string
     client?: string
+    api?: string
   }
   lib: OSMLibBindingType
 }

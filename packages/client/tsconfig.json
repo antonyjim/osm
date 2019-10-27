@@ -29,10 +29,10 @@
     "typeRoots": ["src/client/types"]
   },
   "files": [
-    "suppress-ts180002"
+    "src/client/index.tsx"
   ],
   "include": [
-    "**/src/client/**/*"
+    "src/client/**/*"
   ],
   "exclude": [
     "**/node_modules/**/*"

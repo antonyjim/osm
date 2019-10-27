@@ -118,22 +118,39 @@ INSERT INTO sys_navigation (sys_id, inner_text, path_name, header, menu, role_re
     'Site Administration',
     'Admin',
     'd6692dc1-9d32-4894-badf95820d09431b'
-);
-
-INSERT INTO sys_navigation (sys_id, inner_text, path_name, header, menu, role_required) VALUES (
+), (
     'f334d193-8906-4402-a073-d238ee5dd596',
     'Server Host Info',
     '/admin/stats',
     'Site Administration',
     'Admin',
     'd6692dc1-9d32-4894-badf95820d09431b'
-);
-
-INSERT INTO sys_navigation (sys_id, inner_text, path_name, header, menu, role_required) VALUES (
+), (
     'f334d193-8906-4402-a073-d238ee5dd595',
     'Wetty',
     '/admin/wetty',
     'Site Administration',
+    'Admin',
+    'd6692dc1-9d32-4894-badf95820d09431b'
+), (
+    'f334d193-8906-4402-a073-d238ee5dd431',
+    'Attachments',
+    '/t/sys_attachment_list',
+    'Site Administration',
+    'Admin',
+    'd6692dc1-9d32-4894-badf95820d09431b'
+), (
+    'f334d193-1111-4402-a073-d238ee5dd431',
+    'Dictionary',
+    '/t/sys_db_dictionary',
+    'DB Administration',
+    'Admin',
+    'd6692dc1-9d32-4894-badf95820d09431b'
+), (
+    'f334d193-2222-4402-a073-d238ee5dd431',
+    'Tables',
+    '/t/sys_db_object_list',
+    'DB Administration',
     'Admin',
     'd6692dc1-9d32-4894-badf95820d09431b'
 );

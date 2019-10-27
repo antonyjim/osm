@@ -4,8 +4,7 @@
 
 import { Router, Request, Response } from 'express'
 // import { authorize } from '@core'
-const buildL = '../../../build/Release/conversion'
-const conversion = require(buildL)
+const conversion = require('../../../build/Release/conversion')
 
 // Initialize the router
 const routes: Router = Router()

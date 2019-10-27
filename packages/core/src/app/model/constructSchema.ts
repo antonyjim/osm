@@ -195,7 +195,7 @@ export default function constructSchema(): Promise<IDictionary<ITableSchema>> {
         const refCol = ref.refCol
         const colDetails = tables[refTable].columns[refCol]
         tables[colTable].columns[colName] = {
-          label: tables[colTable].columns[colName].label || '',
+          label: colDetails.label || colName,
           visible: true,
           type: colDetails.type,
           readonly: colDetails.readonly,

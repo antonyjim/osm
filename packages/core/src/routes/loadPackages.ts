@@ -122,7 +122,7 @@ export default function loadPackages(
       if (osmDetails.baseApiPath && osmDetails.entry.lib) {
         router.use(
           osmDetails.baseApiPath.replace(/^\/api/, ''),
-          require(resolve(packageDir, packageName, osmDetails.entry.lib))
+          require(resolve(packageDir, packageName, osmDetails.entry.api))
         )
       }
 

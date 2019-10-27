@@ -1,6 +1,6 @@
 import { Request } from 'express'
 import { generateKeyHash } from '@lib/utils'
-import { jwtKeys } from '@root/core/src/routes/middleware/authentication'
+import { jwtKeys } from '../../routes/middleware/authentication'
 import { simpleQuery } from '@lib/queries'
 import { writeFile } from 'fs'
 import { resourceDir } from '@config'

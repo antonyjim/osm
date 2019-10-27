@@ -1,5 +1,6 @@
 import { FileExplorerContainer } from './FileExplorer/FileExplorerContainer'
 import { Monaco } from '../common/Monaco'
+import * as React from 'react'
 import { useState, useEffect } from 'react'
 import { RouteComponentProps } from 'react-router'
 import API from '../lib/API'

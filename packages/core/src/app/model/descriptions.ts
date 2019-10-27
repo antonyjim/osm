@@ -4,7 +4,7 @@
  */
 
 // Local Modules
-import { getTables } from './constructSchema'
+import { tables } from './constructSchema'
 import { Querynator, simpleQuery } from '@lib/queries'
 
 export interface ITablePermissions {
@@ -48,8 +48,8 @@ export default class Description extends Querynator {
       /* Describe the fields to the tableview */
       const formattedFields = {}
 
-      const schema = getTables()
-      if (!schema[this.tableName]) {
+      const schema = tables[this.tableName]
+      if (!schema) {
         return reject({
           errors: [
             {
@@ -58,7 +58,7 @@ export default class Description extends Querynator {
           ]
         })
       } else {
-        resolve([this, { ...schema[this.tableName] }])
+        resolve([this, schema])
       }
 
       // Object.keys(thisTable.columns).forEach((col) => {

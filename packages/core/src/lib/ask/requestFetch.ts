@@ -2,7 +2,7 @@ import * as express from 'express'
 import { app } from '@app/app'
 import { simpleQuery } from '@lib/connection'
 import { Towel } from '@lib/towel'
-import { jwtKeys } from '@root/core/src/routes/middleware/authentication'
+import { jwtKeys } from '../../routes/middleware/authentication'
 
 // Fetch a request context from sys_pending_request
 export default function(

@@ -1,5 +1,6 @@
 import { IFileExplorerFileProps, FileExplorerFile } from './FileExplorerFile'
 import { useState } from 'react'
+import * as React from 'react'
 
 export interface IFileExplorerFolderProps {
   folders?: IFileExplorerFolderProps[]

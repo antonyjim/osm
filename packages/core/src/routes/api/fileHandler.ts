@@ -9,7 +9,7 @@ import {
   IFileWithoutRecord
 } from '../../app/api/files/fileGetter'
 import { deleteFile } from '../../app/api/files/fileDeleter'
-import { authorize } from '@root/core/src/routes/middleware/authorization'
+import { authorize } from '../middleware/authorization'
 import { storeIncomingFile } from '../../app/api/files/fileUpload'
 import { IFileUpload } from '../../types/server'
 

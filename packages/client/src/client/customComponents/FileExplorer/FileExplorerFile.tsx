@@ -1,3 +1,4 @@
+import * as React from 'react'
 import API from '../../lib/API'
 
 export interface IFile {

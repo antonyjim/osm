@@ -3,7 +3,7 @@ import { simpleQuery, getPool } from '@lib/connection'
 import { uuid } from '@lib/utils'
 import { copyDirSync } from '@lib/utils'
 import { debug } from '@lib/log'
-import constructSchema, { tables } from '@app/model/constructSchema'
+import constructSchema, { tables, getTables } from '@app/model/constructSchema'
 import { IDictionary } from '@osm/server'
 import { ITableSchema } from '@osm/forms'
 import { IDescribeResult } from '@osm/queries'
@@ -317,44 +317,46 @@ function createTableIfNotExists(tableName: string): Promise<string> {
     simpleQuery(
       'SELECT sdo.sys_id, sdo.read_role, sdo.edit_role, sdo.delete_role FROM sys_db_object sdo WHERE sdo.name = ?',
       [tableName]
-    ).then(
-      (
-        tables: {
-          sys_id: string
-          read_role: string | null
-          edit_role: string | null
-          delete_role: string | null
-        }[]
-      ) => {
-        if (tables && tables.length > 0) {
-          resolveCreatedTable(tables[0].sys_id)
-        } else {
-          // const id = uuid()
-          // await simpleQuery('INSERT INTO sys_db_object VALUES (?)', [
-          //   [id, tableName, tableName, null, null]
-          // ])
-          const newId = uuid()
-          simpleQuery(
-            `INSERT INTO sys_db_object (name, label, sys_id) VALUES ?`,
-            [[[tableName, tableName, newId]]]
-          )
-            .then(() => {
-              resolveCreatedTable(newId)
-              console.log(
-                '[STARTUP] Inserted default authorization values for table %s',
-                tableName
-              )
-            })
-            .catch((err) => {
-              rejectCreatedTable(err)
-              console.error(
-                '[STARTUP] Error inserting default values for table %s',
-                tableName
-              )
-            })
-        }
-      }
     )
+      .then(
+        (
+          tables: {
+            sys_id: string
+            read_role: string | null
+            edit_role: string | null
+            delete_role: string | null
+          }[]
+        ) => {
+          if (tables && tables.length > 0) {
+            resolveCreatedTable(tables[0].sys_id)
+          } else {
+            // const id = uuid()
+            // await simpleQuery('INSERT INTO sys_db_object VALUES (?)', [
+            //   [id, tableName, tableName, null, null]
+            // ])
+            const newId = uuid()
+            simpleQuery(
+              `INSERT INTO sys_db_object (name, label, sys_id) VALUES (?)`,
+              [[tableName, tableName, newId]]
+            )
+              .then((tr) => {
+                resolveCreatedTable(newId)
+                console.log(
+                  '[STARTUP] Inserted default authorization values for table %s',
+                  tableName
+                )
+              })
+              .catch((err) => {
+                rejectCreatedTable(err)
+                console.error(
+                  '[STARTUP] Error inserting default values for table %s',
+                  tableName
+                )
+              })
+          }
+        }
+      )
+      .catch(rejectCreatedTable)
   })
 }
 

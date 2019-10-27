@@ -14,6 +14,7 @@
     "dotenv": "^8.1.0",
     "ejs": "^2.6.1",
     "express": "^4.16.3",
+    "file-loader": "^4.2.0",
     "formidable": "^1.2.1",
     "http-proxy": "^1.18.0",
     "humanize-string": "^2.1.0",
@@ -62,11 +63,11 @@
     "lib": "shared"
   },
   "_moduleAliases": {
-    "@app": "src/app",
-    "@lib": "src/lib",
-    "@config": "src/config",
+    "@app": "dist/app",
+    "@lib": "dist/lib",
+    "@config": "dist/config",
     "@client": "../client",
-    "@osm": "src/types",
+    "@osm": "dist/types",
     "@root": "../",
     "@test_utils": "test/utils"
   },

@@ -50,7 +50,11 @@ export const multiQuery: Connection = createConnection({
  * @param query String with SQL
  * @param params Unescaped values to be injected
  */
-async function simpleQuery(query: string, params?: any[]): Promise<any> {
+async function simpleQuery(
+  query: string,
+  params?: any[],
+  tries?: number
+): Promise<any> {
   return new Promise((resolveQuery, rejectQuery) => {
     getPool().getConnection((err, conn) => {
       if (err) {
@@ -95,11 +99,23 @@ async function simpleQuery(query: string, params?: any[]): Promise<any> {
     // console.log('[SQL_SIMPLE] %s %s', query, params)
     getPool().query(query, params, (err: MysqlError, results: any[]) => {
       if (err) {
+        if (tries && tries > 3) {
+          return rejectQuery(err)
+        }
         // Attempt to reconnect
         // since this usually errors out due to
         // connection being closed
         if (err.code === 'POOL_CLOSED') {
           pool = getPool(true)
+          simpleQuery(query, params, (tries && tries++) || 1)
+            .then(resolveQuery)
+            .catch(rejectQuery)
+          return
+        } else if (err.code === 'ETIMEDOUT') {
+          simpleQuery(query, params, (tries && tries++) || 1)
+            .then(resolveQuery)
+            .catch(rejectQuery)
+          return
         }
         return rejectQuery(err)
       }

@@ -183,48 +183,53 @@ export async function constructForms() {
               allTables[table].tableId, // table_reference
               null // form_args
             ]
-            simpleQuery('INSERT INTO sys_form VALUES ?', [[initialForm]]).catch(
-              handleError
-            )
+            simpleQuery('INSERT INTO sys_form VALUES ?', [[initialForm]])
+              .then(() => {
+                const fields = {}
+                Object.keys(allTables[table].columns).forEach((col) => {
+                  if (
+                    allTables[table].columns[col] &&
+                    (allTables[table].columns[col].visible ||
+                      col === allTables[table].primaryKey)
+                  ) {
+                    const thisCol: ITableField = allTables[table].columns[col]
+                    thisCol.label = col || ''
+                    fields[col] = thisCol
+                  }
+                })
 
-            const fields = {}
-            Object.keys(allTables[table].columns).forEach((col) => {
-              if (
-                allTables[table].columns[col] &&
-                (allTables[table].columns[col].visible ||
-                  col === allTables[table].primaryKey)
-              ) {
-                const thisCol: ITableField = allTables[table].columns[col]
-                thisCol.label = col || ''
-                fields[col] = thisCol
-              }
-            })
+                const initialFormTab: string[] | null = [
+                  uuid(), // sys_id
+                  initialFormId, // form_id
+                  'general_information', // tab_name
+                  'General Information', // tab_title
+                  null, // table_ref
+                  null, // table_args
+                  JSON.stringify({
+                    fields
+                  }), // fields
+                  null // custom_component
+                ]
 
-            const initialFormTab: string[] | null = [
-              uuid(), // sys_id
-              initialFormId, // form_id
-              'general_information', // tab_name
-              'General Information', // tab_title
-              null, // table_ref
-              null, // table_args
-              JSON.stringify({
-                fields
-              }), // field
-              null // custom_component
-            ]
-
-            simpleQuery('INSERT INTO sys_form_tab VALUES ?', [
-              [initialFormTab]
-            ]).catch(handleError)
+                simpleQuery('INSERT INTO sys_form_tab VALUES ?', [
+                  [initialFormTab]
+                ])
+                  .then(() => {
+                    forms = allForms
+                    return resolveFormCreation(allForms)
+                  })
+                  .catch(rejectFormCreation)
+              })
+              .catch(rejectFormCreation)
           }
         }
 
-        forms = allForms
-        return resolveFormCreation(allForms)
+        resolveFormCreation(allForms)
       })
       .catch((err) => {
         console.error('[FORM_GENERATOR] Error gathering existing forms')
         console.error(err)
+        rejectFormCreation(err)
       })
 
     // const towel = new Towel('sys_form')

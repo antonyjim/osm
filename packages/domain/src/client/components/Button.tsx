@@ -1,3 +1,4 @@
+import * as React from 'react'
 ;`
 Just a sample file for components
 `

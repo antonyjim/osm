@@ -1,3 +1,4 @@
+import * as React from 'react'
 import { Reference, Field, Checkbox } from '../common/FormControls'
 import {
   ISerializedFormControl,
