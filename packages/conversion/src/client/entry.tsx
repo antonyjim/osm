@@ -37,25 +37,28 @@ export default function ConvertModule(props: any) {
         makeReq = submitValue(inpVal)
       }
       makeReq.then(setChuckinsCode).catch(setErr)
-    } else {
+    } else if (e.keyCode > 43 && e.keyCode < 90) {
       setInpVal(inpVal + e.key)
+    } else if (e.keyCode === 8) {
+      setInpVal(inpVal.slice(0, -1))
     }
   }
 
   return (
-    <div className='row'>
+    <div className='row py-5'>
       <div className='col'></div>
       <div className='col-sm-10 col-md-8'>
         {err && <div className='alert alert-danger'>{err}</div>}
         <pre>{chuckinsCode}</pre>
         <input
-          style={{
-            width: '100%',
-            height: '1.4em',
-            background: 'transparent',
-            border: 'none',
-            outline: 'none'
-          }}
+          // style={{
+          //   width: '100%',
+          //   height: '1.4em',
+          //   background: 'transparent',
+          //   border: 'none',
+          //   outline: 'none'
+          // }}
+          className='form-control w-100'
           autoFocus={true}
           onKeyDown={handleInput}
           onChange={noop}
