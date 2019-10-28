@@ -14,6 +14,7 @@ interface ITextField {
   readOnly?: boolean
   maxLength?: number
   onChange?: React.ChangeEventHandler<HTMLInputElement>
+  caption?: string
 }
 
 function Field(props: ITextField): JSX.Element {
@@ -43,6 +44,11 @@ function Field(props: ITextField): JSX.Element {
         maxLength={props.maxLength}
         readOnly={props.readOnly ? 'readonly' : false}
       />
+      {props.caption ? (
+        <small className='text-muted form-text'>{props.caption}</small>
+      ) : (
+        <></>
+      )}
     </div>
   ) : (
     <></>

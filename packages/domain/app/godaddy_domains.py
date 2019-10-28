@@ -69,20 +69,36 @@ def update_domain_all_dns(domain, domain_details):
 
 
 # See https://developer.godaddy.com/doc/endpoint/domains#/v1/recordReplaceTypeName
-def update_single_domain_record(domain, record):
-    if record["type"] is not None and record["name"] is not None:
+def update_single_domain_record(domain, values):
+    if not "name" in values or not "data" in values:
+        return {
+            "success": False,
+            "errors": [
+                {"message": "name and data are required attributes to update record"}
+            ],
+        }
+    elif not "ttl" in values:
+        values["ttl"] = 3600
+    elif not "type" in values:
+        return {
+            "success": False,
+            "errors": [{"message": "type is required to update record"}],
+        }
+    elif values["type"] is not None and values["name"] is not None:
         domain_record_update_request = Request(
             url=base_domain
             + "/v1/domains/"
             + domain
             + "/records/"
-            + record["type"]
+            + values["type"]
             + "/"
-            + record["name"],
-            data=record,
+            + values["name"],
+            data=values,
             method="PUT",
             headers=headers,
         )
         domain_record_update = urlopen(domain_record_update_request)
         return handle_response(domain_record_update, False)
+    else:
+        return {"success": False, "errors": [{"message": "An unknown error occurred"}]}
 

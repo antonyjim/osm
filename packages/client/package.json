@@ -80,7 +80,7 @@
     "start": "node scripts/start.js",
     "build": "webpack --config ./config/webpack.config.js",
     "debug-client": "webpack --config ../core/resources/webpack/client.webpack.config.js",
-    "watch": "webpack --config ./config/webpack.config.js --watch",
+    "watch": "webpack --config ../core/resources/webpack/client.webpack.config.js --watch",
     "test": "node scripts/test.js"
   },
   "eslintConfig": {

@@ -12,75 +12,21 @@ import { sign } from 'jsonwebtoken'
 // Local Modules
 import { jwtKeys } from '../middleware/authentication'
 import { adminRoutes } from './admin'
-import { login, getToken, sysUser } from '../../app/users/login'
-import { IStatusMessage } from '../../types/server'
-import { jwtSecret } from '../../lib/connection'
+import { login, getToken, sysUser } from '@app/users/login'
+import { IStatusMessage } from '@osm/server'
+import { jwtSecret } from '@lib/connection'
 import { q } from './q'
 import * as bodyParser from 'body-parser'
-import { UserTypes } from '../../types/users'
+import { UserTypes } from '@osm/users'
 import useradminRoutes from './users'
 import descriptions from './descriptions'
 import { excelRoute } from './excel'
-import { getRoleAuthorizedNavigation } from '../../app/navigation/navigation'
+import { getRoleAuthorizedNavigation } from '@app/navigation/navigation'
 import { fileRouter } from './fileHandler'
 import { ccRoutes } from './customComponents'
 
 // Constants and global variables
 const apiRoutes = Router()
-
-apiRoutes.get('/getToken', (req: Request, res: Response) => {
-  if (req.query.username && req.query.password) {
-    login({ username: req.query.username, password: req.query.password })
-      .then(
-        (onSuccessfulAuthentication: IStatusMessage) => {
-          const payload: UserTypes.IAuthToken = {
-            [jwtKeys.isAuthenticated]: true,
-            [jwtKeys.user]: onSuccessfulAuthentication.details[sysUser.userId],
-            [jwtKeys.claimLevel]:
-              onSuccessfulAuthentication.details[sysUser.claimLevel],
-            [jwtKeys.claim]: onSuccessfulAuthentication.details[sysUser.claim]
-          }
-          const token = getToken(payload)
-          res.status(200).json({
-            token,
-            error: false,
-            message: 'Success'
-          })
-          /*
-            sign(payload, jwtSecret, {expiresIn: '5h'}, function(err: Error, token: string) {
-                if (err) throw err
-                res.status(200).json({
-                    token,
-                    error: false,
-                    message: 'Success'
-                })
-            })
-            */
-        },
-        (onUnSuccessfulAuthentication: IStatusMessage) => {
-          res.status(200).json({
-            error: true,
-            message: onUnSuccessfulAuthentication.message
-          })
-        }
-      )
-      .catch((err) => {
-        console.error(err)
-        res.status(500).json({
-          error: true,
-          message: err
-        })
-      })
-  } else {
-    res.status(401).json({
-      error: {
-        message: 'Invalid username or password',
-        code: 401
-      },
-      success: false
-    })
-  }
-})
 
 apiRoutes.use('/excel', excelRoute)
 // apiRoutes.use(apiTokenValidation())

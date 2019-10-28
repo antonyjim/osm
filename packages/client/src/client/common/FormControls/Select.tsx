@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Component } from 'react'
+import { generateKeyHash } from '@lib/util'
 interface ISelectFieldProps {
   id?: string
   name: string
@@ -11,6 +12,13 @@ interface ISelectFieldState {
   selectId: string
   id?: string
 }
+
+interface ISelectOpt {
+  value: string
+  text: string
+}
+
+export type SelectOpt = string[] | ISelectOpt[]
 
 class SelectField extends Component<any, any> {
   constructor(props) {
@@ -43,13 +51,13 @@ class SelectField extends Component<any, any> {
       this.props.opts.forEach((opt) => {
         if (typeof opt === 'string') {
           options.push(
-            <option value={opt} key={Math.floor(Math.random() * 1000000)}>
+            <option value={opt} key={generateKeyHash()}>
               {opt}
             </option>
           )
         } else {
           options.push(
-            <option value={opt.value} key={Math.floor(Math.random() * 1000000)}>
+            <option value={opt.value} key={generateKeyHash()}>
               {opt.text}
             </option>
           )
@@ -59,10 +67,7 @@ class SelectField extends Component<any, any> {
 
     if (this.props.otherField) {
       options.push(
-        <option
-          value='otherSelection'
-          key={Math.floor(Math.random() * 1000000)}
-        >
+        <option value='otherSelection' key={generateKeyHash()}>
           Other
         </option>
       )

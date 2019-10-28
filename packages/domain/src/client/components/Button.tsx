@@ -8,5 +8,9 @@ function handleClick(e: React.MouseEvent) {
 }
 
 export default function Button() {
-  return <button className='btn btn-success p-5 m-2'>Click Me!</button>
+  return (
+    <button className='btn btn-success p-5 m-2' onClick={handleClick}>
+      Click Me!
+    </button>
+  )
 }

@@ -1,8 +1,10 @@
 // import * as Towel from '../Towel'
 import { ConnectionConfig, Pool, Connection } from 'mysql'
 import { evaluateFieldOperator } from '@lib/towel/internals/builder/evalOperator'
-import { init } from './internals/connection'
 import { TowelTypes } from './types/towel'
+import { tables } from '@app/model/constructSchema'
+import { IDictionary } from './types/schema'
+import { queryBuilder } from './internals/builder'
 
 // import { Towel } from '../Towel'
 
@@ -45,6 +47,8 @@ export class Towel {
   constructor(table: string, queryFieldList?: string[]) {
     if (!table) {
       throw new Error('Table must be provided to towel!')
+    } else if (!(table in tables)) {
+      throw new Error(table + ' does not exist.')
     }
     if (queryFieldList) {
       this.fieldList = queryFieldList
@@ -52,13 +56,9 @@ export class Towel {
     this.tableName = table
   }
 
-  /**
-   * Provide the towel with database information to establish a connection
-   * and connect to the specified database. Any parameters not defined will
-   * be read from process.env
-   * @param { Object } param0 Provide database information.
-   */
-  public static init = init
+  private runPreflightChecksOnFields({ modFields }: { modFields?: string }) {
+    queryBuilder(this.tableName, this.fieldList)
+  }
 
   /**
    *
@@ -145,11 +145,13 @@ export class Towel {
    * Submits a select query. Returns an array of objects
    * @returns { Promise }
    */
-  public select(): Promise<TowelTypes.IQueryResult[]> {
-    return new Promise((resolve, reject) => {
-      // Return a select query
-      resolve()
-    })
+  public select(): Promise<any[]> {
+    return new Promise(
+      (
+        resolveSelectQuery: (results: any[]) => void,
+        rejectSelectQuery: (err: Error) => void
+      ) => {}
+    )
   }
 
   public add(obj: {

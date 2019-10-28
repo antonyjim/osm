@@ -1,7 +1,6 @@
 // import * as Towel from '../Towel'
 import { ConnectionConfig, Pool, Connection } from 'mysql'
 import { evaluateFieldOperator } from '@lib/towel/internals/builder/evalOperator'
-import { init } from './internals/connection'
 import { TowelTypes } from './types/towel'
 
 // import { Towel } from '../Towel'
@@ -68,14 +67,6 @@ export class TowelRecord {
     this.tableName = table
     this.hasQueried = false
   }
-
-  /**
-   * Provide the towel with database information to establish a connection
-   * and connect to the specified database. Any parameters not defined will
-   * be read from process.env
-   * @param {Object} param0 Provide database information.
-   */
-  public static init = init
 
   /**
    *

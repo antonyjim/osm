@@ -6,15 +6,17 @@ to the client at page load.
 `
 
 import * as React from 'react'
-import { Route, Switch } from 'react-router-dom'
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 
 // Load local components
 import EntryPage from './pages/EntryPage'
 
 export default function MyRoutes(): JSX.Element {
   return (
-    <Switch>
-      <Route path='/domain' component={EntryPage} />
-    </Switch>
+    <Router>
+      <Switch>
+        <Route path='/domain' component={EntryPage} />
+      </Switch>
+    </Router>
   )
 }

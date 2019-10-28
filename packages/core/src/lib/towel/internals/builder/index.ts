@@ -2,10 +2,15 @@ import { getTables } from '@app/model/constructSchema'
 import { ITableField, ITableSchema } from '@osm/forms'
 import { IDictionary } from '@osm/server'
 
+/**
+ * Build a SELECT query based on the provided arguments
+ * @param tableName Name of table being queried
+ * @param fields Fields being queried
+ */
 export function queryBuilder(tableName: string, fields: string[] | string) {
   const warnings = []
-  const schema: ITableSchema | IDictionary<ITableSchema> = getTables()
-  const tableCols: { [id: string]: ITableField } = schema[tableName].columns
+  const schema: ITableSchema = <ITableSchema>getTables(tableName)
+  const tableCols: IDictionary<ITableField> = schema.columns
   const validFields: string[] = []
   const fieldPlaceholderValues: string[] = []
   const fieldPlaceholders: string[] = []
@@ -17,12 +22,12 @@ export function queryBuilder(tableName: string, fields: string[] | string) {
   let fromStatement: string = ' FROM ?? ?? '
   let fieldArr: string[]
   if ((fields && fields[0] === '*') || !fields) {
-    fieldArr = schema[tableName].defaultFields
+    fieldArr = schema.defaultFields
   } else if (!Array.isArray(fields) || fields.length === 0) {
     if (fields && fields.length > 0 && typeof fields === 'string') {
       fieldArr = fields.split(',')
     } else {
-      fieldArr = schema[tableName].defaultFields
+      fieldArr = schema.defaultFields
     }
   } else fieldArr = fields
 
@@ -83,7 +88,7 @@ export function queryBuilder(tableName: string, fields: string[] | string) {
           refCol.displayAs,
           qField + '_display',
           alias,
-          schema[refCol.refTable].primaryKey,
+          (<ITableSchema>getTables(refCol.refTable)).primaryKey,
           qField
         )
         fieldPlaceholders.push('??.?? AS ??', '??.?? AS ??')

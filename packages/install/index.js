@@ -115,9 +115,6 @@ module.exports = function (singlePackage, callback) {
           encoding: 'utf8'
         })
 
-        // Call the callback with a null for success
-        return cb(null)
-
       })
 
     }).catch(cb)
@@ -129,6 +126,10 @@ module.exports = function (singlePackage, callback) {
       allSqlFiles.forEach(function (fileToDelete) {
         unlinkSync(join(__dirname, fileToDelete))
       })
+
+
+      // Call the callback with a null for success
+      return cb(null)
 
     })
 }

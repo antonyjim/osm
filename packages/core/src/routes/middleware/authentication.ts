@@ -155,7 +155,7 @@ export function tokenValidation() {
 
 export function requireAuthentication() {
   return (req: Request, res: Response, next: NextFunction) => {
-    if (req.auth[jwtKeys.isAuthenticated]) {
+    if (req.auth && req.auth[jwtKeys.isAuthenticated]) {
       next()
     } else {
       res.status(401).json({

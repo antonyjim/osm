@@ -13,6 +13,7 @@ from godaddy_domains import (
     get_domains,
     get_all_domain_records,
     get_specific_domain_record,
+    update_single_domain_record,
 )
 
 
@@ -29,9 +30,13 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
     def get_domain(domain_name: str):
         return get_all_domain_records(domain_name)
 
-    @app.route("/domain/<domain_name>/records/<rec_type>/<rec_name>")
+    @app.route("/domain/<domain_name>/records/<rec_type>/<rec_name>", methods=["GET"])
     def get_specific_record(domain_name, rec_type, rec_name):
         return get_specific_domain_record(domain_name, rec_type, rec_name)
+
+    @app.route("/domain/<domain_name>/records/<rec_type>/<rec_name>", methods=["PUT"])
+    def update_specific_record(domain_name, rec_type, rec_name):
+        return update_single_domain_record(domain_name, request.values)
 
     return app
 

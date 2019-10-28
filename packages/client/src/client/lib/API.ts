@@ -74,7 +74,7 @@ function makeFetchRequest(
 }
 
 function flattenQuery(queryObject?: any) {
-  const queryStringArray = [`token=${window.OSM.session.token || ''}`]
+  const queryStringArray: string[] = [] // `token=${window.OSM.session.token || ''}`
   if (queryObject && typeof queryObject === 'object') {
     Object.keys(queryObject).map((queryKey) => {
       queryStringArray.push(
@@ -151,7 +151,15 @@ const API = {
    * @param {object} query Query string parameters in object format
    * @param {object} body Body of update parameters
    */
-  put: ({ path, query, body }: { path: string; query: string; body: any }) => {
+  put: <T>({
+    path,
+    query,
+    body
+  }: {
+    path: string
+    query?: IDictionary<string>
+    body: any
+  }): Promise<T> => {
     const authPath = path + '?' + flattenQuery(query)
 
     return new Promise((resolve, reject) => {
