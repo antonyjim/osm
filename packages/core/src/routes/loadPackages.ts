@@ -120,10 +120,19 @@ export default function loadPackages(
       }
 
       if (osmDetails.baseApiPath && osmDetails.entry.lib) {
-        router.use(
+        apiRouter.use(
           osmDetails.baseApiPath.replace(/^\/api/, ''),
           require(resolve(packageDir, packageName, osmDetails.entry.api))
         )
+      } else if (osmDetails.baseApiPath && osmDetails.entry.api) {
+        try {
+          apiRouter.use(
+            osmDetails.baseApiPath.replace(/^\/api/, ''),
+            require(resolve(packageDir, packageName, osmDetails.entry.api))
+          )
+        } catch (e) {
+          logger(e)
+        }
       }
 
       // If we have a baseApiPath and proxy and we are using the core

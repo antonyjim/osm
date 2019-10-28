@@ -20,6 +20,11 @@ const UserProfile = React.lazy(() => import('./home/UserProfile'))
 /// #if PACKAGE_DOMAIN
 const DomainClient = React.lazy(() => import('@domain/index'))
 /// #endif
+/// #if PACKAGE_CONVERSION
+const ConvertClient = React.lazy(() =>
+  import('../../../conversion/src/client/entry')
+)
+/// #endif
 
 // Handle pesky window types
 declare global {
@@ -134,6 +139,10 @@ export default function App() {
                   <Route path='/c/:componentTitle' component={Workspace} />
                   /// #if PACKAGE_DOMAIN
                   <Route path='/domain' component={DomainClient} />
+                  /// #endif
+                  {/*Conversion*/}
+                  /// #if PACKAGE_CONVERSION
+                  <Route path='/convert' component={ConvertClient} />
                   /// #endif
                   <Route component={E404} />
                 </Switch>

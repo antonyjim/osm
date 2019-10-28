@@ -27,7 +27,16 @@ import { staticDir } from '@config'
 const authRoutes = Router()
 
 authRoutes.get('/login', (req: Request, res: Response) => {
-  res.cookie('token', null)
+  res.cookie(
+    'token',
+    getToken({
+      [jwtKeys.isAuthenticated]: false,
+      [jwtKeys.isAuthorized]: false,
+      [jwtKeys.user]: null,
+      [jwtKeys.claimLevel]: 'g',
+      [jwtKeys.claim]: null
+    })
+  )
   res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' })
   const fileStream = createReadStream(resolve(staticDir, 'login.html'))
   fileStream.on('data', (data) => {

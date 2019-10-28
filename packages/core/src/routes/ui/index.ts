@@ -11,7 +11,11 @@ import { resolve, join } from 'path'
 import { Router, Request, Response } from 'express'
 
 // Local Modules
-import { tokenValidation, jwtKeys } from './../middleware/authentication'
+import {
+  tokenValidation,
+  jwtKeys,
+  requireAuthentication
+} from './../middleware/authentication'
 import authRoutes from './login'
 import verifyRoutes from './verification'
 import { getHostname } from '@lib/utils'
@@ -27,6 +31,7 @@ export default function(): Promise<Router> {
     const uiRoutes = Router()
 
     uiRoutes.use(tokenValidation())
+    uiRoutes.use(requireAuthentication())
     uiRoutes.use('/auth', authRoutes)
     uiRoutes.use('/verify', verifyRoutes)
 

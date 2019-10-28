@@ -34,6 +34,9 @@ module.exports = (function (env, argv) {
   const isProduction = env.NODE_ENV === 'production'
   const uniqueBuildId = generateRandomHash()
   const buildOpts = {}
+  const includeDirs = [
+    resolve(packagesDir, 'client', 'src', 'client')
+  ]
 
   process.env.OSM_BUILD_ID = uniqueBuildId
   updateInstall(uniqueBuildId)
@@ -52,55 +55,50 @@ module.exports = (function (env, argv) {
   // Find the nearest `src` folder by starting at cwd,
   // then working up to the root dir
   return new Promise(function config(resolveConfig, rejectConfig) {
-    new Promise(function findSrcDir(resolveSrc, rejectSrc) {
-        let cwd = process.cwd()
-        let srcDir = null
-        let isRoot = false
-        let nextCwd = cwd
+    new Promise(function findAllPackages(resolvePackages, rejectPackages) {
+        const mainPackage = JSON.parse(readFileSync(resolve(packagesDir, '..', '.installed')).toString())
+        const enabledPackages = mainPackage.packages.filter(function (pkg) {
+          return pkg.enabled === true
+        })
 
-        while (!srcDir) {
-          const thisDirFiles = readdirSync(nextCwd)
-          if (thisDirFiles.indexOf('src') > -1) {
-            srcDir = nextCwd
-            break
-          } else if (nextCwd === resolve('/')) {
-            isRoot = true
-            break
-          } else {
-            nextCwd = resolve(nextCwd, '..')
-          }
-        }
+        const pkgs = []
 
-        // Check if srcDir has been resolved
-        if (srcDir !== null) {
-          resolveSrc(resolve(srcDir))
-        } else {
-          rejectConfig(new Error('Could not locate source directory'))
-        }
+        enabledPackages.forEach(function (enPkg) {
+          const pkgJson = require(resolve(packagesDir, enPkg.name, 'package.json'))
+          pkgs.push(pkgJson)
+        })
+
+        resolvePackages(pkgs)
       })
-      .then(function withSrc(resolvedSrcDir) {
-        const package = require(resolve(resolvedSrcDir, 'package.json'))
-        const packageName = package.name
+      .then(function withPkgs(resolvedPkgs) {
         const entryPoints = {}
-        if (package.OSM && package.OSM.entry && package.OSM.entry.lib) {
-          entryPoints[packageName + '_lib'] = resolve(resolvedSrcDir, 'src', package.OSM.entry.lib)
-        }
 
-        // Look for the type of client we are working iwth.
-        // For `core` clients, we will be building with the normal
-        // config settings.
-        // Any other client type needs its own config
-        if (package.OSM && package.OSM.client === 'core') {
-          entryPoints['client'] = resolve(packagesDir, 'client', 'src', 'client', 'index.tsx')
-        } else if (package.OSM && package.OSM.client === 'standalone' && package.OSM.entry.client) {
-          console.warn('%s has a package type of %s, but an entry point for client was also provided, \
-this entry point will be ignored. %s clients require a seperate webpack configuration.', package.name, package.OSM.client, package.OSM.client)
-        }
+        resolvedPkgs.forEach(function (pkg) {
+          // if (pkg.OSM && pkg.OSM.entry && pkg.OSM.entry.lib) {
+          //   entryPoints[packageName + '_lib'] = resolve(packagesDir, pkg.name, package.OSM.entry.lib)
+          // }
+
+          // Look for the type of client we are working iwth.
+          // For `core` clients, we will be building with the normal
+          // config settings.
+          // Any other client type needs its own config
+          if (pkg.OSM && pkg.OSM.client === 'core') {
+            entryPoints['client'] = resolve(packagesDir, 'client', 'src', 'client', 'index.tsx')
+            // If we have an entry point, be sure to add it to the include dirs
+            if (pkg.OSM.entry.client) {
+              includeDirs.push(resolve(packagesDir, pkg.name, pkg.OSM.entry.client, '..'))
+            }
+          } else if (pkg.OSM && pkg.OSM.client === 'standalone' && pkg.OSM.entry.client) {
+            console.warn('%s has a package type of %s, but an entry point for client was also provided, \
+  this entry point will be ignored. %s clients require a seperate webpack configuration.', pkg.name, pkg.OSM.client, pkg.OSM.client)
+          }
+        })
+
 
         return resolveConfig({
           mode: isProduction ? 'production' : 'development',
           devtool: isProduction === 'production' ? 'source-maps' : 'eval',
-          context: resolve(resolvedSrcDir),
+          context: resolve(packagesDir, 'client'),
           entry: {
             ...entryPoints
           },
@@ -133,19 +131,13 @@ this entry point will be ignored. %s clients require a seperate webpack configur
               {
                 test: /\.(j|t)sx?$/,
                 exclude: /node_modules/,
-                include: [
-                  resolve(__dirname, '..', '..', '..', 'domain', 'src'),
-                  resolve(__dirname, '..', '..', '..', 'client', 'src')
-                ],
+                include: includeDirs,
                 loader: require.resolve(resolve(__dirname, './utils/apiRequestGenerator'))
               },
               {
                 test: /\.tsx?$/,
                 exclude: /node_modules/,
-                include: [
-                  resolve(__dirname, '..', '..', '..', 'domain', 'src'),
-                  resolve(__dirname, '..', '..', '..', 'client', 'src')
-                ],
+                include: includeDirs,
                 loader: require.resolve(resolve(__dirname, '..', '..', 'node_modules', 'ts-loader')),
                 options: {
                   transpileOnly: true,
@@ -153,21 +145,15 @@ this entry point will be ignored. %s clients require a seperate webpack configur
                 }
               },
               {
-                test: /\.js$/,
+                test: /\.(j|t)sx?$/,
                 exclude: /node_modules/,
-                include: [
-                  resolve(__dirname, '..', '..', '..', 'domain', 'src'),
-                  resolve(__dirname, '..', '..', '..', 'client', 'src')
-                ],
-                loader: 'source-map-loader'
+                include: includeDirs,
+                loader: require.resolve(resolve(packagesDir, 'client', 'node_modules', 'source-map-loader'))
               },
               {
                 test: /\.(j|t)sx?$/,
                 exclude: /node_modules/,
-                include: [
-                  resolve(__dirname, '..', '..', '..', 'domain', 'src'),
-                  resolve(__dirname, '..', '..', '..', 'client', 'src')
-                ],
+                include: includeDirs,
                 loader: require.resolve(resolve(packagesDir, 'client', 'node_modules', 'ifdef-loader')),
                 options: buildOpts
               },
@@ -185,7 +171,9 @@ this entry point will be ignored. %s clients require a seperate webpack configur
 
           },
           plugins: [
-            new ForkTsCheckerWebpackPlugin(),
+            new ForkTsCheckerWebpackPlugin({
+              tsconfig: resolve(packagesDir, 'client', 'tsconfig.json')
+            }),
             new HtmlWebpackPlugin(
               Object.assign({}, {
                   inject: true,

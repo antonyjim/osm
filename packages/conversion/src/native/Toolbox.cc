@@ -53,7 +53,7 @@ USD2CAN |Speed| |     | |     | |     |   |\n\
 |                                         |\n\
 |~Enter # greater than 10 to exit program~|\n\
 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|\n\
-Please Enter Desired Tool # :";
+Please Enter Desired Tool # :\n";
 
     // Just return the menu
     args.GetReturnValue().Set(v8::String::NewFromUtf8(isolate, menu_display, v8::NewStringType::kNormal).ToLocalChecked());

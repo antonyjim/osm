@@ -10,7 +10,7 @@ import { Router, Request, Response } from 'express'
 import { sign } from 'jsonwebtoken'
 
 // Local Modules
-import { jwtKeys } from '../middleware/authentication'
+import { jwtKeys, requireAuthentication } from '../middleware/authentication'
 import { adminRoutes } from './admin'
 import { login, getToken, sysUser } from '@app/users/login'
 import { IStatusMessage } from '@osm/server'
@@ -28,6 +28,7 @@ import { ccRoutes } from './customComponents'
 // Constants and global variables
 const apiRoutes = Router()
 
+apiRoutes.use(requireAuthentication())
 apiRoutes.use('/excel', excelRoute)
 // apiRoutes.use(apiTokenValidation())
 apiRoutes.use('/describe', descriptions)

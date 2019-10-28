@@ -143,7 +143,6 @@ function getRoutes(): Promise<Router> {
             })
           }
         })
-        router.use(requireAuthentication())
         router.use(bodyParser.json())
         // Parse cookies on routes that return a webpage
         router.use(cookieParser())

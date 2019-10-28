@@ -6,6 +6,7 @@ import { generateKeyHash } from '../../lib/util'
 
 interface ITableRowProps {
   showSelect?: boolean
+  table?: string
   cells: any
   id: string
   onSelectKey?: MouseEventHandler
@@ -59,11 +60,13 @@ export function TableRow(props: ITableRowProps) {
           </td>
         )
       } else if (thisCol.display) {
+        // For display fields, we need to link to the form for
+        // the current table
         cells.push(
           <td key={generateKeyHash()} tabIndex={0}>
             <div className='data-table-text-cell'>
               <Link
-                to={`/f/${thisCol.display}/${props.cells[props.id] || '#'}`}
+                to={`/f/${props.table}/${props.cells[props.id] || '#'}`}
                 className='align-middle'
               >
                 {val || ''}
