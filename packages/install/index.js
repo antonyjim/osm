@@ -21,7 +21,13 @@ const connection = require('../core/dist/lib/connection').overrideConnectionVar(
 const transformSql = require('./schema_transform')
 
 const packagesDir = join(__dirname, 'packages')
-const packages = readdirSync(packagesDir)
+const packages = readdirSync(packagesDir).sort(function (a, b) {
+  if (a === 'core') {
+    return -1
+  } else {
+    return 0
+  }
+})
 const sourceDirs = join(__dirname, '..')
 let enabledPackages = []
 const installFile = join(sourceDirs, '..', '.installed')
@@ -43,7 +49,7 @@ module.exports = function (singlePackage, callback) {
   function handlePackageInstallation(package, reinstall) {
     const allFiles = readdirSync(join(packagesDir, package))
     const packagePackageJSON = require(join(sourceDirs, package, 'package.json'))
-    if (!reinstall && enabledPackages.find(p => {
+    if (reinstall !== true && enabledPackages.find(p => {
         return p.name === package && p.enabled
       })) {
       return
@@ -69,6 +75,11 @@ module.exports = function (singlePackage, callback) {
           sqlSourceQueries.push(new Promise((resolve, reject) => {
             const sqlSourceContents = transformSql(indexSqlFile, package)
             connection.query(readFileSync(sqlSourceContents).toString(), (err, results) => {
+              try {
+                unlinkSync(sqlSourceContents)
+              } catch (e) {
+                void e
+              }
               if (err) {
                 return reject(err)
               }

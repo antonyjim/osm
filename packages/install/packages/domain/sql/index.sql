@@ -1,6 +1,7 @@
 /* Create domain information tables */
 
 /* Store top-level domain information */
+/* DROP TABLE IF EXISTS {{database}}.ds_tl_domain;
 CREATE TABLE {{database}}.ds_tl_domain (
   PRIMARY KEY(sys_id),
   sys_id CHAR(36),
@@ -8,9 +9,10 @@ CREATE TABLE {{database}}.ds_tl_domain (
   created_at DATETIME,
   last_updated DATETIME,
   last_viewed DATETIME
-) CHARSET=utf8;
+) CHARSET=utf8; */
 
 /* Store each record and that record's information */
+/* DROP TABLE IF EXISTS {{database}}.ds_domain_record;
 CREATE TABLE {{database}}.ds_domain_record (
   PRIMARY KEY(sys_id),
   sys_id CHAR(36),
@@ -22,6 +24,6 @@ CREATE TABLE {{database}}.ds_domain_record (
 
   FOREIGN KEY(tl_domain)
     REFERENCES ds_tl_domain(sys_id)
-    ON DELETE CASCADE
     ON UPDATE CASCADE
-) CHARSET=utf8;
+    ON DELETE CASCADE
+) CHARSET=utf8; */
