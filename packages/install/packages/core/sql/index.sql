@@ -142,7 +142,7 @@ INSERT INTO sys_navigation (sys_id, inner_text, path_name, header, menu, role_re
 ), (
     'f334d193-1111-4402-a073-d238ee5dd431',
     'Dictionary',
-    '/t/sys_db_dictionary',
+    '/t/sys_db_dictionary_list',
     'DB Administration',
     'Admin',
     'd6692dc1-9d32-4894-badf95820d09431b'

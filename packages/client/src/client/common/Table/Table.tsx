@@ -596,7 +596,6 @@ export class Table extends Component<ITableProps, ITableState> {
             onSelectKey={this.props.selectReference}
             handleInlineUpdate={this.handleInlineUpdate.bind(this)}
             permissions={this.state.permissions}
-            table={this.state.table}
           />
         )
       }
