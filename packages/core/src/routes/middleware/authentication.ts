@@ -157,6 +157,8 @@ export function requireAuthentication() {
   return (req: Request, res: Response, next: NextFunction) => {
     if (req.auth && req.auth[jwtKeys.isAuthenticated]) {
       next()
+    } else if (!req.path.startsWith('/api')) {
+      res.redirect(302, '/auth/login?returnUrl=' + req.originalUrl)
     } else {
       res.status(401).json({
         error: true,

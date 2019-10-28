@@ -31,8 +31,8 @@ export default function(): Promise<Router> {
     const uiRoutes = Router()
 
     uiRoutes.use(tokenValidation())
-    uiRoutes.use(requireAuthentication())
     uiRoutes.use('/auth', authRoutes)
+    uiRoutes.use(requireAuthentication())
     uiRoutes.use('/verify', verifyRoutes)
 
     // If nginx is in use, /wetty will auto proxy pass to the locally running instance.
