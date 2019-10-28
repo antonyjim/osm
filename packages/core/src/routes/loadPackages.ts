@@ -33,8 +33,7 @@ function spawnChild(
     env: {
       ...process.env,
       ['OSM_PROXY_LISTEN_' + packageName.toUpperCase()]: port
-    },
-    stdio: 'pipe'
+    }
   })
 
   logger(
@@ -42,6 +41,14 @@ function spawnChild(
     port,
     workerProcess.pid
   )
+
+  workerProcess.unref()
+  workerProcess.stdout.on('data', (log) => {
+    console.log(log.toString())
+  })
+  workerProcess.stderr.on('data', (log) => {
+    console.error(log.toString())
+  })
 
   workerProcess.on('error', logger)
 
@@ -55,7 +62,9 @@ function spawnChild(
       }
     })
 
-    workers.push([port, spawnChild(spawnArgs, packageDir, packageName, port)])
+    setTimeout(() => {
+      workers.push([port, spawnChild(spawnArgs, packageDir, packageName, port)])
+    }, 1000)
   })
 
   workers.push([port, workerProcess])
