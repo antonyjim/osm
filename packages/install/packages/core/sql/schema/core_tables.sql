@@ -63,6 +63,16 @@ CREATE TABLE sys_organization_unit (
         ON DELETE RESTRICT
 ) CHARSET=utf8;
 
+/* Store meta information about application */
+CREATE TABLE {{database}}.sys_app_env (
+  PRIMARY KEY(sys_auto_id),
+  sys_auto_id INT AUTO_INCREMENT,
+  env_key VARCHAR(40),
+  env_value JSON,
+
+  INDEX(env_key)
+) CHARSET=utf8;
+
 /*
   Each access role will have it's own permissions stored here.
   Roles can also inherit other roles using the inherits field.

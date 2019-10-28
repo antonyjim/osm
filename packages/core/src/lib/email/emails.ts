@@ -25,7 +25,7 @@ export default class Email extends Querynator {
     this.tableName = 'email_message'
     this.primaryKey = 'sys_id'
     this.transporter = createTransport({
-      host: process.env.HOST || 'smtp.ethereal.email',
+      host: process.env.SMTP_HOST || 'smtp.ethereal.email',
       port: parseInt(process.env.SMTP_PORT, 10) || 587,
       auth: {
         user: process.env.SMTP_USER || '',

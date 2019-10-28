@@ -26,7 +26,7 @@ const databaseConfig: ConnectionConfig = {
 }
 const poolConfig: PoolConfig = {
   ...databaseConfig,
-  connectionLimit: parseInt(process.env.DB_POOL_LIMIT, 10) || 1
+  connectionLimit: parseInt(process.env.DB_POOL_LIMIT, 10) || 2
 }
 
 const MAX_SQL_COL: number = 750
