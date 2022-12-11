@@ -9,7 +9,7 @@
         "@babel/core": "7.2.2",
         "@svgr/webpack": "4.1.0",
         "bindings": "*",
-        "express": "^4.16.3",
+        "express": "^4.17.3",
         "jest": "23.6.0"
     },
     "OSM": {
